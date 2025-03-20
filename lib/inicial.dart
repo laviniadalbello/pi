@@ -138,8 +138,8 @@ class _InicialState extends State<Inicial> {
 
                   const SizedBox(
                     height: 34,
-                  ), // Espaço entre o botão e o subtítulo
-                  /// 🔹 *Subtítulo "ALREADY HAVE AN ACCOUNT? LOG IN"*
+                  ), 
+             
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -147,8 +147,8 @@ class _InicialState extends State<Inicial> {
                         "  DON´T HAVE AN ACCOUNT? ",
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: FontWeight.w300, // Peso Light
-                          color: Colors.white, // Texto em branco
+                          fontWeight: FontWeight.w300, 
+                          color: Colors.white, 
                         ),
                       ),
                       GestureDetector(
@@ -159,7 +159,7 @@ class _InicialState extends State<Inicial> {
                             fontWeight: FontWeight.bold,
                             color: Color(
                               0xFFBF99F8,
-                            ), // Cor personalizada para "SIGN UP"
+                            ), 
                           ),
                         ),
                       ),
