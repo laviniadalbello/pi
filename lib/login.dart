@@ -1,0 +1,302 @@
+import 'package:flutter/material.dart';
+import 'cadastro.dart';
+
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+ 
+
+
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Stack(
+          children: [
+            Container(color: Colors.black),
+            const AnimatedBlurredBackground(),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Welcome Back",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 46,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                    child: const Text(
+                      "Dear Friend",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 46,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildLoginForm(context),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+Widget _buildLoginForm(BuildContext context) {
+  return SizedBox(
+    width: 320,
+    height: 428,
+    child: Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          const SizedBox(height: 5),
+          const Text(
+            "LOGIN",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 30),
+          _buildTextField("Username"),
+          const SizedBox(height: 15),
+          _buildTextField("Password", obscureText: true),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              "Forgot Password ?",
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ),
+          const SizedBox(height: 15),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+              ).copyWith(
+                backgroundColor: MaterialStateProperty.resolveWith(
+                  (states) => Colors.transparent,
+                ),
+                elevation: MaterialStateProperty.all(0),
+                foregroundColor: MaterialStateProperty.all(Colors.white),
+              ),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Container(
+                  width: 129,
+                  height: 28,
+                  alignment: Alignment.center,
+                  constraints: const BoxConstraints(minHeight: 28),
+                  child: const Text("LOGIN", style: TextStyle(fontSize: 16)),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Divider(
+                  color: Colors.white70,
+                  thickness: 1,
+                  endIndent: 10,
+                ),
+              ),
+              Text(
+                "Login with social accounts",
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+              Expanded(
+                child: Divider(
+                  color: Colors.white70,
+                  thickness: 1,
+                  indent: 10,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.g_translate, color: Colors.white),
+                onPressed: () {},
+              ),
+              IconButton(
+                icon: const Icon(Icons.facebook, color: Colors.white),
+                onPressed: () {},
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+         Center(
+  child: GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const CadastroPage()),
+      );
+    },
+    child: RichText(
+      text: const TextSpan(
+        text: "Don't have an account? ",
+        style: TextStyle(color: Colors.white70, fontSize: 12),
+        children: [
+          TextSpan(
+            text: "Sign up",
+            style: TextStyle(
+              color: Color(0xFFBF99F8),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    ),
+  ),
+),
+
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _buildTextField(String label, {bool obscureText = false}) {
+  return TextField(
+    obscureText: obscureText,
+    style: const TextStyle(color: Colors.white),
+    decoration: InputDecoration(
+      labelText: label,
+      labelStyle: const TextStyle(color: Colors.white70),
+      enabledBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.white70),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: const BorderSide(color: Colors.purpleAccent),
+        borderRadius: BorderRadius.circular(10),
+      ),
+    ),
+  );
+}
+
+
+/* fundo animado */
+class AnimatedBlurredBackground extends StatefulWidget {
+  const AnimatedBlurredBackground({super.key});
+
+  @override
+  AnimatedBlurredBackgroundState createState() =>
+      AnimatedBlurredBackgroundState();
+}
+
+class AnimatedBlurredBackgroundState extends State<AnimatedBlurredBackground>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 30),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          size: MediaQuery.of(context).size,
+          painter: BlurredGradientPainter(_controller.value, context),
+        );
+      },
+    );
+  }
+}
+
+class BlurredGradientPainter extends CustomPainter {
+  final double animationValue;
+  final BuildContext context;
+
+  BlurredGradientPainter(this.animationValue, this.context);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint =
+        Paint()..maskFilter = MaskFilter.blur(BlurStyle.normal, 100);
+
+    List<List<Color>> gradientColors = [
+      [Color(0xFF7526D4), Color(0xFFAB82E9)],
+      [Color(0xFF2C26D4), Color(0xFF497FF5)],
+      [Color(0xFFF549D6), Color(0xFFAB82E9)],
+    ];
+
+    List<Offset> positions = [
+      Offset(size.width * 0.2, size.height * 0.2),
+      Offset(size.width * 0.7, size.height * 0.5),
+      Offset(size.width * 0.4, size.height * 0.8),
+    ];
+
+    double circleSize = size.width * 0.4;
+
+    for (int i = 0; i < gradientColors.length; i++) {
+      paint.shader = LinearGradient(
+        colors: gradientColors[i],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Rect.fromCircle(center: positions[i], radius: circleSize));
+      canvas.drawCircle(positions[i], circleSize, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
