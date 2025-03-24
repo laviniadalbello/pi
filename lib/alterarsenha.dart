@@ -11,8 +11,7 @@ class AlterarSenhaPage extends StatefulWidget {
 class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   bool _obscureText = true;
   final _formKey = GlobalKey<FormState>(); // Chave para o formulário
-  final TextEditingController _passwordController = TextEditingController(); // Controlador para o campo de senha
-
+  final TextEditingController _passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,13 +19,13 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         children: [
           Container(color: Colors.black),
           const AnimatedBlurredBackground(),
-               // Ícone de seta para voltar
+
           Positioned(
-            top: 40, // Defina a altura do topo da tela para a seta
-            left: 20, // Posição à esquerda
+            top: 40,
+            left: 20,
             child: GestureDetector(
               onTap: () {
-                Navigator.pop(context); // Volta para a página anterior
+                Navigator.pop(context);
               },
               child: const Icon(
                 Icons.arrow_back,
@@ -50,7 +49,6 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
-  // Função para construir o título
   Widget _buildTitle() {
     return Column(
       children: [
@@ -64,11 +62,12 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
           ),
         ),
         ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ).createShader(bounds),
+          shaderCallback:
+              (bounds) => const LinearGradient(
+                colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
           child: const Text(
             "Password",
             textAlign: TextAlign.center,
@@ -83,7 +82,6 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
-  // Função para construir o formulário de cadastro
   Widget _buildLoginForm(BuildContext context) {
     return SizedBox(
       width: 320,
@@ -108,42 +106,44 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 30,),
-               _buildPasswordField(),
+              const SizedBox(height: 30),
+              _buildPasswordField(),
               const SizedBox(height: 20),
               _buildPassword2Field(),
               const SizedBox(height: 20),
-                Padding(
-  padding: const EdgeInsets.only(left: 20.0), // Espaço de 20 pixels da borda esquerda
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.start, // Alinha à esquerda
-    children: [
-      AnimatedCheckbox(),
-      const SizedBox(width: 8),
-      GestureDetector(
-        onTap: () {},
-        child: RichText(
-          text: const TextSpan(
-            text: "Confirm   password  ",
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-            children: [
-              TextSpan(
-                text: "Change",
-                style: TextStyle(
-                  color: Color(0xFFBF99F8),
-                  fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.only(
+                  left: 20.0,
+                ), // Espaço de 20 pixels da borda esquerda
+                child: Row(
+                  mainAxisAlignment:
+                      MainAxisAlignment.start, // Alinha à esquerda
+                  children: [
+                    AnimatedCheckbox(),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {},
+                      child: RichText(
+                        text: const TextSpan(
+                          text: "Confirm   password  ",
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                          children: [
+                            TextSpan(
+                              text: "Change",
+                              style: TextStyle(
+                                color: Color(0xFFBF99F8),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    ],
-  ),
-),
 
-  
-              const SizedBox(height: 25,),
+              const SizedBox(height: 25),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -176,7 +176,10 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                       height: 28,
                       alignment: Alignment.center,
                       constraints: const BoxConstraints(minHeight: 28),
-                      child: const Text("Change", style: TextStyle(fontSize: 16)),
+                      child: const Text(
+                        "Change",
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ),
@@ -188,8 +191,6 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
-
-  // Função para construir o campo de senha
   Widget _buildPasswordField() {
     return TextFormField(
       controller: _passwordController,
@@ -226,14 +227,17 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         if (value.length < 8) {
           return 'Password must be at least 8 characters';
         }
-        if (!RegExp(r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])').hasMatch(value)) {
+        if (!RegExp(
+          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
+        ).hasMatch(value)) {
           return 'Password must contain letters, numbers, and at least one uppercase letter';
         }
         return null;
       },
     );
   }
-   Widget _buildPassword2Field() {
+
+  Widget _buildPassword2Field() {
     return TextFormField(
       controller: _passwordController,
       obscureText: _obscureText,
@@ -269,7 +273,9 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         if (value.length < 8) {
           return 'Password must be at least 8 characters';
         }
-        if (!RegExp(r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])').hasMatch(value)) {
+        if (!RegExp(
+          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
+        ).hasMatch(value)) {
           return 'Password must contain letters, numbers, and at least one uppercase letter';
         }
         return null;
@@ -277,7 +283,6 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
-  // Função para validar o formulário e submeter
   void _validateAndSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
       _showDialog('Success', 'Registration successful');
@@ -286,7 +291,6 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     }
   }
 
-  // Função para mostrar o dialog de sucesso ou erro
   void _showDialog(String title, String content) {
     showDialog(
       context: context,
@@ -307,7 +311,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 }
-// Widget de checkbox animado
+
 class AnimatedCheckbox extends StatefulWidget {
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
@@ -330,22 +334,28 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox> {
         width: 20,
         height: 20,
         decoration: BoxDecoration(
-          color: isChecked ? const Color.fromARGB(255, 187, 100, 221) : Colors.transparent,
+          color:
+              isChecked
+                  ? const Color.fromARGB(255, 187, 100, 221)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
-            color: isChecked ? const Color.fromARGB(255, 176, 48, 250) : Colors.white70,
+            color:
+                isChecked
+                    ? const Color.fromARGB(255, 176, 48, 250)
+                    : Colors.white70,
             width: 2,
           ),
         ),
-        child: isChecked
-            ? const Icon(Icons.check, color: Colors.white, size: 16)
-            : null,
+        child:
+            isChecked
+                ? const Icon(Icons.check, color: Colors.white, size: 16)
+                : null,
       ),
     );
   }
 }
 
-/* fundo animado */
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 
@@ -394,8 +404,8 @@ class BlurredGradientPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
+    final Paint paint =
+        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
     // Gradientes de cor
     final List<List<Color>> gradientColors = [

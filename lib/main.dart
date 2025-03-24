@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'inicial.dart'; // Certifique-se de importar o arquivo corretamente
+import 'inicial.dart';
 
 void main() {
   runApp(const MyApp());

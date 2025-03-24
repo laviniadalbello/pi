@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'login.dart'; 
+import 'login.dart';
 import 'cadastro.dart';
 
 void main() {
@@ -42,15 +42,13 @@ class _InicialState extends State<Inicial> {
                     ),
                   ),
                   ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [
-                        Color(0xFF3254FF),
-                        Color(0xFFCDA2FF),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      stops: [0.0, 0.6],
-                    ).createShader(bounds),
+                    shaderCallback:
+                        (bounds) => LinearGradient(
+                          colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          stops: [0.0, 0.6],
+                        ).createShader(bounds),
                     child: Text(
                       "PLANIFY",
                       textAlign: TextAlign.center,
@@ -92,10 +90,7 @@ class _InicialState extends State<Inicial> {
                       ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF6735B1),
-                            Color(0xFFAB82E9),
-                          ],
+                          colors: [Color(0xFF6735B1), Color(0xFFAB82E9)],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
@@ -137,40 +132,40 @@ class _InicialState extends State<Inicial> {
                     ),
                   ),
 
-                  const SizedBox(
-                    height: 34,
-                  ), 
-             
-              Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Text(
-      "  DON´T HAVE AN ACCOUNT? ",
-      style: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w300, 
-        color: Colors.white, 
-      ),
-    ),
-    GestureDetector(
-      onTap: () {
-        // Navega para a página de cadastro
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CadastroPage()),
-        );
-      },
-      child: const Text(
-        "SIGN UP", // O texto que será um link
-        style: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Color(0xFFBF99F8), 
-        ),
-      ),
-    ),
-  ],
-),
+                  const SizedBox(height: 34),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "  DON´T HAVE AN ACCOUNT? ",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w300,
+                          color: Colors.white,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          // Navega para a página de cadastro
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CadastroPage(),
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "SIGN UP", // O texto que será um link
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFBF99F8),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

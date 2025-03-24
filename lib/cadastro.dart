@@ -24,11 +24,11 @@ class _CadastroPageState extends State<CadastroPage> {
           const AnimatedBlurredBackground(),
           // Ícone de seta para voltar
           Positioned(
-            top: 40, // Defina a altura do topo da tela para a seta
-            left: 20, // Posição à esquerda
+            top: 40,
+            left: 20,
             child: GestureDetector(
               onTap: () {
-                Navigator.pop(context); // Volta para a página anterior
+                Navigator.pop(context);
               },
               child: const Icon(
                 Icons.arrow_back,
@@ -52,7 +52,6 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  // Função para construir o título
   Widget _buildTitle() {
     return Column(
       children: [
@@ -66,11 +65,12 @@ class _CadastroPageState extends State<CadastroPage> {
           ),
         ),
         ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ).createShader(bounds),
+          shaderCallback:
+              (bounds) => const LinearGradient(
+                colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
           child: const Text(
             "Account",
             textAlign: TextAlign.center,
@@ -85,7 +85,6 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  // Função para construir o formulário de cadastro
   Widget _buildLoginForm(BuildContext context) {
     return SizedBox(
       width: 320,
@@ -175,7 +174,10 @@ class _CadastroPageState extends State<CadastroPage> {
                       height: 28,
                       alignment: Alignment.center,
                       constraints: const BoxConstraints(minHeight: 28),
-                      child: const Text("SIGN UP", style: TextStyle(fontSize: 16)),
+                      child: const Text(
+                        "SIGN UP",
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ),
@@ -187,9 +189,12 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  // Função para construir os campos de texto
-  Widget _buildTextField(String label, TextEditingController controller,
-      {bool obscureText = false, bool isEmail = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool obscureText = false,
+    bool isEmail = false,
+  }) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -210,8 +215,10 @@ class _CadastroPageState extends State<CadastroPage> {
         if (value == null || value.isEmpty) {
           return '$label is required';
         }
-        if (isEmail && !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
-            .hasMatch(value)) {
+        if (isEmail &&
+            !RegExp(
+              r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+            ).hasMatch(value)) {
           return 'Please enter a valid email';
         }
         return null;
@@ -219,7 +226,6 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  // Função para construir o campo de senha
   Widget _buildPasswordField() {
     return TextFormField(
       controller: _passwordController,
@@ -256,7 +262,9 @@ class _CadastroPageState extends State<CadastroPage> {
         if (value.length < 8) {
           return 'Password must be at least 8 characters';
         }
-        if (!RegExp(r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])').hasMatch(value)) {
+        if (!RegExp(
+          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
+        ).hasMatch(value)) {
           return 'Password must contain letters, numbers, and at least one uppercase letter';
         }
         return null;
@@ -264,7 +272,6 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  // Função para validar o formulário e submeter
   void _validateAndSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
       _showDialog('Success', 'Registration successful');
@@ -273,7 +280,6 @@ class _CadastroPageState extends State<CadastroPage> {
     }
   }
 
-  // Função para mostrar o dialog de sucesso ou erro
   void _showDialog(String title, String content) {
     showDialog(
       context: context,
@@ -295,7 +301,6 @@ class _CadastroPageState extends State<CadastroPage> {
   }
 }
 
-// Widget de checkbox animado
 class AnimatedCheckbox extends StatefulWidget {
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
@@ -318,21 +323,28 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox> {
         width: 20,
         height: 20,
         decoration: BoxDecoration(
-          color: isChecked ? const Color.fromARGB(255, 187, 100, 221) : Colors.transparent,
+          color:
+              isChecked
+                  ? const Color.fromARGB(255, 187, 100, 221)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(5),
           border: Border.all(
-            color: isChecked ? const Color.fromARGB(255, 176, 48, 250) : Colors.white70,
+            color:
+                isChecked
+                    ? const Color.fromARGB(255, 176, 48, 250)
+                    : Colors.white70,
             width: 2,
           ),
         ),
-        child: isChecked
-            ? const Icon(Icons.check, color: Colors.white, size: 16)
-            : null,
+        child:
+            isChecked
+                ? const Icon(Icons.check, color: Colors.white, size: 16)
+                : null,
       ),
     );
   }
 }
-/* fundo animado */
+
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 
@@ -381,8 +393,8 @@ class BlurredGradientPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
+    final Paint paint =
+        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
     // Gradientes de cor
     final List<List<Color>> gradientColors = [

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'cadastro.dart';
-import 'alterarsenha.dart';  
+import 'alterarsenha.dart';
 
 import 'dart:math';
+
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
 
@@ -15,21 +16,21 @@ class LoginPage extends StatelessWidget {
           children: [
             Container(color: Colors.black),
             const AnimatedBlurredBackground(),
-                 // Ícone de seta para voltar
-          Positioned(
-            top: 40, // Defina a altura do topo da tela para a seta
-            left: 20, // Posição à esquerda
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context); // Volta para a página anterior
-              },
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 30,
+
+            Positioned(
+              top: 40,
+              left: 20,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                  size: 30,
+                ),
               ),
             ),
-          ),
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -44,11 +45,12 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds),
+                    shaderCallback:
+                        (bounds) => const LinearGradient(
+                          colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ).createShader(bounds),
                     child: const Text(
                       "Dear Friend",
                       textAlign: TextAlign.center,
@@ -98,7 +100,7 @@ Widget _buildLoginForm(BuildContext context) {
           const SizedBox(height: 15),
           _buildTextField("Password", obscureText: true),
           const SizedBox(height: 10),
-            Align(
+          Align(
             alignment: Alignment.centerRight,
             child: GestureDetector(
               onTap: () {
@@ -167,11 +169,7 @@ Widget _buildLoginForm(BuildContext context) {
                 style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
               Expanded(
-                child: Divider(
-                  color: Colors.white70,
-                  thickness: 1,
-                  indent: 10,
-                ),
+                child: Divider(color: Colors.white70, thickness: 1, indent: 10),
               ),
             ],
           ),
@@ -190,32 +188,31 @@ Widget _buildLoginForm(BuildContext context) {
             ],
           ),
           const SizedBox(height: 10),
-         Center(
-  child: GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const CadastroPage()),
-      );
-    },
-    child: RichText(
-      text: const TextSpan(
-        text: "Don't have an account? ",
-        style: TextStyle(color: Colors.white70, fontSize: 12),
-        children: [
-          TextSpan(
-            text: "Sign up",
-            style: TextStyle(
-              color: Color(0xFFBF99F8),
-              fontWeight: FontWeight.bold,
+          Center(
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CadastroPage()),
+                );
+              },
+              child: RichText(
+                text: const TextSpan(
+                  text: "Don't have an account? ",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  children: [
+                    TextSpan(
+                      text: "Sign up",
+                      style: TextStyle(
+                        color: Color(0xFFBF99F8),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
-        ],
-      ),
-    ),
-  ),
-),
-
         ],
       ),
     ),
@@ -240,7 +237,6 @@ Widget _buildTextField(String label, {bool obscureText = false}) {
     ),
   );
 }
-
 
 /* fundo animado */
 class AnimatedBlurredBackground extends StatefulWidget {
@@ -291,8 +287,8 @@ class BlurredGradientPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint = Paint()
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
+    final Paint paint =
+        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
     // Gradientes de cor
     final List<List<Color>> gradientColors = [
