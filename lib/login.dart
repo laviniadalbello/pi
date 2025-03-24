@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'cadastro.dart';
+import 'alterarsenha.dart';  
 
+import 'dart:math';
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
- 
-
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -17,6 +15,21 @@ class LoginPage extends StatelessWidget {
           children: [
             Container(color: Colors.black),
             const AnimatedBlurredBackground(),
+                 // Ícone de seta para voltar
+          Positioned(
+            top: 40, // Defina a altura do topo da tela para a seta
+            left: 20, // Posição à esquerda
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pop(context); // Volta para a página anterior
+              },
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -85,11 +98,20 @@ Widget _buildLoginForm(BuildContext context) {
           const SizedBox(height: 15),
           _buildTextField("Password", obscureText: true),
           const SizedBox(height: 10),
-          Align(
+            Align(
             alignment: Alignment.centerRight,
-            child: Text(
-              "Forgot Password ?",
-              style: TextStyle(color: Colors.white70, fontSize: 12),
+            child: GestureDetector(
+              onTap: () {
+                // Redirecionando para a tela de alterar senha
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AlterarSenhaPage()),
+                );
+              },
+              child: Text(
+                "Forgot Password ?",
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
             ),
           ),
           const SizedBox(height: 15),
@@ -238,7 +260,7 @@ class AnimatedBlurredBackgroundState extends State<AnimatedBlurredBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 30),
+      duration: const Duration(seconds: 30), // Animação de 30 segundos
     )..repeat(reverse: true);
   }
 
@@ -255,7 +277,7 @@ class AnimatedBlurredBackgroundState extends State<AnimatedBlurredBackground>
       builder: (context, child) {
         return CustomPaint(
           size: MediaQuery.of(context).size,
-          painter: BlurredGradientPainter(_controller.value, context),
+          painter: BlurredGradientPainter(_controller.value),
         );
       },
     );
@@ -264,29 +286,41 @@ class AnimatedBlurredBackgroundState extends State<AnimatedBlurredBackground>
 
 class BlurredGradientPainter extends CustomPainter {
   final double animationValue;
-  final BuildContext context;
 
-  BlurredGradientPainter(this.animationValue, this.context);
+  BlurredGradientPainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint =
-        Paint()..maskFilter = MaskFilter.blur(BlurStyle.normal, 100);
+    final Paint paint = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
-    List<List<Color>> gradientColors = [
-      [Color(0xFF7526D4), Color(0xFFAB82E9)],
-      [Color(0xFF2C26D4), Color(0xFF497FF5)],
-      [Color(0xFFF549D6), Color(0xFFAB82E9)],
+    // Gradientes de cor
+    final List<List<Color>> gradientColors = [
+      [const Color(0xFF7526D4), const Color(0xFFAB82E9)], // Roxo
+      [const Color(0xFF2C26D4), const Color(0xFF497FF5)], // Azul
+      [const Color(0xFFF549D6), const Color(0xFFAB82E9)], // Rosa
     ];
 
-    List<Offset> positions = [
-      Offset(size.width * 0.2, size.height * 0.2),
-      Offset(size.width * 0.7, size.height * 0.5),
-      Offset(size.width * 0.4, size.height * 0.8),
+    // Calculando posições dinâmicas com base em senos e cossenos
+    final List<Offset> positions = [
+      Offset(
+        size.width * (0.2 + 0.1 * sin(animationValue * pi * 2)),
+        size.height * (0.2 + 0.1 * sin(animationValue * pi * 2)),
+      ),
+      Offset(
+        size.width * (0.7 + 0.2 * cos(animationValue * pi * 2)),
+        size.height * (0.5 + 0.2 * sin(animationValue * pi * 2)),
+      ),
+      Offset(
+        size.width * (0.4 + 0.3 * sin(animationValue * pi * 2)),
+        size.height * (0.8 + 0.2 * cos(animationValue * pi * 2)),
+      ),
     ];
 
-    double circleSize = size.width * 0.4;
+    // Tamanho proporcional dos círculos
+    final double circleSize = size.width * 0.4;
 
+    // Desenhando os círculos com gradientes
     for (int i = 0; i < gradientColors.length; i++) {
       paint.shader = LinearGradient(
         colors: gradientColors[i],
