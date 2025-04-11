@@ -75,16 +75,16 @@ class LoginPage extends StatelessWidget {
 }
 
 Widget _buildLoginForm(BuildContext context) {
-  return SizedBox(
-    width: 320,
-    height: 428,
+  return SingleChildScrollView(
     child: Container(
+    width: 320,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           const SizedBox(height: 5),
