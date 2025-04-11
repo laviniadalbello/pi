@@ -12,6 +12,7 @@ class LoginPage extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
+        resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
             Container(color: Colors.black),
