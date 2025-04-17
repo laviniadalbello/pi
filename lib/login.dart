@@ -243,93 +243,63 @@ Widget _buildTextField(String label, {bool obscureText = false, TextEditingContr
     ),
   );
 }
-
 Future<void> login(String email, String password, BuildContext context) async {
-  final url = Uri.parse('https://jsonplaceholder.typicode.com/users'); // Usando a API pública
-  final headers = {'Content-Type': 'application/json'};
+  final url = Uri.parse('http://localhost:8080/login');  // Substitua pelo seu endpoint
+
+  final body = json.encode({
+    'email': email,
+    'password': password,
+  });
 
   try {
-    final response = await http.get(url, headers: headers); // Usamos GET aqui, pois estamos pegando os usuários
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: body,
+    );
 
     if (response.statusCode == 200) {
-      final List<dynamic> users = json.decode(response.body); // Lista de usuários fictícios
-
-      print('Usuários carregados: ${users.length}'); // Verificando o número de usuários carregados
-
-      // Verificando se o email existe na lista de usuários
-      final user = users.firstWhere(
-        (user) {
-          print('Comparando ${user['email']} com $email'); // Depuração
-          return user['email']?.toLowerCase() == email.toLowerCase(); // Comparação de email de forma case-insensitive
-        },
-        orElse: () => null,
-      );
-
-      if (user != null) {
-        // Se o email foi encontrado, redireciona para a página de hábitos
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HabitsPage()),
-        );
-      } else {
-        // Se o email não existir, exibir erro
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Erro'),
-              content: Text('Email não encontrado'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-      }
+      // Login bem-sucedido
+      final responseData = json.decode(response.body);
+      print('Login bem-sucedido: $responseData');
+      // Aqui você pode navegar para outra página ou armazenar um token, por exemplo
+      Navigator.pushNamed(context, '/home');  // Exemplo de navegação
     } else {
-      // Se a resposta não for 200, mostrar erro
+      // Login falhou
       showDialog(
         context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Erro'),
-            content: Text('Erro ao se conectar com o servidor'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  } catch (e) {
-    print('Erro ao fazer login: $e');
-    // Exibir erro de conexão
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Erro'),
-          content: Text('Erro ao se conectar com o servidor'),
+        builder: (ctx) => AlertDialog(
+          title: Text('Erro de Login'),
+          content: Text('Credenciais inválidas ou erro no servidor.'),
           actions: <Widget>[
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
               child: Text('OK'),
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
             ),
           ],
-        );
-      },
+        ),
+      );
+    }
+  } catch (error) {
+    print('Erro na requisição: $error');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Erro'),
+        content: Text('Ocorreu um erro ao tentar realizar o login. Tente novamente mais tarde.'),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+          ),
+        ],
+      ),
     );
   }
 }

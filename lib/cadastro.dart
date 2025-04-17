@@ -100,112 +100,110 @@ Widget build(BuildContext context) {
     );
   }
 
-  Widget _buildLoginForm(BuildContext context) {
-    return SizedBox(
+Widget _buildLoginForm(BuildContext context) {
+  return SingleChildScrollView(
+    child: Container(
       width: 320,
-      height: 428,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const SizedBox(height: 5),
-              const Text(
-                "SIGN UP",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(vertical: 20), 
+      decoration: BoxDecoration(
+        color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min, 
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Text(
+              "SIGN UP",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              const SizedBox(height: 30),
-              _buildTextField("Name", _nameController),
-              const SizedBox(height: 15),
-              _buildTextField("Email", _emailController, isEmail: true),
-              const SizedBox(height: 15),
-              _buildPasswordField(),
-              const SizedBox(height: 15),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  AnimatedCheckbox(),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () {},
-                    child: RichText(
-                      text: const TextSpan(
-                        text: "I have read the ",
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                        children: [
-                          TextSpan(
-                            text: "Privacy Policy",
-                            style: TextStyle(
-                              color: Color(0xFFBF99F8),
-                              fontWeight: FontWeight.bold,
-                            ),
+            ),
+            const SizedBox(height: 20), 
+            _buildTextField("Name", _nameController),
+            const SizedBox(height: 16), 
+            _buildTextField("Email", _emailController, isEmail: true),
+            const SizedBox(height: 16),
+            _buildPasswordField(),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedCheckbox(),
+                const SizedBox(width: 20),
+                GestureDetector(
+                  onTap: () {},
+                  child: RichText(
+                    text: const TextSpan(
+                      text: "I have read the ",
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                      children: [
+                        TextSpan(
+                          text: "Privacy Policy",
+                          style: TextStyle(
+                            color: Color(0xFFBF99F8),
+                            fontWeight: FontWeight.bold,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                 onPressed: () {
-                 print('Botão pressionado');
-                 _validateAndSubmit();
-                 }, // Chama a função de validação e envio
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                  ).copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith(
-                      (states) => Colors.transparent,
-                    ),
-                    elevation: MaterialStateProperty.all(0),
-                    foregroundColor: MaterialStateProperty.all(Colors.white),
+                ),
+              ],
+            ),
+            const SizedBox(height: 15),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _validateAndSubmit,
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ).copyWith(
+                  backgroundColor: MaterialStateProperty.resolveWith(
+                    (states) => Colors.transparent,
+                  ),
+                  elevation: MaterialStateProperty.all(0),
+                  foregroundColor: MaterialStateProperty.all(Colors.white),
+                ),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    child: Container(
-                      width: 129,
-                      height: 28,
-                      alignment: Alignment.center,
-                      constraints: const BoxConstraints(minHeight: 28),
-                      child: const Text(
-                        "SIGN UP",
-                        style: TextStyle(fontSize: 16),
-                      ),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Container(
+                    constraints: const BoxConstraints(minHeight: 38,
+                      maxWidth: 160,), 
+                    
+                    alignment: Alignment.center,
+                    child: const Text(
+                      "SIGN UP",
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10), 
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTextField(String label, TextEditingController controller, {bool isEmail = false}) {
     return TextFormField(
