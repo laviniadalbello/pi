@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'cadastro.dart';
 import 'alterarsenha.dart';
-
+import 'habits.dart';
 import 'dart:math';
 
 class LoginPage extends StatelessWidget {
@@ -16,7 +18,6 @@ class LoginPage extends StatelessWidget {
           children: [
             Container(color: Colors.black),
             const AnimatedBlurredBackground(),
-
             Positioned(
               top: 40,
               left: 20,
@@ -45,12 +46,11 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   ShaderMask(
-                    shaderCallback:
-                        (bounds) => const LinearGradient(
-                          colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ).createShader(bounds),
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
                     child: const Text(
                       "Dear Friend",
                       textAlign: TextAlign.center,
@@ -74,6 +74,9 @@ class LoginPage extends StatelessWidget {
 }
 
 Widget _buildLoginForm(BuildContext context) {
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
   return SizedBox(
     width: 320,
     height: 428,
@@ -96,9 +99,9 @@ Widget _buildLoginForm(BuildContext context) {
             ),
           ),
           const SizedBox(height: 30),
-          _buildTextField("Username"),
+          _buildTextField("Email", controller: emailController),
           const SizedBox(height: 15),
-          _buildTextField("Password", obscureText: true),
+          _buildTextField("Password", obscureText: true, controller: passwordController),
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
@@ -120,7 +123,10 @@ Widget _buildLoginForm(BuildContext context) {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                // Envia os dados de login
+                login(emailController.text, passwordController.text, context);
+              },
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
@@ -218,9 +224,9 @@ Widget _buildLoginForm(BuildContext context) {
     ),
   );
 }
-
-Widget _buildTextField(String label, {bool obscureText = false}) {
+Widget _buildTextField(String label, {bool obscureText = false, TextEditingController? controller}) {
   return TextField(
+    controller: controller,
     obscureText: obscureText,
     style: const TextStyle(color: Colors.white),
     decoration: InputDecoration(
@@ -238,7 +244,97 @@ Widget _buildTextField(String label, {bool obscureText = false}) {
   );
 }
 
-/* fundo animado */
+Future<void> login(String email, String password, BuildContext context) async {
+  final url = Uri.parse('https://jsonplaceholder.typicode.com/users'); // Usando a API pública
+  final headers = {'Content-Type': 'application/json'};
+
+  try {
+    final response = await http.get(url, headers: headers); // Usamos GET aqui, pois estamos pegando os usuários
+
+    if (response.statusCode == 200) {
+      final List<dynamic> users = json.decode(response.body); // Lista de usuários fictícios
+
+      print('Usuários carregados: ${users.length}'); // Verificando o número de usuários carregados
+
+      // Verificando se o email existe na lista de usuários
+      final user = users.firstWhere(
+        (user) {
+          print('Comparando ${user['email']} com $email'); // Depuração
+          return user['email']?.toLowerCase() == email.toLowerCase(); // Comparação de email de forma case-insensitive
+        },
+        orElse: () => null,
+      );
+
+      if (user != null) {
+        // Se o email foi encontrado, redireciona para a página de hábitos
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HabitsPage()),
+        );
+      } else {
+        // Se o email não existir, exibir erro
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Erro'),
+              content: Text('Email não encontrado'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } else {
+      // Se a resposta não for 200, mostrar erro
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Erro'),
+            content: Text('Erro ao se conectar com o servidor'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  } catch (e) {
+    print('Erro ao fazer login: $e');
+    // Exibir erro de conexão
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Erro'),
+          content: Text('Erro ao se conectar com o servidor'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 

@@ -278,7 +278,9 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         ).hasMatch(value)) {
           return 'Password must contain letters, numbers, and at least one uppercase letter';
         }
+        
         return null;
+        
       },
     );
   }

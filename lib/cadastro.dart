@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:convert'; // Para converter a resposta do servidor
+import 'package:http/http.dart' as http; // Para fazer a requisição HTTP
 import 'dart:math';
+
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -15,42 +18,54 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(color: Colors.black),
-          const AnimatedBlurredBackground(),
-          // Ícone de seta para voltar
-          Positioned(
-            top: 40,
-            left: 20,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 30,
+  bool _isLoading = false;
+
+
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Stack(
+      children: [
+        Container(color: Colors.black),
+        const AnimatedBlurredBackground(),
+        // Botão de voltar
+        Positioned(
+          top: 40,
+          left: 20,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Icon(
+              Icons.arrow_back,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+        ),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildTitle(),
+              const SizedBox(height: 20),
+              _buildLoginForm(context),
+            ],
+          ),
+        ),
+        if (_isLoading)
+          Container(
+            color: Colors.black.withOpacity(0.7),
+            child: const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
               ),
             ),
           ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildTitle(),
-                const SizedBox(height: 20),
-                _buildLoginForm(context),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+      ],
+    ),
+  );
+}
 
   Widget _buildTitle() {
     return Column(
@@ -145,7 +160,10 @@ class _CadastroPageState extends State<CadastroPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _validateAndSubmit,
+                 onPressed: () {
+                 print('Botão pressionado');
+                 _validateAndSubmit();
+                 }, // Chama a função de validação e envio
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
@@ -189,15 +207,9 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    bool obscureText = false,
-    bool isEmail = false,
-  }) {
+  Widget _buildTextField(String label, TextEditingController controller, {bool isEmail = false}) {
     return TextFormField(
       controller: controller,
-      obscureText: obscureText,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
@@ -215,10 +227,7 @@ class _CadastroPageState extends State<CadastroPage> {
         if (value == null || value.isEmpty) {
           return '$label is required';
         }
-        if (isEmail &&
-            !RegExp(
-              r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
-            ).hasMatch(value)) {
+        if (isEmail && !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(value)) {
           return 'Please enter a valid email';
         }
         return null;
@@ -262,20 +271,82 @@ class _CadastroPageState extends State<CadastroPage> {
         if (value.length < 8) {
           return 'Password must be at least 8 characters';
         }
-        if (!RegExp(
-          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
-        ).hasMatch(value)) {
-          return 'Password must contain letters, numbers, and at least one uppercase letter';
-        }
+         if (!RegExp(r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])').hasMatch(value)) {
+        return 'Password must contain letters, numbers, and at least one uppercase letter';
+      }
         return null;
       },
     );
   }
 
+Future<void> submitRegistration(String name, String email, String password) async {
+  setState(() {
+    _isLoading = true;
+  });
+
+ final String url ='https://jsonplaceholder.typicode.com/users'; 
+ // URL de exemplo
+
+  final Map<String, String> requestData = {
+    'name': name,
+    'email': email,
+    'password': password,
+  };
+
+ try {
+    print('Enviando dados...');
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(requestData),
+    );
+
+ setState(() {
+      _isLoading = false;
+    });
+
+if (response.statusCode == 201) {
+      print('Registro com sucesso');
+
+       // Exibe o SnackBar de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Cadastro realizado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+     
+     
+      // Aguarda o tempo de exibição do SnackBar (ex: 3 segundos) antes de redirecionar
+      await Future.delayed(const Duration(seconds: 3));
+    
+
+      // Redireciona para a tela de login
+      Navigator.pushReplacementNamed(context, '/login');
+    } else {
+      print('Erro ao registrar: ${response.statusCode}');
+      _showDialog('Erro', 'Não foi possível registrar o usuário.');
+    }
+  } catch (e) {
+    setState(() {
+      _isLoading = false;
+    });
+    print('Erro na conexão: $e');
+    _showDialog('Erro', 'Ocorreu um erro. Verifique sua conexão ou tente novamente mais tarde.');
+  }
+}
   void _validateAndSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      _showDialog('Success', 'Registration successful');
+      // Se a validação passar, envia os dados para o backend
+      submitRegistration(
+        _nameController.text,
+        _emailController.text,
+        _passwordController.text,
+      );
     } else {
+      // Se a validação falhar, mostra um alerta
       _showDialog('Error', 'Please correct the errors');
     }
   }
@@ -301,6 +372,7 @@ class _CadastroPageState extends State<CadastroPage> {
   }
 }
 
+// Widget para o checkbox animado
 class AnimatedCheckbox extends StatefulWidget {
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
@@ -344,6 +416,7 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox> {
     );
   }
 }
+
 
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
