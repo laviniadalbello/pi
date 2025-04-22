@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'cadastro.dart';
 import 'alterarsenha.dart';
-import 'habits.dart';
 import 'dart:math';
 
 class LoginPage extends StatelessWidget {

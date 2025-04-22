@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:math';
 
+
+
 class HabitsPage extends StatefulWidget {
   const HabitsPage({super.key});
 
@@ -21,6 +23,9 @@ class _HabitsPageState extends State<HabitsPage>
   late AnimationController _fadeController;
   late AnimationController _circleController;
   late Animation<double> _fadeAnimation;
+  late AnimationController _slideController;
+late Animation<Offset> _slideAnimation;
+
   
 
   @override
@@ -41,11 +46,30 @@ class _HabitsPageState extends State<HabitsPage>
 
     // Controller separado para os círculos decorativos
   _circleController = AnimationController(
-  duration: const Duration(seconds: 6),
+  duration: const Duration(seconds: 3),
   vsync: this,
 )..repeat(); // Animação contínua
-  }
 
+_slideController = AnimationController(
+  duration: const Duration(milliseconds: 400),
+  vsync: this,
+);
+
+_slideAnimation = Tween<Offset>(
+  begin: const Offset(0, 1), // Começa fora da tela (em baixo)
+  end: Offset.zero, // Vai para o centro
+).animate(CurvedAnimation(
+  parent: _slideController,
+  curve: Curves.easeOut,
+));
+
+  }
+  @override
+  void dispose() {
+    super.dispose();
+    _slideController.dispose();
+
+  }
   
 
   @override
@@ -110,58 +134,61 @@ class _HabitsPageState extends State<HabitsPage>
               ),
             ),
           ),
-          if (_isCardVisible)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isCardVisible = false;
-                  });
-                },
-                child: Container(
-                  color: Colors.black54.withOpacity(0),
-                ),
+      if (_isCardVisible)
+  Positioned.fill(
+    child: GestureDetector(
+      onTap: () {
+        setState(() {
+          _isCardVisible = false;
+          _slideController.reverse();
+        });
+      },
+      child: Container(color: Colors.black54.withOpacity(0)),
+    ),
+  ),
+if (_isCardVisible)
+  Positioned(
+    bottom: 20,
+    left: 30,
+    right: 30,
+    child: SlideTransition(
+      position: _slideAnimation,
+      child: Material(
+        color: Colors.transparent,
+        elevation: 8,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          key: _cardKey,
+          constraints: const BoxConstraints(minHeight: 130),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(223, 17, 24, 39),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.4),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
-            ),
-          if (_isCardVisible)
-            Positioned(
-              bottom: 5,
-              left: 30,
-              right: 30,
-              child: Material(
-                color: const Color.fromARGB(0, 36, 36, 36),
-                elevation: 8,
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                  key: _cardKey,
-                  constraints: const BoxConstraints(minHeight: 150),
-                  padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 36),
-                  decoration: BoxDecoration(
-                    color: const Color.fromARGB(223, 17, 24, 39),
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _menuItem(Icons.task, 'Create Task'),
-                      const SizedBox(height: 12),
-                      _menuItem(Icons.work, 'Create Project'),
-                      const SizedBox(height: 12),
-                      _menuItem(Icons.group, 'Create Team'),
-                      const SizedBox(height: 12),
-                      _menuItem(Icons.event, 'Create Event'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _menuItem(Icons.task, 'Create Task'),
+              const SizedBox(height: 12),
+              _menuItem(Icons.work, 'Create Project'),
+              const SizedBox(height: 12),
+              _menuItem(Icons.group, 'Create Team'),
+              const SizedBox(height: 12),
+              _menuItem(Icons.event, 'Create Event'),
+            ],
+          ),
+        ),
+      ),
+    ),
+  ),
+
         ],
       ),
     );
@@ -194,11 +221,17 @@ class _HabitsPageState extends State<HabitsPage>
         backgroundColor: Colors.blueAccent,
         elevation: 6,
         shape: const CircleBorder(),
-        onPressed: () {
-          setState(() {
-            _isCardVisible = !_isCardVisible;
-          });
-        },
+       onPressed: () {
+  setState(() {
+    _isCardVisible = !_isCardVisible;
+    if (_isCardVisible) {
+      _slideController.forward();
+    } else {
+      _slideController.reverse();
+    }
+  });
+},
+
         child: const Icon(Icons.add, size: 28),
       ),
     );
@@ -273,15 +306,15 @@ class _HabitsPageState extends State<HabitsPage>
           style: const TextStyle(
               color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
         ),
-        CircleAvatar(
-          radius: 18,
-          backgroundImage: NetworkImage(
-            "https://i.pravatar.cc/150?img=11",
-          ),
-        ),
-      ],
-    );
-  }
+      IconButton(
+        icon: const Icon(Icons.notifications, color: Colors.white),
+        onPressed: () {
+          // Lógica de notificação aqui
+        },
+      ),
+    ],
+  );
+}
 
   Widget _buildTitle() {
     return SizedBox(
@@ -411,28 +444,33 @@ Widget _animatedCircle(double x, double y, double size, List<Color> colors, int 
           )
         ],
       ),
-      child: Column(
+     child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title, style: const TextStyle(color: Colors.white70, fontSize: 13)),
           const SizedBox(height: 8),
           Text(desc,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          const Spacer(),
-          Text(date, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16)),
+          const SizedBox(height: 12),
+          Text(date,
+              style: const TextStyle(
+                  color: Colors.white70, fontWeight: FontWeight.w500)),
         ],
       ),
     );
   }
 
   Widget _buildInProgressHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: const [
-        Text("In Progress",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-        Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.white38),
-      ],
+    return const Text(
+      'In Progress',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -488,38 +526,60 @@ Widget _animatedCircle(double x, double y, double size, List<Color> colors, int 
   }
 
   Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: Colors.black,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Menu",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold)),
-            const SizedBox(height: 30),
-            _drawerItem(Icons.home, "Início"),
-            _drawerItem(Icons.topic, "Tópicos"),
-            _drawerItem(Icons.message, "Mensagens"),
-            _drawerItem(Icons.notifications, "Notificações"),
-            _drawerItem(Icons.bookmark, "Favoritos"),
-            _drawerItem(Icons.person, "Perfil"),
-          ],
-        ),
+  return Drawer(
+    backgroundColor: Colors.black,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Adicionando o círculo com a foto do usuário e o nome
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundImage: NetworkImage(
+                  "https://i.pravatar.cc/150?img=11", // Foto de exemplo
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Nome do Usuário", // Nome do usuário
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
+          const SizedBox(height: 30),
+          Divider(color: Colors.white38), // Linha separando os menus
+          _drawerItem(Icons.home, "Início"),
+          _drawerItem(Icons.topic, "Tópicos"),
+          _drawerItem(Icons.message, "Mensagens"),
+          _drawerItem(Icons.notifications, "Notificações"),
+          _drawerItem(Icons.bookmark, "Favoritos"),
+          _drawerItem(Icons.person, "Perfil"),
+        ],
       ),
-    );
-  }
-
-  Widget _drawerItem(IconData icon, String title) {
-    return ListTile(
+    ),
+  );
+}
+Widget _drawerItem(IconData icon, String title) {
+  return MouseRegion(
+    onEnter: (_) => setState(() {
+      // Alterar a cor quando o mouse passar por cima
+    }),
+    onExit: (_) => setState(() {
+      // Retornar a cor normal
+    }),
+    child: ListTile(
       leading: Icon(icon, color: Colors.white70),
       title: Text(title, style: const TextStyle(color: Colors.white)),
       onTap: () {
         Navigator.pop(context);
       },
-    );
-  }
+      // Adicionando animação de cor no fundo
+      tileColor: Colors.transparent,
+      hoverColor: Colors.purple.withOpacity(0.2), // Cor roxa ao passar o mouse
+    ),
+  );
+}
 }
