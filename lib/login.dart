@@ -45,11 +45,12 @@ class LoginPage extends StatelessWidget {
                     ),
                   ),
                   ShaderMask(
-                    shaderCallback: (bounds) => const LinearGradient(
-                      colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ).createShader(bounds),
+                    shaderCallback:
+                        (bounds) => const LinearGradient(
+                          colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ).createShader(bounds),
                     child: const Text(
                       "Dear Friend",
                       textAlign: TextAlign.center,
@@ -100,7 +101,11 @@ Widget _buildLoginForm(BuildContext context) {
           const SizedBox(height: 30),
           _buildTextField("Email", controller: emailController),
           const SizedBox(height: 15),
-          _buildTextField("Password", obscureText: true, controller: passwordController),
+          _buildTextField(
+            "Password",
+            obscureText: true,
+            controller: passwordController,
+          ),
           const SizedBox(height: 10),
           Align(
             alignment: Alignment.centerRight,
@@ -223,7 +228,12 @@ Widget _buildLoginForm(BuildContext context) {
     ),
   );
 }
-Widget _buildTextField(String label, {bool obscureText = false, TextEditingController? controller}) {
+
+Widget _buildTextField(
+  String label, {
+  bool obscureText = false,
+  TextEditingController? controller,
+}) {
   return TextField(
     controller: controller,
     obscureText: obscureText,
@@ -242,20 +252,16 @@ Widget _buildTextField(String label, {bool obscureText = false, TextEditingContr
     ),
   );
 }
-Future<void> login(String email, String password, BuildContext context) async {
-  final url = Uri.parse('http://localhost:8080/login');  // Substitua pelo seu endpoint
 
-  final body = json.encode({
-    'email': email,
-    'password': password,
-  });
+Future<void> login(String email, String password, BuildContext context) async {
+  final url = Uri.parse('http://localhost:8080/login');
+
+  final body = json.encode({'email': email, 'password': password});
 
   try {
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: {'Content-Type': 'application/json'},
       body: body,
     );
 
@@ -263,46 +269,49 @@ Future<void> login(String email, String password, BuildContext context) async {
       // Login bem-sucedido
       final responseData = json.decode(response.body);
       print('Login bem-sucedido: $responseData');
-      // Aqui você pode navegar para outra página ou armazenar um token, por exemplo
-      Navigator.pushNamed(context, '/home');  // Exemplo de navegação
+
+      Navigator.pushNamed(context, '/home');
     } else {
       // Login falhou
       showDialog(
         context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Erro de Login'),
-          content: Text('Credenciais inválidas ou erro no servidor.'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('OK'),
-              onPressed: () {
-                Navigator.of(ctx).pop();
-              },
+        builder:
+            (ctx) => AlertDialog(
+              title: Text('Erro de Login'),
+              content: Text('Credenciais inválidas ou erro no servidor.'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('OK'),
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
       );
     }
   } catch (error) {
     print('Erro na requisição: $error');
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Erro'),
-        content: Text('Ocorreu um erro ao tentar realizar o login. Tente novamente mais tarde.'),
-        actions: <Widget>[
-          TextButton(
-            child: Text('OK'),
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
+      builder:
+          (ctx) => AlertDialog(
+            title: Text('Erro'),
+            content: Text(
+              'Ocorreu um erro ao tentar realizar o login. Tente novamente mais tarde.',
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  Navigator.of(ctx).pop();
+                },
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
-
 
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
@@ -321,7 +330,7 @@ class AnimatedBlurredBackgroundState extends State<AnimatedBlurredBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 30), // Animação de 30 segundos
+      duration: const Duration(seconds: 30),
     )..repeat(reverse: true);
   }
 
@@ -355,14 +364,12 @@ class BlurredGradientPainter extends CustomPainter {
     final Paint paint =
         Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
-    // Gradientes de cor
     final List<List<Color>> gradientColors = [
       [const Color(0xFF7526D4), const Color(0xFFAB82E9)], // Roxo
       [const Color(0xFF2C26D4), const Color(0xFF497FF5)], // Azul
       [const Color(0xFFF549D6), const Color(0xFFAB82E9)], // Rosa
     ];
 
-    // Calculando posições dinâmicas com base em senos e cossenos
     final List<Offset> positions = [
       Offset(
         size.width * (0.2 + 0.1 * sin(animationValue * pi * 2)),
@@ -378,10 +385,8 @@ class BlurredGradientPainter extends CustomPainter {
       ),
     ];
 
-    // Tamanho proporcional dos círculos
     final double circleSize = size.width * 0.4;
 
-    // Desenhando os círculos com gradientes
     for (int i = 0; i < gradientColors.length; i++) {
       paint.shader = LinearGradient(
         colors: gradientColors[i],

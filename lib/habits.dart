@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:math';
-
-
+import 'chatdaia.dart';
 
 class HabitsPage extends StatefulWidget {
   const HabitsPage({super.key});
@@ -12,8 +11,7 @@ class HabitsPage extends StatefulWidget {
   State<HabitsPage> createState() => _HabitsPageState();
 }
 
-class _HabitsPageState extends State<HabitsPage>
-    with TickerProviderStateMixin {
+class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey _cardKey = GlobalKey();
 
@@ -24,16 +22,15 @@ class _HabitsPageState extends State<HabitsPage>
   late AnimationController _circleController;
   late Animation<double> _fadeAnimation;
   late AnimationController _slideController;
-late Animation<Offset> _slideAnimation;
-
-  
+  late Animation<Offset> _slideAnimation;
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(viewportFraction: 0.55);
     initializeDateFormatting('pt_BR', null).then((_) => setState(() {}));
 
-    // Controller para a animação de entrada
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 700),
       vsync: this,
@@ -44,33 +41,30 @@ late Animation<Offset> _slideAnimation;
     );
     _fadeController.forward();
 
-    // Controller separado para os círculos decorativos
-  _circleController = AnimationController(
-  duration: const Duration(seconds: 3),
-  vsync: this,
-)..repeat(); // Animação contínua
+    _circleController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat();
 
-_slideController = AnimationController(
-  duration: const Duration(milliseconds: 400),
-  vsync: this,
-);
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
 
-_slideAnimation = Tween<Offset>(
-  begin: const Offset(0, 1), // Começa fora da tela (em baixo)
-  end: Offset.zero, // Vai para o centro
-).animate(CurvedAnimation(
-  parent: _slideController,
-  curve: Curves.easeOut,
-));
-
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
   }
+
   @override
   void dispose() {
-    super.dispose();
+    _fadeController.dispose();
+    _circleController.dispose();
     _slideController.dispose();
-
+    _pageController.dispose();
+    super.dispose();
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -85,110 +79,165 @@ _slideAnimation = Tween<Offset>(
         children: [
           GestureDetector(
             onTap: () {
+              // Fecha o card flutuante se estiver visível
               if (_isCardVisible) {
-                setState(() {
-                  _isCardVisible = false;
-                });
+                if (mounted) {
+                  setState(() {
+                    _isCardVisible = false;
+                    _slideController.reverse();
+                  });
+                }
               }
+              FocusScope.of(context).unfocus();
             },
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: FadeTransition(
                   opacity: _fadeAnimation,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 30),
-                      _buildTopBar(),
-                      const SizedBox(height: 20),
-                      _buildTitle(), // Agora usa o _circleController
-                      const SizedBox(height: 30),
-                      _buildProjectCarousel(),
-                      const SizedBox(height: 30),
-                      _buildInProgressHeader(),
-                      const SizedBox(height: 10),
-                      _buildTaskCard(
-                        title: "Create Detail Booking",
-                        subtitle: "Productivity Mobile App",
-                        time: "2 min ago",
-                        progress: 0.6,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildTaskCard(
-                        title: "Revision Home Page",
-                        subtitle: "Banking Mobile App",
-                        time: "5 min ago",
-                        progress: 0.7,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildTaskCard(
-                        title: "Working On Landing Page",
-                        subtitle: "Online Course",
-                        time: "7 min ago",
-                        progress: 0.8,
-                      ),
-                    ],
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 15),
+                        _buildTopBar(),
+                        const SizedBox(height: 15),
+                        _buildTitle(),
+                        const SizedBox(height: 5),
+                        _buildProjectCarousel(),
+                        const SizedBox(height: 10),
+                        _buildInProgressHeader(),
+                        const SizedBox(height: 10),
+                        _buildTaskCard(
+                          title: "Create Detail Booking",
+                          subtitle: "Productivity Mobile App",
+                          time: "2 min ago",
+                          progress: 0.6,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildTaskCard(
+                          title: "Revision Home Page",
+                          subtitle: "Banking Mobile App",
+                          time: "5 min ago",
+                          progress: 0.7,
+                        ),
+                        const SizedBox(height: 10),
+                        _buildTaskCard(
+                          // The last task card
+                          title: "Working On Landing Page",
+                          subtitle: "Online Course",
+                          time: "7 min ago",
+                          progress: 0.8,
+                        ),
+                        Transform.translate(
+                          offset: const Offset(65, -25),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: CloseableAiCard(scaleFactor: 0.35),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-      if (_isCardVisible)
-  Positioned.fill(
-    child: GestureDetector(
-      onTap: () {
-        setState(() {
-          _isCardVisible = false;
-          _slideController.reverse();
-        });
-      },
-      child: Container(color: Colors.black54.withOpacity(0)),
-    ),
-  ),
-if (_isCardVisible)
-  Positioned(
-    bottom: 20,
-    left: 30,
-    right: 30,
-    child: SlideTransition(
-      position: _slideAnimation,
-      child: Material(
-        color: Colors.transparent,
-        elevation: 8,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          key: _cardKey,
-          constraints: const BoxConstraints(minHeight: 130),
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(223, 17, 24, 39),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+          // Card flutuante (menu de criação)
+          if (_isCardVisible)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  if (mounted) {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                  }
+                },
+                // Usa uma cor semi-transparente para o fundo, evitando problemas
+                child: Container(color: Colors.black.withOpacity(0.5)),
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _menuItem(Icons.task, 'Create Task'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.work, 'Create Project'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.group, 'Create Team'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.event, 'Create Event'),
-            ],
-          ),
-        ),
-      ),
-    ),
-  ),
-
+            ),
+          if (_isCardVisible)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _isCardVisible = false;
+                    _slideController.reverse();
+                  });
+                },
+                child: Container(color: Colors.black54.withOpacity(0)),
+              ),
+            ),
+          if (_isCardVisible)
+            Positioned(
+              bottom: 20,
+              left: 30,
+              right: 30,
+              child: SlideTransition(
+                position: _slideAnimation,
+                child: Material(
+                  color: Colors.transparent,
+                  elevation: 8,
+                  borderRadius: BorderRadius.circular(24),
+                  child: Container(
+                    key: _cardKey,
+                    constraints: const BoxConstraints(minHeight: 130),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 24,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(223, 17, 24, 39),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _menuItem(Icons.edit_outlined, 'Create Task'),
+                        const SizedBox(height: 12),
+                        _menuItem(Icons.add_circle_outline, 'Create Project'),
+                        const SizedBox(height: 12),
+                        _menuItem(Icons.group_outlined, 'Create Team'),
+                        const SizedBox(height: 12),
+                        _menuItem(Icons.schedule_outlined, 'Create Event'),
+                        const SizedBox(height: 16),
+                        FloatingActionButton(
+                          mini: true,
+                          backgroundColor: Colors.blueAccent,
+                          elevation: 0,
+                          shape: const CircleBorder(),
+                          onPressed: () {
+                            setState(() {
+                              _isCardVisible = false;
+                              _slideController.reverse();
+                            });
+                          },
+                          child: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -208,7 +257,10 @@ if (_isCardVisible)
         children: [
           Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -221,17 +273,16 @@ if (_isCardVisible)
         backgroundColor: Colors.blueAccent,
         elevation: 6,
         shape: const CircleBorder(),
-       onPressed: () {
-  setState(() {
-    _isCardVisible = !_isCardVisible;
-    if (_isCardVisible) {
-      _slideController.forward();
-    } else {
-      _slideController.reverse();
-    }
-  });
-},
-
+        onPressed: () {
+          setState(() {
+            _isCardVisible = !_isCardVisible;
+            if (_isCardVisible) {
+              _slideController.forward();
+            } else {
+              _slideController.reverse();
+            }
+          });
+        },
         child: const Icon(Icons.add, size: 28),
       ),
     );
@@ -284,8 +335,10 @@ if (_isCardVisible)
   }
 
   Widget _buildTopBar() {
-    String formattedDate =
-        DateFormat('EEEE, dd MMMM', 'pt_BR').format(DateTime.now());
+    String formattedDate = DateFormat(
+      'EEEE, dd MMMM',
+      'pt_BR',
+    ).format(DateTime.now());
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -304,17 +357,20 @@ if (_isCardVisible)
         Text(
           formattedDate,
           style: const TextStyle(
-              color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+            color: Colors.white70,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
-      IconButton(
-        icon: const Icon(Icons.notifications, color: Colors.white),
-        onPressed: () {
-          // Lógica de notificação aqui
-        },
-      ),
-    ],
-  );
-}
+        IconButton(
+          icon: const Icon(Icons.notifications, color: Colors.white),
+          onPressed: () {
+            // Lógica de notificação aqui
+          },
+        ),
+      ],
+    );
+  }
 
   Widget _buildTitle() {
     return SizedBox(
@@ -351,83 +407,139 @@ if (_isCardVisible)
             ),
           ),
 
-          // Círculos decorativos com leve animação
-        _animatedCircle(20, 10, 6, [Colors.lightBlueAccent, const Color.fromARGB(255, 243, 33, 208)], 0),
-        _animatedCircle(350, 20, 4, [Color.fromARGB(164, 180, 34, 238), Colors.deepPurpleAccent], 1),
-        _animatedCircle(180, 45, 5, [Colors.amberAccent, Colors.orange], 2),
-        _animatedCircle(40, 80, 5, [Colors.pinkAccent, const Color.fromARGB(255, 149, 226, 4)], 3),
-        _animatedCircle(370, 90, 8, [Color.fromARGB(173, 36, 17, 204), const Color.fromARGB(255, 218, 20, 20)], 4),
-        _animatedCircle(100, 30, 6, [Color.fromARGB(255, 222, 87, 240), const Color.fromARGB(255, 27, 112, 1)], 5),
-
+          _animatedCircle(20, 10, 6, [
+            Colors.lightBlueAccent,
+            const Color.fromARGB(255, 243, 33, 208),
+          ], 0),
+          _animatedCircle(350, 20, 4, [
+            Color.fromARGB(164, 180, 34, 238),
+            Colors.deepPurpleAccent,
+          ], 1),
+          _animatedCircle(180, 45, 5, [Colors.amberAccent, Colors.orange], 2),
+          _animatedCircle(40, 80, 5, [
+            Colors.pinkAccent,
+            const Color.fromARGB(255, 149, 226, 4),
+          ], 3),
+          _animatedCircle(370, 90, 8, [
+            Color.fromARGB(173, 36, 17, 204),
+            const Color.fromARGB(255, 218, 20, 20),
+          ], 4),
+          _animatedCircle(100, 30, 6, [
+            Color.fromARGB(255, 222, 87, 240),
+            const Color.fromARGB(255, 27, 112, 1),
+          ], 5),
         ],
       ),
     );
   }
 
-Widget _animatedCircle(double x, double y, double size, List<Color> colors, int index) {
-  return AnimatedBuilder(
-    animation: _circleController,
-    builder: (context, child) {
-      final t = (_circleController.value + (index * 0.1)) % 1.0;
-      final offset = 2 * sin(t * 2 * pi);
+  Widget _animatedCircle(
+    double x,
+    double y,
+    double size,
+    List<Color> colors,
+    int index,
+  ) {
+    return AnimatedBuilder(
+      animation: _circleController,
+      builder: (context, child) {
+        final t = (_circleController.value + (index * 0.1)) % 1.0;
+        final offset = 2 * sin(t * 2 * pi);
 
-      // Interpolação de cor
-      final colorTween = ColorTween(
-        begin: colors[0],
-        end: colors[1],
-      );
-      final animatedColor = colorTween.transform(t) ?? colors[0];
+        // Interpolação de cor
+        final colorTween = ColorTween(begin: colors[0], end: colors[1]);
+        final animatedColor = colorTween.transform(t) ?? colors[0];
 
-      // Escala e opacidade pulsantes
-      final pulse = 0.5 + 0.5 * sin(t * 2 * pi);
-      final scale = 1.0 + 0.05 * pulse;
-      final opacity = 0.8 + 0.2 * pulse;
+        // Escala e opacidade pulsantes
+        final pulse = 0.5 + 0.5 * sin(t * 2 * pi);
+        final scale = 1.0 + 0.05 * pulse;
+        final opacity = 0.8 + 0.2 * pulse;
 
-      return Positioned(
-        top: y + offset,
-        left: x,
-        child: Opacity(
-          opacity: opacity.clamp(0.0, 1.0),
-          child: Transform.scale(
-            scale: scale,
-            child: _decorativeCircle(size, animatedColor),
+        return Positioned(
+          top: y + offset,
+          left: x,
+          child: Opacity(
+            opacity: opacity.clamp(0.0, 1.0),
+            child: Transform.scale(
+              scale: scale,
+              child: _decorativeCircle(size, animatedColor),
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
-
-
+        );
+      },
+    );
+  }
 
   Widget _decorativeCircle(double size, Color color) {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 
   Widget _buildProjectCarousel() {
     return SizedBox(
-      height: 150,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          _buildProjectCard("Projeto 1", "Front-End\nDevelopment", "20/10/2020"),
-          const SizedBox(width: 12),
-          _buildProjectCard("Projeto 2", "Back-End\nDevelopment", "24/10/2020"),
-        ],
+      height: 170,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: 3,
+        itemBuilder: (context, index) {
+          return AnimatedBuilder(
+            animation: _pageController,
+            builder: (context, child) {
+              double page =
+                  _pageController.hasClients && _pageController.page != null
+                      ? _pageController.page!
+                      : index.toDouble();
+
+              double scaleFactor = 0.9;
+              double position = index.toDouble() - page;
+              double scale = (1 - (position.abs() * 0.1)).clamp(
+                scaleFactor,
+                1.0,
+              );
+
+              return Transform.scale(
+                scale: scale,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 10,
+                  ),
+                  child: _buildProjectCard(
+                    context,
+                    "Projeto ${index + 1}",
+                    index == 0
+                        ? "Front-End\nDevelopment"
+                        : index == 1
+                        ? "Back-End\nDevelopment"
+                        : "Mobile App\nDesign",
+                    DateFormat(
+                      'dd/MM/yyyy',
+                    ).format(DateTime.now().add(Duration(days: index * 3))),
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
 
-  Widget _buildProjectCard(String title, String desc, String date) {
+  Widget _buildProjectCard(
+    BuildContext context,
+    String title,
+    String desc,
+    String date,
+  ) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final cardHeight = screenHeight * 0.22;
+
     return Container(
-      width: 190,
+      width: 160,
+      height: cardHeight,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -441,23 +553,83 @@ Widget _animatedCircle(double x, double y, double size, List<Color> colors, int 
             color: Colors.black54,
             offset: Offset(0, 4),
             blurRadius: 10,
-          )
+          ),
         ],
       ),
-     child: Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-          const SizedBox(height: 8),
-          Text(desc,
-              style: const TextStyle(
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(
+                  Icons.more_vert,
                   color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16)),
-          const SizedBox(height: 12),
-          Text(date,
+                  size: 18,
+                ),
+                color: const Color(0xFF2C2C2C),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onSelected: (value) {
+                  // Ações dos botões
+                },
+                itemBuilder:
+                    (BuildContext context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Text(
+                          'Editar',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'Excluir',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'view',
+                        child: Text(
+                          'Visualizar',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: Text(
+              desc,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2, // Limitar o número de linhas para evitar o overflow
               style: const TextStyle(
-                  color: Colors.white70, fontWeight: FontWeight.w500)),
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            date,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -480,106 +652,171 @@ Widget _animatedCircle(double x, double y, double size, List<Color> colors, int 
     required String time,
     required double progress,
   }) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(subtitle, style: const TextStyle(color: Colors.white60, fontSize: 12)),
-                const SizedBox(height: 6),
-                Text(title,
+    return MouseRegion(
+      onEnter: (_) {
+        setState(() {
+          _isHovered = true;
+        });
+      },
+      onExit: (_) {
+        setState(() {
+          // Remove o efeito quando o mouse sai
+          _isHovered = false;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E1E),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow:
+              _isHovered
+                  ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ]
+                  : [],
+        ),
+
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white60, fontSize: 12),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    title,
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-                const SizedBox(height: 6),
-                Text(time, style: const TextStyle(color: Colors.white30, fontSize: 11)),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    time,
+                    style: const TextStyle(color: Colors.white30, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  height: 38,
+                  width: 38,
+                  child: CircularProgressIndicator(
+                    value: progress,
+                    strokeWidth: 4,
+                    backgroundColor: Colors.white12,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Color(0xFF8A5CFF),
+                    ),
+                  ),
+                ),
+                Text(
+                  "${(progress * 100).round()}%",
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                ),
               ],
             ),
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                height: 38,
-                width: 38,
-                child: CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 4,
-                  backgroundColor: Colors.white12,
-                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF8A5CFF)),
-                ),
-              ),
-              Text("${(progress * 100).round()}%",
-                  style: const TextStyle(color: Colors.white, fontSize: 10)),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
+  bool _isHovered = false;
+
   Widget _buildDrawer() {
-  return Drawer(
-    backgroundColor: Colors.black,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Adicionando o círculo com a foto do usuário e o nome
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(
-                  "https://i.pravatar.cc/150?img=11", // Foto de exemplo
+    return Drawer(
+      backgroundColor: Colors.black.withOpacity(0.9),
+      child: Padding(
+        padding: const EdgeInsets.only(
+          top: 60,
+          left: 16,
+          right: 16,
+          bottom: 20,
+        ), // Adjusted padding
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // User info section
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 25, // Slightly larger avatar
+                  backgroundImage: NetworkImage(
+                    "https://i.pravatar.cc/150?img=11",
+                  ),
                 ),
+                const SizedBox(width: 12),
+                const Text(
+                  "Nome do Usuário",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            const Divider(color: Colors.white24), // Lighter divider
+
+            Expanded(
+              //
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _drawerItem(Icons.home_outlined, "Início", true),
+                  _drawerItem(Icons.topic_outlined, "Tópicos"),
+                  _drawerItem(Icons.message_outlined, "Mensagens"),
+                  _drawerItem(Icons.notifications_outlined, "Notificações"),
+                  _drawerItem(Icons.bookmark_border, "Favoritos"),
+                  _drawerItem(Icons.person_outline, "Perfil"),
+                ],
               ),
-              const SizedBox(width: 12),
-              const Text(
-                "Nome do Usuário", // Nome do usuário
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          Divider(color: Colors.white38), // Linha separando os menus
-          _drawerItem(Icons.home, "Início"),
-          _drawerItem(Icons.topic, "Tópicos"),
-          _drawerItem(Icons.message, "Mensagens"),
-          _drawerItem(Icons.notifications, "Notificações"),
-          _drawerItem(Icons.bookmark, "Favoritos"),
-          _drawerItem(Icons.person, "Perfil"),
-        ],
+            ),
+            const Divider(color: Colors.white24),
+            // Settings or Logout (optional)
+            _drawerItem(Icons.settings_outlined, "Configurações"),
+            _drawerItem(Icons.logout, "Sair"),
+          ],
+        ),
       ),
-    ),
-  );
-}
-Widget _drawerItem(IconData icon, String title) {
-  return MouseRegion(
-    onEnter: (_) => setState(() {
-      // Alterar a cor quando o mouse passar por cima
-    }),
-    onExit: (_) => setState(() {
-      // Retornar a cor normal
-    }),
-    child: ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+    );
+  }
+
+  Widget _drawerItem(IconData icon, String title, [bool isActive = false]) {
+    return ListTile(
+      leading: Icon(icon, color: isActive ? Colors.blueAccent : Colors.white70),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isActive ? Colors.blueAccent : Colors.white,
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
       onTap: () {
         Navigator.pop(context);
+
+        print("$title tapped");
       },
-      // Adicionando animação de cor no fundo
-      tileColor: Colors.transparent,
-      hoverColor: Colors.purple.withOpacity(0.2), // Cor roxa ao passar o mouse
-    ),
-  );
-}
+      dense: true, // Reduce vertical padding
+      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      hoverColor: Colors.white.withOpacity(0.1), // Subtle hover effect
+    );
+  }
 }

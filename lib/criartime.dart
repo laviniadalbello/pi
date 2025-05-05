@@ -8,7 +8,8 @@ class CreateTeamPage extends StatefulWidget {
   State<CreateTeamPage> createState() => _CreateTeamPageState();
 }
 
-class _CreateTeamPageState extends State<CreateTeamPage> with TickerProviderStateMixin {
+class _CreateTeamPageState extends State<CreateTeamPage>
+    with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey _cardKey = GlobalKey();
 
@@ -17,7 +18,6 @@ class _CreateTeamPageState extends State<CreateTeamPage> with TickerProviderStat
   late AnimationController _circleController;
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
-
 
   @override
   void initState() {
@@ -28,18 +28,14 @@ class _CreateTeamPageState extends State<CreateTeamPage> with TickerProviderStat
     )..repeat();
 
     _slideController = AnimationController(
-  duration: const Duration(milliseconds: 400),
-  vsync: this,
-);
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
 
-_slideAnimation = Tween<Offset>(
-  begin: const Offset(0, 1), // Começa fora da tela (em baixo)
-  end: Offset.zero, // Vai para o centro
-).animate(CurvedAnimation(
-  parent: _slideController,
-  curve: Curves.easeOut,
-));
-
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
   }
 
   @override
@@ -47,7 +43,6 @@ _slideAnimation = Tween<Offset>(
     _circleController.dispose();
     super.dispose();
     _slideController.dispose();
-
   }
 
   @override
@@ -66,17 +61,33 @@ _slideAnimation = Tween<Offset>(
             Positioned.fill(
               child: Stack(
                 children: [
-                  _animatedCircle(20, 150, 6, [Colors.lightBlueAccent, const Color.fromARGB(255, 243, 33, 208)], 0),
-                  _animatedCircle(350, 130, 4, [Color.fromARGB(164, 180, 34, 238), Colors.deepPurpleAccent], 1),
-                  _animatedCircle(180, 150, 5, [Colors.amberAccent, Colors.orange], 2),
-                  _animatedCircle(40, 115, 5, [Colors.pinkAccent, const Color.fromARGB(255, 149, 226, 4)], 3),
-                  _animatedCircle(370, 150, 8, [Color.fromARGB(173, 36, 17, 204), const Color.fromARGB(255, 218, 20, 20)], 4),
-                  _animatedCircle(100, 120, 6, [Color.fromARGB(255, 222, 87, 240), const Color.fromARGB(255, 27, 112, 1)], 5),
+                  _animatedCircle(20, 150, 6, [
+                    Colors.lightBlueAccent,
+                    const Color.fromARGB(255, 243, 33, 208),
+                  ], 0),
+                  _animatedCircle(350, 130, 4, [
+                    Color.fromARGB(164, 180, 34, 238),
+                    Colors.deepPurpleAccent,
+                  ], 1),
+                  _animatedCircle(180, 150, 5, [
+                    Colors.amberAccent,
+                    Colors.orange,
+                  ], 2),
+                  _animatedCircle(40, 115, 5, [
+                    Colors.pinkAccent,
+                    const Color.fromARGB(255, 149, 226, 4),
+                  ], 3),
+                  _animatedCircle(370, 150, 8, [
+                    Color.fromARGB(173, 36, 17, 204),
+                    const Color.fromARGB(255, 218, 20, 20),
+                  ], 4),
+                  _animatedCircle(100, 120, 6, [
+                    Color.fromARGB(255, 222, 87, 240),
+                    const Color.fromARGB(255, 27, 112, 1),
+                  ], 5),
                 ],
               ),
             ),
-
-            // Conteúdo principal
             SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Column(
@@ -92,7 +103,10 @@ _slideAnimation = Tween<Offset>(
                           onTap: () {
                             Navigator.pop(context);
                           },
-                          child: const Icon(Icons.arrow_back, color: Colors.white),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       const Text(
@@ -111,19 +125,33 @@ _slideAnimation = Tween<Offset>(
                       const CircleAvatar(
                         radius: 40,
                         backgroundColor: Colors.white,
-                        child: Icon(Icons.image, color: Color(0xFF8875FF), size: 40),
+                        child: Icon(
+                          Icons.image,
+                          color: Color(0xFF8875FF),
+                          size: 40,
+                        ),
                       ),
                       const SizedBox(height: 10),
-                      const Text('Upload logo file',
-                          style: TextStyle(color: Color(0xFF8875FF), fontWeight: FontWeight.bold)),
-                      const Text('Your logo will publish always',
-                          style: TextStyle(color: Colors.white70, fontSize: 12)),
+                      const Text(
+                        'Upload logo file',
+                        style: TextStyle(
+                          color: Color(0xFF8875FF),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'Your logo will publish always',
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 30),
                   const Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Team Name', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    child: Text(
+                      'Team Name',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   SizedBox(
@@ -134,7 +162,9 @@ _slideAnimation = Tween<Offset>(
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -145,7 +175,10 @@ _slideAnimation = Tween<Offset>(
                   const SizedBox(height: 20),
                   const Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Team Member', style: TextStyle(color: Colors.white, fontSize: 16)),
+                    child: Text(
+                      'Team Member',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -164,7 +197,10 @@ _slideAnimation = Tween<Offset>(
                     padding: EdgeInsets.only(left: 13),
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: Text('Type', style: TextStyle(color: Colors.white, fontSize: 16)),
+                      child: Text(
+                        'Type',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -189,71 +225,93 @@ _slideAnimation = Tween<Offset>(
                         ),
                       ),
                       onPressed: () {},
-                      child: const Text('Create Team',
-                          style: TextStyle(color: Colors.white, fontSize: 16)),
+                      child: const Text(
+                        'Create Team',
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 80),
                 ],
               ),
             ),
-
-            // Card flutuante ao clicar no botão +
-           if (_isCardVisible)
-  Positioned.fill(
-    child: GestureDetector(
-      onTap: () {
-        setState(() {
-          _isCardVisible = false;
-          _slideController.reverse();
-        });
-      },
-      child: Container(color: Colors.black54.withOpacity(0)),
-    ),
-  ),
-if (_isCardVisible)
-  Positioned(
-    bottom: 20,
-    left: 30,
-    right: 30,
-    child: SlideTransition(
-      position: _slideAnimation,
-      child: Material(
-        color: Colors.transparent,
-        elevation: 8,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          key: _cardKey,
-          constraints: const BoxConstraints(minHeight: 130),
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(223, 17, 24, 39),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+            if (_isCardVisible)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                  },
+                  child: Container(color: Colors.black54.withOpacity(0)),
+                ),
               ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _menuItem(Icons.task, 'Create Task'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.work, 'Create Project'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.group, 'Create Team'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.event, 'Create Event'),
-            ],
-          ),
-        ),
-      ),
-    ),
-  ),
-
+            if (_isCardVisible)
+              Positioned(
+                bottom: 20,
+                left: 30,
+                right: 30,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Material(
+                    color: Colors.transparent,
+                    elevation: 8,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      key: _cardKey,
+                      constraints: const BoxConstraints(minHeight: 130),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 24,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(223, 17, 24, 39),
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _menuItem(Icons.edit_outlined, 'Create Task'),
+                          const SizedBox(height: 12),
+                          _menuItem(Icons.add_circle_outline, 'Create Project'),
+                          const SizedBox(height: 12),
+                          _menuItem(Icons.group_outlined, 'Create Team'),
+                          const SizedBox(height: 12),
+                          _menuItem(Icons.schedule_outlined, 'Create Event'),
+                          const SizedBox(height: 16),
+                          // Add the close button matching the reference image style
+                          FloatingActionButton(
+                            mini: true, // Make it smaller
+                            backgroundColor:
+                                Colors.blueAccent, // Match FAB color
+                            elevation: 0, // Lower elevation for inner button
+                            shape: const CircleBorder(),
+                            onPressed: () {
+                              setState(() {
+                                _isCardVisible = false;
+                                _slideController.reverse();
+                              });
+                            },
+                            child: const Icon(
+                              Icons.close,
+                              size: 20,
+                              color: Colors.white,
+                            ), // White icon
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -274,7 +332,10 @@ if (_isCardVisible)
         children: [
           Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -287,23 +348,23 @@ if (_isCardVisible)
         backgroundColor: Colors.blueAccent,
         elevation: 6,
         shape: const CircleBorder(),
-      onPressed: () {
-  setState(() {
-    _isCardVisible = !_isCardVisible;
-    if (_isCardVisible) {
-      _slideController.forward();
-    } else {
-      _slideController.reverse();
-    }
-  });
-},
+        onPressed: () {
+          setState(() {
+            _isCardVisible = !_isCardVisible;
+            if (_isCardVisible) {
+              _slideController.forward();
+            } else {
+              _slideController.reverse();
+            }
+          });
+        },
 
         child: const Icon(Icons.add, size: 28),
       ),
     );
   }
 
-Widget _buildBottomBar() {
+  Widget _buildBottomBar() {
     return BottomAppBar(
       color: Colors.black,
       shape: const CircularNotchedRectangle(),
@@ -362,8 +423,13 @@ Widget _buildBottomBar() {
     );
   }
 
-
-  Widget _animatedCircle(double x, double y, double size, List<Color> colors, int index) {
+  Widget _animatedCircle(
+    double x,
+    double y,
+    double size,
+    List<Color> colors,
+    int index,
+  ) {
     return AnimatedBuilder(
       animation: _circleController,
       builder: (context, child) {
@@ -421,7 +487,11 @@ Widget _buildBottomBar() {
     );
   }
 
-  Widget _typeButton(String text, {bool selected = false, double leftPadding = 14}) {
+  Widget _typeButton(
+    String text, {
+    bool selected = false,
+    double leftPadding = 14,
+  }) {
     return Padding(
       padding: EdgeInsets.only(left: leftPadding),
       child: Container(

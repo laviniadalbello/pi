@@ -10,7 +10,7 @@ class AlterarSenhaPage extends StatefulWidget {
 
 class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   bool _obscureText = true;
-  final _formKey = GlobalKey<FormState>(); // Chave para o formulário
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
@@ -112,12 +112,9 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
               _buildPassword2Field(),
               const SizedBox(height: 20),
               Padding(
-                padding: const EdgeInsets.only(
-                  left: 20.0,
-                ), // Espaço de 20 pixels da borda esquerda
+                padding: const EdgeInsets.only(left: 20.0),
                 child: Row(
-                  mainAxisAlignment:
-                      MainAxisAlignment.start, // Alinha à esquerda
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     AnimatedCheckbox(),
                     const SizedBox(width: 8),
@@ -142,7 +139,6 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                   ],
                 ),
               ),
-
               const SizedBox(height: 25),
               SizedBox(
                 width: double.infinity,
@@ -278,9 +274,8 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         ).hasMatch(value)) {
           return 'Password must contain letters, numbers, and at least one uppercase letter';
         }
-        
+
         return null;
-        
       },
     );
   }
@@ -375,7 +370,7 @@ class AnimatedBlurredBackgroundState extends State<AnimatedBlurredBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 30), // Animação de 30 segundos
+      duration: const Duration(seconds: 30),
     )..repeat(reverse: true);
   }
 
@@ -416,7 +411,6 @@ class BlurredGradientPainter extends CustomPainter {
       [const Color(0xFFF549D6), const Color(0xFFAB82E9)], // Rosa
     ];
 
-    // Calculando posições dinâmicas com base em senos e cossenos
     final List<Offset> positions = [
       Offset(
         size.width * (0.2 + 0.1 * sin(animationValue * pi * 2)),
@@ -432,10 +426,8 @@ class BlurredGradientPainter extends CustomPainter {
       ),
     ];
 
-    // Tamanho proporcional dos círculos
     final double circleSize = size.width * 0.4;
 
-    // Desenhando os círculos com gradientes
     for (int i = 0; i < gradientColors.length; i++) {
       paint.shader = LinearGradient(
         colors: gradientColors[i],
