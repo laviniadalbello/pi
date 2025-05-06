@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'configuracoes.dart';
 
 class PerfilPage extends StatefulWidget {
   const PerfilPage({super.key});
@@ -9,14 +10,9 @@ class PerfilPage extends StatefulWidget {
 }
 
 class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
-   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey _cardKey = GlobalKey();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  bool _isCardVisible = false;
   late AnimationController _circleController;
-  late AnimationController _slideController;
-  late Animation<Offset> _slideAnimation;
-
 
   @override
   void initState() {
@@ -25,28 +21,52 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       duration: const Duration(seconds: 6),
       vsync: this,
     )..repeat();
-
-    _slideController = AnimationController(
-  duration: const Duration(milliseconds: 400),
-  vsync: this,
-);
-
-_slideAnimation = Tween<Offset>(
-  begin: const Offset(0, 1), // Começa fora da tela (em baixo)
-  end: Offset.zero, // Vai para o centro
-).animate(CurvedAnimation(
-  parent: _slideController,
-  curve: Curves.easeOut,
-));
-
   }
 
   @override
   void dispose() {
     _circleController.dispose();
-    super.dispose();
-    _slideController.dispose();
 
+    super.dispose();
+  }
+
+  Widget _buildMenuCard(BuildContext context) {
+    double bottomPadding = 60.0;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottomPadding, left: 40, right: 40),
+      child: Material(
+        color: const Color.fromARGB(223, 17, 24, 39),
+        elevation: 8,
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          // Padding inside the card
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _menuItem(Icons.edit_outlined, 'Create Task'),
+              const SizedBox(height: 12),
+              _menuItem(Icons.add_circle_outline, 'Create Project'),
+              const SizedBox(height: 12),
+              _menuItem(Icons.group_outlined, 'Create Team'),
+              const SizedBox(height: 12),
+              _menuItem(Icons.schedule_outlined, 'Create Event'),
+              const SizedBox(height: 16),
+
+              FloatingActionButton(
+                mini: true,
+                backgroundColor: Colors.blueAccent,
+                elevation: 0,
+                shape: const CircleBorder(),
+                onPressed: () => Navigator.of(context).pop(), //
+                child: const Icon(Icons.close, size: 20, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -61,27 +81,41 @@ _slideAnimation = Tween<Offset>(
       body: SafeArea(
         child: Stack(
           children: [
-            // Círculos decorativos
             Positioned.fill(
               child: Stack(
                 children: [
-                  _animatedCircle(20, 150, 6, [Colors.lightBlueAccent, const Color.fromARGB(255, 243, 33, 208)], 0),
-                  _animatedCircle(350, 130, 4, [Color.fromARGB(164, 180, 34, 238), Colors.deepPurpleAccent], 1),
-                  _animatedCircle(180, 150, 5, [Colors.amberAccent, Colors.orange], 2),
-                  _animatedCircle(40, 115, 5, [Colors.pinkAccent, const Color.fromARGB(255, 149, 226, 4)], 3),
-                  _animatedCircle(370, 150, 8, [Color.fromARGB(173, 36, 17, 204), const Color.fromARGB(255, 218, 20, 20)], 4),
-                  _animatedCircle(100, 120, 6, [Color.fromARGB(255, 222, 87, 240), const Color.fromARGB(255, 27, 112, 1)], 5),
+                  _animatedCircle(20, 150, 6, [
+                    Colors.lightBlueAccent,
+                    const Color.fromARGB(255, 243, 33, 208),
+                  ], 0),
+                  _animatedCircle(350, 130, 4, [
+                    Color.fromARGB(164, 180, 34, 238),
+                    Colors.deepPurpleAccent,
+                  ], 1),
+                  _animatedCircle(180, 150, 5, [
+                    Colors.amberAccent,
+                    Colors.orange,
+                  ], 2),
+                  _animatedCircle(40, 115, 5, [
+                    Colors.pinkAccent,
+                    const Color.fromARGB(255, 149, 226, 4),
+                  ], 3),
+                  _animatedCircle(370, 150, 8, [
+                    Color.fromARGB(173, 36, 17, 204),
+                    const Color.fromARGB(255, 218, 20, 20),
+                  ], 4),
+                  _animatedCircle(100, 120, 6, [
+                    Color.fromARGB(255, 222, 87, 240),
+                    const Color.fromARGB(255, 27, 112, 1),
+                  ], 5),
                 ],
               ),
             ),
-
-            // Conteúdo principal
             SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Topo com voltar e título
                   Stack(
                     alignment: Alignment.center,
                     children: [
@@ -91,7 +125,10 @@ _slideAnimation = Tween<Offset>(
                           onTap: () {
                             Navigator.pop(context);
                           },
-                          child: const Icon(Icons.arrow_back, color: Colors.white),
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       const Text(
@@ -106,7 +143,6 @@ _slideAnimation = Tween<Offset>(
                   ),
                   const SizedBox(height: 70),
 
-                  // Avatar, nome e botão editar
                   Column(
                     children: [
                       CircleAvatar(
@@ -138,7 +174,9 @@ _slideAnimation = Tween<Offset>(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
-                          side: const BorderSide(color: Color.fromARGB(137, 130, 11, 241)),
+                          side: const BorderSide(
+                            color: Color.fromARGB(137, 130, 11, 241),
+                          ),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -160,69 +198,13 @@ _slideAnimation = Tween<Offset>(
                 ],
               ),
             ),
-           // Card flutuante ao clicar no botão +
-       if (_isCardVisible)
-  Positioned.fill(
-    child: GestureDetector(
-      onTap: () {
-        setState(() {
-          _isCardVisible = false;
-          _slideController.reverse();
-        });
-      },
-      child: Container(color: Colors.black54.withOpacity(0)),
-    ),
-  ),
-if (_isCardVisible)
-  Positioned(
-    bottom: 20,
-    left: 30,
-    right: 30,
-    child: SlideTransition(
-      position: _slideAnimation,
-      child: Material(
-        color: Colors.transparent,
-        elevation: 8,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          key: _cardKey,
-          constraints: const BoxConstraints(minHeight: 130),
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(223, 17, 24, 39),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _menuItem(Icons.task, 'Create Task'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.work, 'Create Project'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.group, 'Create Team'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.event, 'Create Event'),
-            ],
-          ),
-        ),
-      ),
-    ),
-  ),
-
           ],
         ),
       ),
     );
   }
 
-Widget _menuItem(IconData icon, String label) {
+  Widget _menuItem(IconData icon, String label) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOut,
@@ -236,7 +218,10 @@ Widget _menuItem(IconData icon, String label) {
         children: [
           Icon(icon, color: Colors.white, size: 20),
           const SizedBox(width: 12),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -249,23 +234,21 @@ Widget _menuItem(IconData icon, String label) {
         backgroundColor: Colors.blueAccent,
         elevation: 6,
         shape: const CircleBorder(),
-       onPressed: () {
-  setState(() {
-    _isCardVisible = !_isCardVisible;
-    if (_isCardVisible) {
-      _slideController.forward();
-    } else {
-      _slideController.reverse();
-    }
-  });
-},
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            builder: _buildMenuCard,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          );
+        },
 
-        child: const Icon(Icons.add, size: 28),
+        child: const Icon(Icons.add, size: 28, color: Colors.white),
       ),
     );
   }
 
-Widget _buildBottomBar() {
+  Widget _buildBottomBar() {
     return BottomAppBar(
       color: Colors.black,
       shape: const CircularNotchedRectangle(),
@@ -310,7 +293,7 @@ Widget _buildBottomBar() {
       ),
     );
   }
-  // Botões fixos com seta
+
   Widget _fixedButton({required String text}) {
     return Container(
       height: 55,
@@ -319,20 +302,27 @@ Widget _buildBottomBar() {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        title: Text(
-          text,
-          style: const TextStyle(color: Colors.black),
-        ),
+        title: Text(text, style: const TextStyle(color: Colors.black)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: () {
-          // ação do botão
+          if (text == 'Settings') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsApp()),
+            );
+          } else {}
         },
       ),
     );
   }
 
-  // Animação dos círculos
-  Widget _animatedCircle(double x, double y, double size, List<Color> colors, int index) {
+  Widget _animatedCircle(
+    double x,
+    double y,
+    double size,
+    List<Color> colors,
+    int index,
+  ) {
     return AnimatedBuilder(
       animation: _circleController,
       builder: (context, child) {
@@ -365,10 +355,7 @@ Widget _buildBottomBar() {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-      ),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

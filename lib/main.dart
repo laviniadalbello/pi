@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'src/pages/inicial.dart';
-import 'src/pages/login.dart'; // <-- Importa a tela de login
-import 'package:firebase_core/firebase_core.dart';
-import 'core/infrastructure/firebase_options.dart';
+import 'inicial.dart';
+import 'login.dart'; // <-- Importa a tela de login
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,13 +15,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/', // <-- Define a rota inicial
+      initialRoute: '/',
       routes: {
         '/': (context) => Inicial(),
-        '/login': (context) => const LoginPage(), // <-- Define a tela de login
-        // '/cadastro': (context) => CadastroPage(), // se quiser também
+        '/login': (context) => const LoginPage(),
+        // '/cadastro': (context) => CadastroPage(),
       },
     );
   }
 }
-

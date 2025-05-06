@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert'; // Para converter a resposta do servidor
-import 'package:http/http.dart' as http; // Para fazer a requisição HTTP
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'dart:math';
-
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -13,59 +12,59 @@ class CadastroPage extends StatefulWidget {
 
 class _CadastroPageState extends State<CadastroPage> {
   bool _obscureText = true;
-  final _formKey = GlobalKey<FormState>(); // Chave para o formulário
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _isLoading = false;
 
-
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: Stack(
-      children: [
-        Container(color: Colors.black),
-        const AnimatedBlurredBackground(),
-        // Botão de voltar
-        Positioned(
-          top: 40,
-          left: 20,
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pop(context);
-            },
-            child: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-        ),
-        Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildTitle(),
-              const SizedBox(height: 20),
-              _buildLoginForm(context),
-            ],
-          ),
-        ),
-        if (_isLoading)
-          Container(
-            color: Colors.black.withOpacity(0.7),
-            child: const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(color: Colors.black),
+          const AnimatedBlurredBackground(),
+          Positioned(
+            top: 40,
+            left: 20,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+              },
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 30,
               ),
             ),
           ),
-      ],
-    ),
-  );
-}
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildTitle(),
+                const SizedBox(height: 20),
+                _buildLoginForm(context),
+              ],
+            ),
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.7),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.purpleAccent,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildTitle() {
     return Column(
@@ -100,112 +99,118 @@ Widget build(BuildContext context) {
     );
   }
 
-Widget _buildLoginForm(BuildContext context) {
-  return SingleChildScrollView(
-    child: Container(
-      width: 320,
-      padding: const EdgeInsets.all(20),
-      margin: const EdgeInsets.symmetric(vertical: 20), 
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min, 
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            const Text(
-              "SIGN UP",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+  Widget _buildLoginForm(BuildContext context) {
+    return SingleChildScrollView(
+      child: Container(
+        width: 320,
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Text(
+                "SIGN UP",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 20), 
-            _buildTextField("Name", _nameController),
-            const SizedBox(height: 16), 
-            _buildTextField("Email", _emailController, isEmail: true),
-            const SizedBox(height: 16),
-            _buildPasswordField(),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                AnimatedCheckbox(),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: () {},
-                  child: RichText(
-                    text: const TextSpan(
-                      text: "I have read the ",
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                      children: [
-                        TextSpan(
-                          text: "Privacy Policy",
-                          style: TextStyle(
-                            color: Color(0xFFBF99F8),
-                            fontWeight: FontWeight.bold,
+              const SizedBox(height: 20),
+              _buildTextField("Name", _nameController),
+              const SizedBox(height: 16),
+              _buildTextField("Email", _emailController, isEmail: true),
+              const SizedBox(height: 16),
+              _buildPasswordField(),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedCheckbox(),
+                  const SizedBox(width: 20),
+                  GestureDetector(
+                    onTap: () {},
+                    child: RichText(
+                      text: const TextSpan(
+                        text: "I have read the ",
+                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                        children: [
+                          TextSpan(
+                            text: "Privacy Policy",
+                            style: TextStyle(
+                              color: Color(0xFFBF99F8),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 15),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _validateAndSubmit,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                ).copyWith(
-                  backgroundColor: MaterialStateProperty.resolveWith(
-                    (states) => Colors.transparent,
-                  ),
-                  elevation: MaterialStateProperty.all(0),
-                  foregroundColor: MaterialStateProperty.all(Colors.white),
-                ),
-                child: Ink(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                ],
+              ),
+              const SizedBox(height: 15),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _validateAndSubmit,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    borderRadius: BorderRadius.circular(10),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                  ).copyWith(
+                    backgroundColor: MaterialStateProperty.resolveWith(
+                      (states) => Colors.transparent,
+                    ),
+                    elevation: MaterialStateProperty.all(0),
+                    foregroundColor: MaterialStateProperty.all(Colors.white),
                   ),
-                  child: Container(
-                    constraints: const BoxConstraints(minHeight: 38,
-                      maxWidth: 160,), 
-                    
-                    alignment: Alignment.center,
-                    child: const Text(
-                      "SIGN UP",
-                      style: TextStyle(fontSize: 16),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minHeight: 38,
+                        maxWidth: 160,
+                      ),
+
+                      alignment: Alignment.center,
+                      child: const Text(
+                        "SIGN UP",
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 10), 
-          ],
+              const SizedBox(height: 10),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isEmail = false}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool isEmail = false,
+  }) {
     return TextFormField(
       controller: controller,
       style: const TextStyle(color: Colors.white),
@@ -225,7 +230,10 @@ Widget _buildLoginForm(BuildContext context) {
         if (value == null || value.isEmpty) {
           return '$label is required';
         }
-        if (isEmail && !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(value)) {
+        if (isEmail &&
+            !RegExp(
+              r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+            ).hasMatch(value)) {
           return 'Please enter a valid email';
         }
         return null;
@@ -269,82 +277,85 @@ Widget _buildLoginForm(BuildContext context) {
         if (value.length < 8) {
           return 'Password must be at least 8 characters';
         }
-         if (!RegExp(r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])').hasMatch(value)) {
-        return 'Password must contain letters, numbers, and at least one uppercase letter';
-      }
+        if (!RegExp(
+          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
+        ).hasMatch(value)) {
+          return 'Password must contain letters, numbers, and at least one uppercase letter';
+        }
         return null;
       },
     );
   }
 
-Future<void> submitRegistration(String name, String email, String password) async {
-  setState(() {
-    _isLoading = true;
-  });
-
- final String url ='https://jsonplaceholder.typicode.com/users'; 
- // URL de exemplo
-
-  final Map<String, String> requestData = {
-    'name': name,
-    'email': email,
-    'password': password,
-  };
-
- try {
-    print('Enviando dados...');
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode(requestData),
-    );
-
- setState(() {
-      _isLoading = false;
-    });
-
-if (response.statusCode == 201) {
-      print('Registro com sucesso');
-
-       // Exibe o SnackBar de sucesso
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Cadastro realizado com sucesso!'),
-          backgroundColor: Colors.green,
-        ),
-      );
-     
-     
-      // Aguarda o tempo de exibição do SnackBar (ex: 3 segundos) antes de redirecionar
-      await Future.delayed(const Duration(seconds: 3));
-    
-
-      // Redireciona para a tela de login
-      Navigator.pushReplacementNamed(context, '/login');
-    } else {
-      print('Erro ao registrar: ${response.statusCode}');
-      _showDialog('Erro', 'Não foi possível registrar o usuário.');
-    }
-  } catch (e) {
+  Future<void> submitRegistration(
+    String name,
+    String email,
+    String password,
+  ) async {
     setState(() {
-      _isLoading = false;
+      _isLoading = true;
     });
-    print('Erro na conexão: $e');
-    _showDialog('Erro', 'Ocorreu um erro. Verifique sua conexão ou tente novamente mais tarde.');
+
+    final String url = 'https://jsonplaceholder.typicode.com/users';
+    // URL de exemplo
+
+    final Map<String, String> requestData = {
+      'name': name,
+      'email': email,
+      'password': password,
+    };
+
+    try {
+      print('Enviando dados...');
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(requestData),
+      );
+
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (response.statusCode == 201) {
+        print('Registro com sucesso');
+
+        // Exibe o SnackBar de sucesso
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Cadastro realizado com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        await Future.delayed(const Duration(seconds: 3));
+
+        // Redireciona para a tela de login
+        Navigator.pushReplacementNamed(context, '/login');
+      } else {
+        print('Erro ao registrar: ${response.statusCode}');
+        _showDialog('Erro', 'Não foi possível registrar o usuário.');
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Erro na conexão: $e');
+      _showDialog(
+        'Erro',
+        'Ocorreu um erro. Verifique sua conexão ou tente novamente mais tarde.',
+      );
+    }
   }
-}
+
   void _validateAndSubmit() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Se a validação passar, envia os dados para o backend
       submitRegistration(
         _nameController.text,
         _emailController.text,
         _passwordController.text,
       );
     } else {
-      // Se a validação falhar, mostra um alerta
       _showDialog('Error', 'Please correct the errors');
     }
   }
@@ -370,7 +381,6 @@ if (response.statusCode == 201) {
   }
 }
 
-// Widget para o checkbox animado
 class AnimatedCheckbox extends StatefulWidget {
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
@@ -415,7 +425,6 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox> {
   }
 }
 
-
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 
@@ -433,7 +442,7 @@ class AnimatedBlurredBackgroundState extends State<AnimatedBlurredBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 30), // Animação de 30 segundos
+      duration: const Duration(seconds: 30),
     )..repeat(reverse: true);
   }
 
@@ -490,10 +499,8 @@ class BlurredGradientPainter extends CustomPainter {
       ),
     ];
 
-    // Tamanho proporcional dos círculos
     final double circleSize = size.width * 0.4;
 
-    // Desenhando os círculos com gradientes
     for (int i = 0; i < gradientColors.length; i++) {
       paint.shader = LinearGradient(
         colors: gradientColors[i],
