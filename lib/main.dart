@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'inicial.dart';
-import 'login.dart'; // <-- Importa a tela de login
+import 'src/pages/inicial.dart';
+import 'src/pages/login.dart'; // <-- Importa a tela de login
+import 'package:firebase_core/firebase_core.dart';
+import 'core/infrastructure/firebase_options.dart';
 
-
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -22,3 +25,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

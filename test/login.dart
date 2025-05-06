@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:planify/login.dart'; 
+import 'package:planify/src/pages/login.dart'; 
 void main() {
   testWidgets('Teste da tela de Login', (WidgetTester tester) async {
 
