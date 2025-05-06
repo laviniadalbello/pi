@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:planify/adicionartarefa.dart';
-import 'package:planify/criartime.dart';
-import 'package:planify/detalhesdastarefas.dart';
-import 'package:planify/perfil.dart';
+import 'package:planify/src/pages/adicionartarefa.dart';
+import 'package:planify/src/pages/criartime.dart';
+import 'package:planify/src/pages/detalhesdastarefas.dart';
+import 'package:planify/src/pages/perfil.dart';
 import 'dart:math';
 import 'login.dart';
 import 'cadastro.dart';

@@ -1,6 +1,7 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'inicial.dart';
-import 'login.dart'; // <-- Importa a tela de login
+import './src/pages/inicial.dart';
+import './src/pages/login.dart'; // <-- Importa a tela de login
 
 
 void main() async {
