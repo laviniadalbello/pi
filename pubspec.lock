@@ -249,6 +249,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.1.0"
+  firebase_ml_custom:
+    dependency: "direct main"
+    description:
+      name: firebase_ml_custom
+      sha256: dfaf241356ac021ffa67971a798e53e1c10ca62e1ba19ccaaaf609c350765540
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0+3"
   fixnum:
     dependency: transitive
     description:

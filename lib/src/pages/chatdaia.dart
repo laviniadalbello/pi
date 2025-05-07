@@ -138,6 +138,24 @@ class _AiInputCardState extends State<AiInputCard>
   final double _checkedBorderRadius = 20.0;
   final double _eyeMovementFactor = 0.05;
   final double _maxEyeOffset = 5.0;
+  final TextEditingController _messageController = TextEditingController();
+
+    Future<void> _handleSendMessage() async {
+    final message = _messageController.text;
+    if (message.isEmpty) return;
+
+    final response = await _processMessageWithML(message);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(response)),
+    );
+
+    _messageController.clear();
+  }
+
+  Future<String> _processMessageWithML(String message) async {
+    // Implementação real do ML Kit virá aqui
+    return "📌 ML Kit respondeu: ${message}";
+  }
 
   @override
   void initState() {
@@ -176,6 +194,7 @@ class _AiInputCardState extends State<AiInputCard>
   void dispose() {
     _eyeAnimationController.dispose();
     _ballRotationController.dispose();
+    _messageController.dispose();
     super.dispose();
   }
 
@@ -499,6 +518,7 @@ class _AiInputCardState extends State<AiInputCard>
                   child: Padding(
                     padding: const EdgeInsets.all(6.0),
                     child: TextField(
+                      controller: _messageController,
                       maxLines: null,
                       expands: true,
                       keyboardType: TextInputType.multiline,
@@ -553,6 +573,7 @@ class _AiInputCardState extends State<AiInputCard>
                         initialOpacity: 0.7,
                         hoverOpacity: 1.0,
                         activeScale: 0.92,
+                        onTap: _handleSendMessage,
                         builder: (context, isHovering, isDown) {
                           final Color iconColor = Colors.white;
                           final List<BoxShadow>? iconShadow =
@@ -674,6 +695,7 @@ class _HoverScaleButton extends StatefulWidget {
   final double activeScale;
   final Widget Function(BuildContext context, bool isHovering, bool isDown)
   builder;
+  final VoidCallback onTap;
 
   const _HoverScaleButton({
     Key? key,
@@ -681,6 +703,7 @@ class _HoverScaleButton extends StatefulWidget {
     this.initialOpacity = 1.0,
     this.hoverOpacity = 1.0,
     this.activeScale = 1.0,
+    required this.onTap
   }) : super(key: key);
 
   @override
@@ -705,9 +728,7 @@ class __HoverScaleButtonState extends State<_HoverScaleButton> {
         onTapDown: (_) => setState(() => _isDown = true),
         onTapUp: (_) => setState(() => _isDown = false),
         onTapCancel: () => setState(() => _isDown = false),
-        onTap: () {
-          /* Ação do botão submit */
-        },
+        onTap: widget.onTap,
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 150),
           opacity: currentOpacity,

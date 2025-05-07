@@ -28,8 +28,10 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  firebase_ml_natural_language: ^0.12.0+3
+  firebase_ml_custom: ^0.2.0+1
   flutter:
-    sdk: flutter
+  sdk: flutter
   http: ^1.3.0
   carousel_slider: ^4.2.1
   percent_indicator: ^4.2.3
@@ -39,6 +41,7 @@ dependencies:
   shelf: ^1.4.0
   shelf_router: ^1.1.3
   flutter_svg: ^2.0.10+1
+  cloud_firestore: ^4.15.1
 
 
 
