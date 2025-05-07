@@ -8,9 +8,6 @@ import 'login.dart';
 import 'cadastro.dart';
 import 'habits.dart';
 
-void main() {
-  runApp(const Inicial());
-}
 
 class Inicial extends StatefulWidget {
   const Inicial({super.key});
