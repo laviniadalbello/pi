@@ -37,8 +37,7 @@ const String submitSvg = '''
 class CloseableAiCard extends StatefulWidget {
   final double scaleFactor;
 
-  const CloseableAiCard({Key? key, this.scaleFactor = 1.0})
-    : super(key: key); // Valor padrão 1.0
+  const CloseableAiCard({super.key, this.scaleFactor = 1.0}); // Valor padrão 1.0
 
   @override
   _CloseableAiCardState createState() => _CloseableAiCardState();
@@ -105,11 +104,11 @@ class AiInputCard extends StatefulWidget {
   final VoidCallback onToggleChecked;
 
   const AiInputCard({
-    Key? key,
+    super.key,
     required this.isChecked,
     required this.onToggleChecked,
     required this.isHovering,
-  }) : super(key: key);
+  });
 
   @override
   _AiInputCardState createState() => _AiInputCardState();
@@ -117,8 +116,8 @@ class AiInputCard extends StatefulWidget {
 
 class _AiInputCardState extends State<AiInputCard>
     with TickerProviderStateMixin {
-  Offset _mousePosition = Offset.zero;
-  Offset _relativeMousePosition = Offset.zero;
+  final Offset _mousePosition = Offset.zero;
+  final Offset _relativeMousePosition = Offset.zero;
   final GlobalKey _cardContentKey = GlobalKey();
 
   late AnimationController _eyeAnimationController;
@@ -154,7 +153,7 @@ class _AiInputCardState extends State<AiInputCard>
 
   Future<String> _processMessageWithML(String message) async {
     // Implementação real do ML Kit virá aqui
-    return "📌 ML Kit respondeu: ${message}";
+    return "📌 ML Kit respondeu: $message";
   }
 
   @override
@@ -220,8 +219,9 @@ class _AiInputCardState extends State<AiInputCard>
     // UPDATED: Use widget.isHovering
     if (!widget.isHovering ||
         widget.isChecked ||
-        _cardContentKey.currentContext == null)
+        _cardContentKey.currentContext == null) {
       return Offset.zero;
+    }
     final RenderBox cardBox =
         _cardContentKey.currentContext!.findRenderObject() as RenderBox;
     final Size cardSize = cardBox.size;
@@ -646,12 +646,11 @@ class _HoverTranslateSvgButton extends StatefulWidget {
   final double size;
 
   const _HoverTranslateSvgButton({
-    Key? key,
     required this.svgData,
     required this.initialColor,
     required this.hoverColor,
     required this.size,
-  }) : super(key: key);
+  });
 
   @override
   __HoverTranslateSvgButtonState createState() =>
@@ -698,13 +697,12 @@ class _HoverScaleButton extends StatefulWidget {
   final VoidCallback onTap;
 
   const _HoverScaleButton({
-    Key? key,
     required this.builder,
     this.initialOpacity = 1.0,
     this.hoverOpacity = 1.0,
     this.activeScale = 1.0,
     required this.onTap
-  }) : super(key: key);
+  });
 
   @override
   __HoverScaleButtonState createState() => __HoverScaleButtonState();

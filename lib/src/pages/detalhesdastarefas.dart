@@ -521,11 +521,11 @@ class TaskItem extends StatelessWidget {
                           padding: const EdgeInsets.only(right: 4),
                           child: CircleAvatar(
                             backgroundColor: Colors.white,
+                            radius: 14,
                             child: Text(
                               p,
                               style: const TextStyle(fontSize: 12),
                             ),
-                            radius: 14,
                           ),
                         ),
                       ),

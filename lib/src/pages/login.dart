@@ -139,11 +139,11 @@ Widget _buildLoginForm(BuildContext context) {
                 backgroundColor: Colors.transparent,
                 shadowColor: Colors.transparent,
               ).copyWith(
-                backgroundColor: MaterialStateProperty.resolveWith(
+                backgroundColor: WidgetStateProperty.resolveWith(
                   (states) => Colors.transparent,
                 ),
-                elevation: MaterialStateProperty.all(0),
-                foregroundColor: MaterialStateProperty.all(Colors.white),
+                elevation: WidgetStateProperty.all(0),
+                foregroundColor: WidgetStateProperty.all(Colors.white),
               ),
               child: Ink(
                 decoration: BoxDecoration(

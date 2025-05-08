@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:shelf/shelf.dart';
-import 'package:mysql1/mysql1.dart';
 import '../database/conexao.dart'; // Importando a classe Database
 
 Future<Response> loginHandler(Request req) async {

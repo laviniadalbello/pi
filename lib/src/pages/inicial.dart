@@ -17,7 +17,7 @@ class Inicial extends StatefulWidget {
 }
 
 class _InicialState extends State<Inicial> {
-  bool _isButtonPressed = false;
+  final bool _isButtonPressed = false;
 
   @override
   Widget build(BuildContext context) {

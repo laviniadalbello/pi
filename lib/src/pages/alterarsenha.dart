@@ -152,11 +152,11 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
                   ).copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith(
+                    backgroundColor: WidgetStateProperty.resolveWith(
                       (states) => Colors.transparent,
                     ),
-                    elevation: MaterialStateProperty.all(0),
-                    foregroundColor: MaterialStateProperty.all(Colors.white),
+                    elevation: WidgetStateProperty.all(0),
+                    foregroundColor: WidgetStateProperty.all(Colors.white),
                   ),
                   child: Ink(
                     decoration: BoxDecoration(
@@ -310,6 +310,8 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
 }
 
 class AnimatedCheckbox extends StatefulWidget {
+  const AnimatedCheckbox({super.key});
+
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
 }
