@@ -50,6 +50,5 @@ dependencies {
 
     // Se precisar de modelos customizados:
     implementation 'com.google.firebase:firebase-ml-modeldownloader:24.2.0'
-    apply plugin: 'com.google.gms.google-services'
 
 }
