@@ -91,7 +91,6 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildLoginForm() {
     return SizedBox(
       width: 320,
-      height: 428,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
