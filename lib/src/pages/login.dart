@@ -1,12 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:planify/services/firebase_auth_service.dart';
 import 'cadastro.dart';
 import 'alterarsenha.dart';
 import 'dart:math';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final FirebaseServiceAuth _authService = FirebaseServiceAuth();
+  bool _isLoading = false;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -21,9 +32,7 @@ class LoginPage extends StatelessWidget {
               top: 40,
               left: 20,
               child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: () => Navigator.pop(context),
                 child: const Icon(
                   Icons.arrow_back,
                   color: Colors.white,
@@ -32,213 +41,226 @@ class LoginPage extends StatelessWidget {
               ),
             ),
             Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Welcome Back",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 46,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  ShaderMask(
-                    shaderCallback:
-                        (bounds) => const LinearGradient(
-                          colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ).createShader(bounds),
-                    child: const Text(
-                      "Dear Friend",
-                      textAlign: TextAlign.center,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Welcome Back",
                       style: TextStyle(
                         fontSize: 46,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildLoginForm(context),
-                ],
+                    ShaderMask(
+                      shaderCallback: (bounds) => const LinearGradient(
+                        colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                      ).createShader(bounds),
+                      child: const Text(
+                        "Dear Friend",
+                        style: TextStyle(
+                          fontSize: 46,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildLoginForm(context),
+                  ],
+                ),
               ),
             ),
+            if (_isLoading)
+              Container(
+                color: Colors.black.withOpacity(0.5),
+                child: const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
     );
   }
-}
 
-Widget _buildLoginForm(BuildContext context) {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-
-  return SizedBox(
-    width: 320,
-    height: 428,
-    child: Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          const SizedBox(height: 5),
-          const Text(
-            "LOGIN",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 30),
-          _buildTextField("Email", controller: emailController),
-          const SizedBox(height: 15),
-          _buildTextField(
-            "Password",
-            obscureText: true,
-            controller: passwordController,
-          ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
-            child: GestureDetector(
-              onTap: () {
-                // Redirecionando para a tela de alterar senha
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => AlterarSenhaPage()),
-                );
-              },
-              child: Text(
-                "Forgot Password ?",
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ),
-          ),
-          const SizedBox(height: 15),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Envia os dados de login
-                login(emailController.text, passwordController.text, context);
-              },
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+  Widget _buildLoginForm(BuildContext context) {
+    return SizedBox(
+      width: 320,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(141, 11, 13, 34).withOpacity(0.6),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              const Text(
+                "LOGIN",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-              ).copyWith(
-                backgroundColor: WidgetStateProperty.resolveWith(
-                  (states) => Colors.transparent,
-                ),
-                elevation: WidgetStateProperty.all(0),
-                foregroundColor: WidgetStateProperty.all(Colors.white),
               ),
-              child: Ink(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              const SizedBox(height: 30),
+              // Email Field
+              TextFormField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                style: const TextStyle(color: Colors.white),
+                decoration: _inputDecoration("Email"),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, insira seu email';
+                  }
+                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    return 'Email inválido';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 15),
+              // Password Field
+              TextFormField(
+                controller: _passwordController,
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: _inputDecoration("Password"),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, insira sua senha';
+                  }
+                  if (value.length < 6) {
+                    return 'Senha deve ter pelo menos 6 caracteres';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AlterarSenhaPage()),
                   ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Container(
-                  width: 129,
-                  height: 28,
-                  alignment: Alignment.center,
-                  constraints: const BoxConstraints(minHeight: 28),
-                  child: const Text("LOGIN", style: TextStyle(fontSize: 16)),
+                  child: const Text(
+                    "Forgot Password?",
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
+                  ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: Divider(
-                  color: Colors.white70,
-                  thickness: 1,
-                  endIndent: 10,
+              const SizedBox(height: 20),
+              // Login Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _handleLogin,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ).copyWith(
+                    backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                      (states) => states.contains(MaterialState.disabled)
+                          ? Colors.grey
+                          : Colors.transparent,
+                    ),
+                  ),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Container(
+                      height: 50,
+                      alignment: Alignment.center,
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            )
+                          : const Text(
+                              "LOGIN",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
                 ),
               ),
-              Text(
-                "Login with social accounts",
-                style: TextStyle(color: Colors.white70, fontSize: 12),
+              const SizedBox(height: 20),
+              // Social Login
+              const Row(
+                children: [
+                  Expanded(child: Divider(color: Colors.white70)),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Text(
+                      "Login with social accounts",
+                      style: TextStyle(color: Colors.white70, fontSize: 12),
+                    ),
+                  ),
+                  Expanded(child: Divider(color: Colors.white70)),
+                ],
               ),
-              Expanded(
-                child: Divider(color: Colors.white70, thickness: 1, indent: 10),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.g_translate, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.facebook, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.g_translate, color: Colors.white),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.facebook, color: Colors.white),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Center(
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
+              const SizedBox(height: 10),
+              TextButton(
+                onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const CadastroPage()),
-                );
-              },
-              child: RichText(
-                text: const TextSpan(
-                  text: "Don't have an account? ",
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
-                  children: [
-                    TextSpan(
-                      text: "Sign up",
-                      style: TextStyle(
-                        color: Color(0xFFBF99F8),
-                        fontWeight: FontWeight.bold,
+                ),
+                child: const Text.rich(
+                  TextSpan(
+                    text: "Don't have an account? ",
+                    style: TextStyle(color: Colors.white70),
+                    children: [
+                      TextSpan(
+                        text: "Sign up",
+                        style: TextStyle(
+                          color: Color(0xFFBF99F8),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-Widget _buildTextField(
-  String label, {
-  bool obscureText = false,
-  TextEditingController? controller,
-}) {
-  return TextField(
-    controller: controller,
-    obscureText: obscureText,
-    style: const TextStyle(color: Colors.white),
-    decoration: InputDecoration(
+  InputDecoration _inputDecoration(String label) {
+    return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(color: Colors.white70),
       enabledBorder: OutlineInputBorder(
@@ -249,70 +271,69 @@ Widget _buildTextField(
         borderSide: const BorderSide(color: Colors.purpleAccent),
         borderRadius: BorderRadius.circular(10),
       ),
-    ),
-  );
-}
-
-Future<void> login(String email, String password, BuildContext context) async {
-  final url = Uri.parse('http://localhost:8080/login');
-
-  final body = json.encode({'email': email, 'password': password});
-
-  try {
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
     );
+  }
 
-    if (response.statusCode == 200) {
-      // Login bem-sucedido
-      final responseData = json.decode(response.body);
-      print('Login bem-sucedido: $responseData');
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      Navigator.pushNamed(context, '/home');
-    } else {
-      // Login falhou
-      showDialog(
-        context: context,
-        builder:
-            (ctx) => AlertDialog(
-              title: Text('Erro de Login'),
-              content: Text('Credenciais inválidas ou erro no servidor.'),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('OK'),
-                  onPressed: () {
-                    Navigator.of(ctx).pop();
-                  },
-                ),
-              ],
-            ),
+    setState(() => _isLoading = true);
+
+    try {
+      final user = await _authService.loginUser(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
       );
+
+      if (user != null) {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        _showErrorDialog("Falha no login. Verifique suas credenciais.");
+      }
+    } on FirebaseAuthException catch (e) {
+      _showErrorDialog(_getFirebaseErrorMessage(e));
+    } catch (e) {
+      _showErrorDialog("Erro desconhecido: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
-  } catch (error) {
-    print('Erro na requisição: $error');
+  }
+
+  String _getFirebaseErrorMessage(FirebaseAuthException e) {
+    switch (e.code) {
+      case 'user-not-found':
+        return 'Nenhum usuário encontrado para este email.';
+      case 'wrong-password':
+        return 'Senha incorreta.';
+      case 'invalid-email':
+        return 'Email inválido.';
+      case 'user-disabled':
+        return 'Esta conta foi desativada.';
+      case 'too-many-requests':
+        return 'Muitas tentativas. Tente novamente mais tarde.';
+      default:
+        return 'Erro: ${e.message}';
+    }
+  }
+
+  void _showErrorDialog(String message) {
     showDialog(
       context: context,
-      builder:
-          (ctx) => AlertDialog(
-            title: Text('Erro'),
-            content: Text(
-              'Ocorreu um erro ao tentar realizar o login. Tente novamente mais tarde.',
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                },
-              ),
-            ],
+      builder: (ctx) => AlertDialog(
+        title: const Text("Erro"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("OK"),
           ),
+        ],
+      ),
     );
   }
 }
 
+// Mantenha suas classes AnimatedBlurredBackground e BlurredGradientPainter existentes
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 

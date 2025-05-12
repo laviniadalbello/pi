@@ -41,6 +41,7 @@ flutter {
 dependencies {
     // Firebase BoM (Bill of Materials) - Gerencia versões automaticamente
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
+    implementation 'com.google.firebase:firebase-auth'
 
     // Dependências do ML Kit (use apenas as necessárias)
     implementation 'com.google.android.gms:play-services-mlkit-text-recognition:19.0.0' // OCR
@@ -49,4 +50,6 @@ dependencies {
 
     // Se precisar de modelos customizados:
     implementation 'com.google.firebase:firebase-ml-modeldownloader:24.2.0'
+    apply plugin: 'com.google.gms.google-services'
+
 }
