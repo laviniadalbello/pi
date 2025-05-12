@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 
 class AlterarSenhaPage extends StatefulWidget {
@@ -10,8 +11,11 @@ class AlterarSenhaPage extends StatefulWidget {
 
 class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   bool _obscureText = true;
+  bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,9 +28,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
             top: 40,
             left: 20,
             child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
+              onTap: () => Navigator.pop(context),
               child: const Icon(
                 Icons.arrow_back,
                 color: Colors.white,
@@ -40,10 +42,19 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
               children: [
                 _buildTitle(),
                 const SizedBox(height: 20),
-                _buildLoginForm(context),
+                _buildPasswordForm(context),
               ],
             ),
           ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.7),
+              child: const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -62,12 +73,11 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
           ),
         ),
         ShaderMask(
-          shaderCallback:
-              (bounds) => const LinearGradient(
-                colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ).createShader(bounds),
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ).createShader(bounds),
           child: const Text(
             "Password",
             textAlign: TextAlign.center,
@@ -82,10 +92,9 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
-  Widget _buildLoginForm(BuildContext context) {
+  Widget _buildPasswordForm(BuildContext context) {
     return SizedBox(
       width: 320,
-      height: 428,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -95,9 +104,8 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         child: Form(
           key: _formKey,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const SizedBox(height: 5),
               const Text(
                 "Password",
                 style: TextStyle(
@@ -107,79 +115,13 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                 ),
               ),
               const SizedBox(height: 30),
-              _buildPasswordField(),
+              _buildPasswordField("New Password", _newPasswordController),
               const SizedBox(height: 20),
-              _buildPassword2Field(),
+              _buildPasswordField("Confirm Password", _confirmPasswordController),
               const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.only(left: 20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    AnimatedCheckbox(),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {},
-                      child: RichText(
-                        text: const TextSpan(
-                          text: "Confirm   password  ",
-                          style: TextStyle(color: Colors.white70, fontSize: 12),
-                          children: [
-                            TextSpan(
-                              text: "Change",
-                              style: TextStyle(
-                                color: Color(0xFFBF99F8),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              _buildCheckbox(),
               const SizedBox(height: 25),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _validateAndSubmit,
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                  ).copyWith(
-                    backgroundColor: WidgetStateProperty.resolveWith(
-                      (states) => Colors.transparent,
-                    ),
-                    elevation: WidgetStateProperty.all(0),
-                    foregroundColor: WidgetStateProperty.all(Colors.white),
-                  ),
-                  child: Ink(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Container(
-                      width: 129,
-                      height: 28,
-                      alignment: Alignment.center,
-                      constraints: const BoxConstraints(minHeight: 28),
-                      child: const Text(
-                        "Change",
-                        style: TextStyle(fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              _buildChangeButton(),
             ],
           ),
         ),
@@ -187,13 +129,13 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField(String label, TextEditingController controller) {
     return TextFormField(
-      controller: _passwordController,
+      controller: controller,
       obscureText: _obscureText,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
-        labelText: "New Password",
+        labelText: label,
         labelStyle: const TextStyle(color: Colors.white70),
         enabledBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: Colors.white70),
@@ -208,104 +150,173 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
             _obscureText ? Icons.visibility : Icons.visibility_off,
             color: Colors.white70,
           ),
-          onPressed: () {
-            setState(() {
-              _obscureText = !_obscureText;
-            });
-          },
-          tooltip: _obscureText ? 'Show password' : 'Hide password',
+          onPressed: () => setState(() => _obscureText = !_obscureText),
         ),
       ),
       validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Password is required';
+        if (value == null || value.isEmpty) return '$label is required';
+        if (value.length < 8) return 'Password must be at least 8 characters';
+        if (!RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])').hasMatch(value)) {
+          return 'Password must contain uppercase, lowercase and numbers';
         }
-        if (value.length < 8) {
-          return 'Password must be at least 8 characters';
-        }
-        if (!RegExp(
-          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
-        ).hasMatch(value)) {
-          return 'Password must contain letters, numbers, and at least one uppercase letter';
+        if (label == "Confirm Password" && 
+            value != _newPasswordController.text) {
+          return 'Passwords do not match';
         }
         return null;
       },
     );
   }
 
-  Widget _buildPassword2Field() {
-    return TextFormField(
-      controller: _passwordController,
-      obscureText: _obscureText,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: "Repete Password",
-        labelStyle: const TextStyle(color: Colors.white70),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white70),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.purpleAccent),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        suffixIcon: IconButton(
-          icon: Icon(
-            _obscureText ? Icons.visibility : Icons.visibility_off,
-            color: Colors.white70,
+  Widget _buildCheckbox() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 20.0),
+      child: Row(
+        children: [
+          const AnimatedCheckbox(),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () {},
+            child: RichText(
+              text: const TextSpan(
+                text: "Confirm   password  ",
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+                children: [
+                  TextSpan(
+                    text: "Change",
+                    style: TextStyle(
+                      color: Color(0xFFBF99F8),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          onPressed: () {
-            setState(() {
-              _obscureText = !_obscureText;
-            });
-          },
-          tooltip: _obscureText ? 'Show password' : 'Hide password',
-        ),
+        ],
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Password is required';
-        }
-        if (value.length < 8) {
-          return 'Password must be at least 8 characters';
-        }
-        if (!RegExp(
-          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
-        ).hasMatch(value)) {
-          return 'Password must contain letters, numbers, and at least one uppercase letter';
-        }
-
-        return null;
-      },
     );
   }
 
-  void _validateAndSubmit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      _showDialog('Success', 'Registration successful');
-    } else {
-      _showDialog('Error', 'Please correct the errors');
+  Widget _buildChangeButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _changePassword,
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ).copyWith(
+          backgroundColor: MaterialStateProperty.resolveWith<Color>(
+            (states) => states.contains(MaterialState.disabled)
+                ? Colors.grey
+                : Colors.transparent,
+          ),
+        ),
+        child: Ink(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Container(
+            height: 50,
+            alignment: Alignment.center,
+            child: _isLoading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text(
+                    "Change",
+                    style: TextStyle(fontSize: 16),
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _changePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showErrorDialog("No user logged in");
+        return;
+      }
+
+      await user.updatePassword(_newPasswordController.text);
+      _showSuccessDialog();
+    } on FirebaseAuthException catch (e) {
+      _handleFirebaseError(e);
+    } catch (e) {
+      _showErrorDialog("An unexpected error occurred");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
-  void _showDialog(String title, String content) {
+  void _handleFirebaseError(FirebaseAuthException e) {
+    String message;
+    switch (e.code) {
+      case 'requires-recent-login':
+        message = 'Please reauthenticate before changing password';
+        break;
+      case 'weak-password':
+        message = 'Password is too weak';
+        break;
+      default:
+        message = 'Error: ${e.message}';
+    }
+    _showErrorDialog(message);
+  }
+
+  void _showSuccessDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
+      builder: (context) => AlertDialog(
+        title: const Text("Success"),
+        content: const Text("Password changed successfully"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Error"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 }
 

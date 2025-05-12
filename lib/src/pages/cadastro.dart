@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'dart:math';
+import 'package:planify/services/firebase_auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -16,6 +16,19 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final FirebaseServiceAuth _authService = FirebaseServiceAuth();
+  void _validateAndSubmit() {
+  if (_formKey.currentState?.validate() ?? false) {
+    // Chama a função de registro com os dados dos controllers
+    submitRegistration(
+      _nameController.text,
+      _emailController.text,
+      _passwordController.text,
+    );
+  } else {
+    _showDialog('Error', 'Please correct the errors in the form');
+  }
+}
 
   bool _isLoading = false;
 
@@ -287,79 +300,76 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-  Future<void> submitRegistration(
-    String name,
-    String email,
-    String password,
-  ) async {
+Future<void> submitRegistration(
+  String name,
+  String email,
+  String password,
+) async {
+  setState(() {
+    _isLoading = true;
+  });
+
+  try {
+    print('Registrando usuário no Firebase...');
+    final user = await _authService.registerUser(
+      name: name,
+      email: email,
+      password: password,
+    );
+
     setState(() {
-      _isLoading = true;
+      _isLoading = false;
     });
 
-    final String url = 'https://jsonplaceholder.typicode.com/users';
-    // URL de exemplo
-
-    final Map<String, String> requestData = {
-      'name': name,
-      'email': email,
-      'password': password,
-    };
-
-    try {
-      print('Enviando dados...');
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(requestData),
+    if (user != null) {
+      print('Registro com sucesso: ${user.uid}');
+      
+      // Exibe o SnackBar de sucesso
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cadastro realizado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
       );
 
-      setState(() {
-        _isLoading = false;
-      });
+      await Future.delayed(const Duration(seconds: 2));
 
-      if (response.statusCode == 201) {
-        print('Registro com sucesso');
-
-        // Exibe o SnackBar de sucesso
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Cadastro realizado com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        await Future.delayed(const Duration(seconds: 3));
-
-        // Redireciona para a tela de login
-        Navigator.pushReplacementNamed(context, '/login');
-      } else {
-        print('Erro ao registrar: ${response.statusCode}');
-        _showDialog('Erro', 'Não foi possível registrar o usuário.');
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      print('Erro na conexão: $e');
-      _showDialog(
-        'Erro',
-        'Ocorreu um erro. Verifique sua conexão ou tente novamente mais tarde.',
-      );
-    }
-  }
-
-  void _validateAndSubmit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      submitRegistration(
-        _nameController.text,
-        _emailController.text,
-        _passwordController.text,
-      );
+      // Redireciona para a tela de login ou home
+      Navigator.pushReplacementNamed(context, '/login');
     } else {
-      _showDialog('Error', 'Please correct the errors');
+      print('Erro ao registrar: usuário é nulo');
+      _showDialog('Erro', 'Não foi possível registrar o usuário.');
+    }
+ } catch (e) {
+  setState(() {
+    _isLoading = false;
+  });
+  
+  print('Erro no Firebase: $e');
+  
+  String errorMessage = 'Ocorreu um erro. Tente novamente mais tarde.';
+  if (e is FirebaseAuthException) {  // Agora vai reconhecer o tipo
+    switch (e.code) {
+      case 'email-already-in-use':
+        errorMessage = 'Este email já está em uso.';
+        break;
+      case 'invalid-email':
+        errorMessage = 'Email inválido.';
+        break;
+      case 'weak-password':
+        errorMessage = 'Senha muito fraca. Use pelo menos 6 caracteres.';
+        break;
+      case 'operation-not-allowed':
+        errorMessage = 'Operação não permitida.';
+        break;
+      default:
+        errorMessage = 'Erro no cadastro: ${e.message}';
     }
   }
-
+  
+  _showDialog('Erro', errorMessage);
+}
+}
   void _showDialog(String title, String content) {
     showDialog(
       context: context,
