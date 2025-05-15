@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirebaseServiceAuth {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -10,7 +11,7 @@ class FirebaseServiceAuth {
     required String password,
   }) async {
     try {
-      // Criar um novo usuário com email e senha
+      // Cria um novo usuário com email e senha
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
@@ -18,6 +19,18 @@ class FirebaseServiceAuth {
 
       // Atualizar o nome do usuário
       await userCredential.user?.updateDisplayName(name);
+
+    // Salva os dados adicionais no Firestore (não precisa do password!!!!!)
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userCredential.user?.uid)
+        .set({
+      'name': name,
+      'email': email,
+      'createdAt': FieldValue.serverTimestamp(),
+      'profileComplete': false,
+      // ADICIONE OUTROS CAMPOS (SÓ SE FOR NECESSARIO!!)
+    });
 
       return userCredential.user;
     } catch (e) {

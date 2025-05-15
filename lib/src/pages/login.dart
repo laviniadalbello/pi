@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:planify/services/firebase_auth_service.dart';
 import 'cadastro.dart';
 import 'dart:math';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,9 +12,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final FirebaseServiceAuth _authService = FirebaseServiceAuth();
   bool _isLoading = false;
-  final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
