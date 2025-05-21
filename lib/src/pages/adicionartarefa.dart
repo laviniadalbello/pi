@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'iconedaia.dart';
@@ -76,7 +77,6 @@ class _AddTaskPageState extends State<AddTaskPage>
   @override
   void dispose() {
     _slideController.dispose();
-=======
     _taskNameController.dispose();
     _dateController.dispose();
     _startTimeController.dispose();
@@ -201,38 +201,41 @@ class _AddTaskPageState extends State<AddTaskPage>
     }
   }
 
->>>>>>> 29e6bff (telasnovas)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-<<<<<<< HEAD
-      backgroundColor: Colors.black,
-=======
       backgroundColor: kDarkPrimaryBg,
+      extendBody: true,
+      floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _buildBottomBar(),
       body: Stack(
         children: [
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-<<<<<<< HEAD
-              child: SingleChildScrollView(
-                child: Column(
-                    Stack(
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                              size: 30,
-                            ),
-                          ),
-                        ),
+              child: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 30),
+                      _buildLabel("Nome da Tarefa"),
+                      const SizedBox(height: 8),
+                      _buildTextField(
+                        _taskNameController,
+                        'Ex: Design do App Mobile',
+                        validator:
+                            (val) =>
+                                val == null || val.isEmpty
+                                    ? "Nome da tarefa é obrigatório"
+                                    : null,
+                      ),
+                      const SizedBox(height: 30),
+                      _buildLabel("Adicionar atividade em um projeto:"),
                       const SizedBox(height: 10),
                       _buildProjectSelector(),
                       const SizedBox(height: 35),
@@ -319,7 +322,6 @@ class _AddTaskPageState extends State<AddTaskPage>
                       _buildSaveButton(),
                       const SizedBox(height: 100),
                     ],
->>>>>>> 29e6bff (telasnovas)
                   ),
                 ),
               ),
@@ -337,11 +339,12 @@ class _AddTaskPageState extends State<AddTaskPage>
           ),
         ],
       ),
+    );
   }
 
-<<<<<<< HEAD
-  Widget _menuItem(IconData icon, String label) {
-    return AnimatedContainer(
+  Widget _buildHeader() {
+    return Stack(
+      children: [
         Align(
           alignment: Alignment.topLeft,
           child: GestureDetector(
@@ -501,6 +504,75 @@ class _AddTaskPageState extends State<AddTaskPage>
       scrollDirection: Axis.horizontal,
       child: Row(
         children:
+            _availableTaskColors.map((color) {
+              bool isSelected = _selectedTaskColor == color;
+              return GestureDetector(
+                onTap: () => setState(() => _selectedTaskColor = color),
+                child: Container(
+                  margin: const EdgeInsets.only(right: 10),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isSelected ? kDarkTextPrimary : Colors.transparent,
+                      width: 2.5,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildAttachmentSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ElevatedButton.icon(
+          icon: const Icon(
+            Icons.attach_file,
+            color: kDarkTextPrimary,
+            size: 20,
+          ),
+          label: const Text(
+            'Adicionar Anexo',
+            style: TextStyle(color: kDarkTextPrimary),
+          ),
+          onPressed: _pickFiles,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: kDarkElementBg,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8.0,
+          runSpacing: 4.0,
+          children:
+              _attachments.asMap().entries.map((entry) {
+                int idx = entry.key;
+                String fileName = entry.value;
+                return Chip(
+                  backgroundColor: kDarkElementBg,
+                  label: Text(
+                    fileName,
+                    style: const TextStyle(color: kDarkTextSecondary),
+                  ),
+                  deleteIcon: const Icon(
+                    Icons.close,
+                    color: kDarkTextSecondary,
+                    size: 18,
+                  ),
+                  onDeleted: () => _removeAttachment(idx),
+                );
+              }).toList(),
+        ),
       ],
     );
   }
@@ -561,9 +633,9 @@ class _AddTaskPageState extends State<AddTaskPage>
             ),
           ),
         ),
->>>>>>> 29e6bff (telasnovas)
       ),
     );
+  }
 
   Widget _buildFloatingActionButton() {
     return Transform.translate(
@@ -589,45 +661,20 @@ class _AddTaskPageState extends State<AddTaskPage>
 
   Widget _buildBottomBar() {
     return BottomAppBar(
-<<<<<<< HEAD
-      color: Colors.black,
-=======
       color: kDarkSurface,
->>>>>>> 29e6bff (telasnovas)
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-<<<<<<< HEAD
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.home_rounded),
-                  color: Colors.blueAccent,
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 28),
-                IconButton(
-                  icon: const Icon(Icons.folder_rounded),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chat_bubble_outline),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 28),
-                IconButton(
-                  icon: const Icon(Icons.person_outline),
-                  color: Colors.white30,
-                  onPressed: () {},
+            InkWell(
+              onTap: () {},
               child: _bottomBarIcon(Icons.home_rounded, isActive: true),
             ),
             InkWell(
+              onTap: () {
                 _navigateToRoute('/settings');
               },
               child: _bottomBarIcon(Icons.settings_outlined),
@@ -644,25 +691,13 @@ class _AddTaskPageState extends State<AddTaskPage>
                 _navigateToRoute('/perfil');
               },
               child: _bottomBarIcon(Icons.person_outline),
->>>>>>> 29e6bff (telasnovas)
             ),
+          ],
+        ),
+      ),
+    );
   }
-<<<<<<< HEAD
-  Widget _addMemberButton() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Color(0xFF8875FF), width: 2),
-              borderRadius: BorderRadius.circular(50),
-            ),
-              child: Icon(Icons.add, color: Color(0xFF8875FF)),
-          ),
-          SizedBox(height: 4),
-          Text('', style: TextStyle(color: Colors.white, fontSize: 12)),
-=======
+
   Widget _bottomBarIcon(IconData icon, {bool isActive = false}) {
     return Icon(
       icon,
@@ -731,6 +766,26 @@ class _AddTaskPageState extends State<AddTaskPage>
                   },
                   child: _menuItem(Icons.add_circle_outline, 'Criar Projeto'),
                 ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/criartime');
+                  },
+                  child: _menuItem(Icons.group_outlined, 'Criar Equipe'),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/criarevento');
+                  },
                   child: _menuItem(Icons.schedule_outlined, 'Criar Evento'),
                 ),
                 const SizedBox(height: 16),
@@ -741,6 +796,7 @@ class _AddTaskPageState extends State<AddTaskPage>
                   shape: const CircleBorder(),
                   onPressed: () {
                     setState(() {
+                      _isCardVisible = false;
                       _slideController.reverse();
                     });
                   },
@@ -774,66 +830,10 @@ class _AddTaskPageState extends State<AddTaskPage>
             label,
             style: const TextStyle(color: kDarkTextSecondary, fontSize: 14),
           ),
->>>>>>> 29e6bff (telasnovas)
         ],
       ),
     );
   }
-<<<<<<< HEAD
-
-  Widget _timeBox(String time) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 26),
-      child: Container(
-        height: 44,
-        width: 110,
-        padding: EdgeInsets.symmetric(vertical: 10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Text(time, style: TextStyle(color: Colors.black)),
-      ),
-    );
-  }
-
-  Widget _buildTextField(String initialValue) {
-    return SizedBox(
-      width: 360,
-      height: 55,
-      child: TextFormField(
-        initialValue: initialValue,
-        style: TextStyle(color: Colors.black),
-        decoration: _whiteInputDecoration(),
-      ),
-    );
-  }
-
-  Widget _boardButton(
-    String text, {
-    bool selected = false,
-    double leftPadding = 14,
-  }) {
-    return Padding(
-      padding: EdgeInsets.only(left: leftPadding),
-      child: Container(
-        height: 38,
-        width: 100,
-        decoration: BoxDecoration(
-          color: selected ? Color(0xFF8875FF) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          text,
-          style: TextStyle(
-            color: selected ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ),
-=======
 }
 
 void main() {
@@ -850,7 +850,6 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: kDarkPrimaryBg),
       home: const AddTaskPage(),
       debugShowCheckedModeBanner: false,
->>>>>>> 29e6bff (telasnovas)
     );
   }
 }
