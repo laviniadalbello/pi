@@ -1,10 +1,8 @@
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:math';
-<<<<<<< HEAD
-import 'chatdaia.dart';
-=======
 import 'iconedaia.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -15,7 +13,6 @@ const Color kAccentSecondary = Color(0xFF2CB67D);
 const Color kDarkTextPrimary = Color(0xFFFFFFFF);
 const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
->>>>>>> 29e6bff (telasnovas)
 
 class HabitsPage extends StatefulWidget {
   const HabitsPage({super.key});
@@ -28,10 +25,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final GlobalKey _cardKey = GlobalKey();
 
-<<<<<<< HEAD
-  bool _isDrawerOpen = false;
-  bool _isCardVisible = false;
-=======
   final ScrollController _mainScrollController = ScrollController();
 
   bool _isDrawerOpen = false;
@@ -68,7 +61,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
 
   int get _unreadNotificationsCount =>
       _notifications.where((n) => !n['read']).length;
->>>>>>> 29e6bff (telasnovas)
 
   late AnimationController _fadeController;
   late AnimationController _circleController;
@@ -76,20 +68,13 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
   late PageController _pageController;
-<<<<<<< HEAD
-=======
   late AnimationController _notificationsController;
   late Animation<Offset> _notificationsAnimation;
->>>>>>> 29e6bff (telasnovas)
 
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-    _pageController = PageController(viewportFraction: 0.55);
-=======
     _pageController = PageController(viewportFraction: 0.7);
->>>>>>> 29e6bff (telasnovas)
     initializeDateFormatting('pt_BR', null).then((_) => setState(() {}));
 
     _fadeController = AnimationController(
@@ -116,8 +101,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
       begin: const Offset(0, 1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
-<<<<<<< HEAD
-=======
 
     _notificationsController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -130,7 +113,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     ).animate(
       CurvedAnimation(parent: _notificationsController, curve: Curves.easeOut),
     );
->>>>>>> 29e6bff (telasnovas)
   }
 
   @override
@@ -139,13 +121,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     _circleController.dispose();
     _slideController.dispose();
     _pageController.dispose();
-<<<<<<< HEAD
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-=======
     _notificationsController.dispose();
     _mainScrollController.dispose();
     super.dispose();
@@ -168,7 +143,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
 
     final horizontalPadding = screenWidth * 0.05;
 
->>>>>>> 29e6bff (telasnovas)
     return Scaffold(
       key: _scaffoldKey,
       drawer: _buildDrawer(),
@@ -176,171 +150,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomBar(),
-<<<<<<< HEAD
-      body: Stack(
-        children: [
-          GestureDetector(
-            onTap: () {
-              // Fecha o card flutuante se estiver visível
-              if (_isCardVisible) {
-                if (mounted) {
-                  setState(() {
-                    _isCardVisible = false;
-                    _slideController.reverse();
-                  });
-                }
-              }
-              FocusScope.of(context).unfocus();
-            },
-            child: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 15),
-                        _buildTopBar(),
-                        const SizedBox(height: 15),
-                        _buildTitle(),
-                        const SizedBox(height: 5),
-                        _buildProjectCarousel(),
-                        const SizedBox(height: 10),
-                        _buildInProgressHeader(),
-                        const SizedBox(height: 10),
-                        _buildTaskCard(
-                          title: "Create Detail Booking",
-                          subtitle: "Productivity Mobile App",
-                          time: "2 min ago",
-                          progress: 0.6,
-                        ),
-                        const SizedBox(height: 10),
-                        _buildTaskCard(
-                          title: "Revision Home Page",
-                          subtitle: "Banking Mobile App",
-                          time: "5 min ago",
-                          progress: 0.7,
-                        ),
-                        const SizedBox(height: 10),
-                        _buildTaskCard(
-                          // The last task card
-                          title: "Working On Landing Page",
-                          subtitle: "Online Course",
-                          time: "7 min ago",
-                          progress: 0.8,
-                        ),
-                        Transform.translate(
-                          offset: const Offset(65, -25),
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: CloseableAiCard(scaleFactor: 0.35),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          // Card flutuante (menu de criação)
-          if (_isCardVisible)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  if (mounted) {
-                    setState(() {
-                      _isCardVisible = false;
-                      _slideController.reverse();
-                    });
-                  }
-                },
-                // Usa uma cor semi-transparente para o fundo, evitando problemas
-                child: Container(color: Colors.black.withOpacity(0.5)),
-              ),
-            ),
-          if (_isCardVisible)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isCardVisible = false;
-                    _slideController.reverse();
-                  });
-                },
-                child: Container(color: Colors.black54.withOpacity(0)),
-              ),
-            ),
-          if (_isCardVisible)
-            Positioned(
-              bottom: 20,
-              left: 30,
-              right: 30,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: Material(
-                  color: Colors.transparent,
-                  elevation: 8,
-                  borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    key: _cardKey,
-                    constraints: const BoxConstraints(minHeight: 130),
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 16,
-                      horizontal: 24,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(223, 17, 24, 39),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.4),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _menuItem(Icons.edit_outlined, 'Create Task'),
-                        const SizedBox(height: 12),
-                        _menuItem(Icons.add_circle_outline, 'Create Project'),
-                        const SizedBox(height: 12),
-                        _menuItem(Icons.group_outlined, 'Create Team'),
-                        const SizedBox(height: 12),
-                        _menuItem(Icons.schedule_outlined, 'Create Event'),
-                        const SizedBox(height: 16),
-                        FloatingActionButton(
-                          mini: true,
-                          backgroundColor: Colors.blueAccent,
-                          elevation: 0,
-                          shape: const CircleBorder(),
-                          onPressed: () {
-                            setState(() {
-                              _isCardVisible = false;
-                              _slideController.reverse();
-                            });
-                          },
-                          child: const Icon(
-                            Icons.close,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-=======
       body: CustomScrollView(
         controller: _mainScrollController,
         physics: const AlwaysScrollableScrollPhysics(),
@@ -630,31 +439,11 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               ],
             ),
           ),
->>>>>>> 29e6bff (telasnovas)
         ],
       ),
     );
   }
 
-<<<<<<< HEAD
-  Widget _menuItem(IconData icon, String label) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withOpacity(0.03),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white, size: 20),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-=======
   Widget _buildAiCardSection(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
@@ -787,7 +576,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
           Text(
             label,
             style: const TextStyle(color: kDarkTextSecondary, fontSize: 14),
->>>>>>> 29e6bff (telasnovas)
           ),
         ],
       ),
@@ -796,15 +584,9 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
 
   Widget _buildFloatingActionButton() {
     return Transform.translate(
-<<<<<<< HEAD
-      offset: const Offset(0, 30),
-      child: FloatingActionButton(
-        backgroundColor: Colors.blueAccent,
-=======
       offset: const Offset(0, 0),
       child: FloatingActionButton(
         backgroundColor: kAccentPurple,
->>>>>>> 29e6bff (telasnovas)
         elevation: 6,
         shape: const CircleBorder(),
         onPressed: () {
@@ -817,22 +599,14 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
             }
           });
         },
-<<<<<<< HEAD
-        child: const Icon(Icons.add, size: 28),
-=======
         child: const Icon(Icons.add, size: 28, color: kDarkTextPrimary),
->>>>>>> 29e6bff (telasnovas)
       ),
     );
   }
 
   Widget _buildBottomBar() {
     return BottomAppBar(
-<<<<<<< HEAD
-      color: Colors.black,
-=======
       color: kDarkSurface,
->>>>>>> 29e6bff (telasnovas)
       shape: const CircularNotchedRectangle(),
       notchMargin: 8,
       child: Padding(
@@ -840,37 +614,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-<<<<<<< HEAD
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.home_rounded),
-                  color: Colors.blueAccent,
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 28),
-                IconButton(
-                  icon: const Icon(Icons.folder_rounded),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chat_bubble_outline),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 28),
-                IconButton(
-                  icon: const Icon(Icons.person_outline),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-              ],
-=======
             InkWell(
               onTap: () {},
               child: _bottomBarIcon(Icons.home_rounded, isActive: true),
@@ -893,7 +636,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                 _navigateToRoute('/perfil');
               },
               child: _bottomBarIcon(Icons.person_outline),
->>>>>>> 29e6bff (telasnovas)
             ),
           ],
         ),
@@ -901,9 +643,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     );
   }
 
-<<<<<<< HEAD
-  Widget _buildTopBar() {
-=======
   Widget _bottomBarIcon(IconData icon, {bool isActive = false}) {
     return Icon(
       icon,
@@ -917,7 +656,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     final fontSize = screenWidth * 0.035;
     final iconSize = screenWidth * 0.06;
 
->>>>>>> 29e6bff (telasnovas)
     String formattedDate = DateFormat(
       'EEEE, dd MMMM',
       'pt_BR',
@@ -935,23 +673,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               _scaffoldKey.currentState?.closeDrawer();
             }
           },
-<<<<<<< HEAD
-          child: const Icon(Icons.menu_rounded, color: Colors.white, size: 26),
-        ),
-        Text(
-          formattedDate,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.notifications, color: Colors.white),
-          onPressed: () {
-            // Lógica de notificação aqui
-          },
-=======
           child: Icon(Icons.menu_rounded, color: Colors.white, size: iconSize),
         ),
         Text(
@@ -1007,22 +728,11 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                 ),
               ),
           ],
->>>>>>> 29e6bff (telasnovas)
         ),
       ],
     );
   }
 
-<<<<<<< HEAD
-  Widget _buildTitle() {
-    return SizedBox(
-      height: 130,
-      child: Stack(
-        children: [
-          // Texto central
-          const Positioned(
-            top: 30,
-=======
   Widget _buildTitle(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -1034,36 +744,23 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
         children: [
           Positioned(
             top: screenHeight * 0.04,
->>>>>>> 29e6bff (telasnovas)
             left: 0,
             right: 0,
             child: Text.rich(
               TextSpan(
                 children: [
                   TextSpan(
-<<<<<<< HEAD
-                    text: "Let's build goods\n",
-                    style: TextStyle(
-                      fontSize: 28,
-=======
                     text: "Vamos construir bons\n",
                     style: TextStyle(
                       fontSize: titleFontSize,
->>>>>>> 29e6bff (telasnovas)
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   TextSpan(
-<<<<<<< HEAD
-                    text: "habits together 🙌",
-                    style: TextStyle(
-                      fontSize: 28,
-=======
                     text: "habitos juntos🙌",
                     style: TextStyle(
                       fontSize: titleFontSize,
->>>>>>> 29e6bff (telasnovas)
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
@@ -1074,26 +771,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
             ),
           ),
 
-<<<<<<< HEAD
-          _animatedCircle(20, 10, 6, [
-            Colors.lightBlueAccent,
-            const Color.fromARGB(255, 243, 33, 208),
-          ], 0),
-          _animatedCircle(350, 20, 4, [
-            Color.fromARGB(164, 180, 34, 238),
-            Colors.deepPurpleAccent,
-          ], 1),
-          _animatedCircle(180, 45, 5, [Colors.amberAccent, Colors.orange], 2),
-          _animatedCircle(40, 80, 5, [
-            Colors.pinkAccent,
-            const Color.fromARGB(255, 149, 226, 4),
-          ], 3),
-          _animatedCircle(370, 90, 8, [
-            Color.fromARGB(173, 36, 17, 204),
-            const Color.fromARGB(255, 218, 20, 20),
-          ], 4),
-          _animatedCircle(100, 30, 6, [
-=======
           _animatedCircleResponsive(context, 0.05, 0.01, 0.015, [
             Colors.lightBlueAccent,
             const Color.fromARGB(255, 243, 33, 208),
@@ -1115,7 +792,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
             const Color.fromARGB(255, 218, 20, 20),
           ], 4),
           _animatedCircleResponsive(context, 0.25, 0.03, 0.015, [
->>>>>>> 29e6bff (telasnovas)
             Color.fromARGB(255, 222, 87, 240),
             const Color.fromARGB(255, 27, 112, 1),
           ], 5),
@@ -1124,15 +800,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     );
   }
 
-<<<<<<< HEAD
-  Widget _animatedCircle(
-    double x,
-    double y,
-    double size,
-    List<Color> colors,
-    int index,
-  ) {
-=======
   Widget _animatedCircleResponsive(
     BuildContext context,
     double xFactor,
@@ -1148,24 +815,15 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     final y = screenHeight * yFactor;
     final size = screenWidth * sizeFactor;
 
->>>>>>> 29e6bff (telasnovas)
     return AnimatedBuilder(
       animation: _circleController,
       builder: (context, child) {
         final t = (_circleController.value + (index * 0.1)) % 1.0;
         final offset = 2 * sin(t * 2 * pi);
 
-<<<<<<< HEAD
-        // Interpolação de cor
         final colorTween = ColorTween(begin: colors[0], end: colors[1]);
         final animatedColor = colorTween.transform(t) ?? colors[0];
 
-        // Escala e opacidade pulsantes
-=======
-        final colorTween = ColorTween(begin: colors[0], end: colors[1]);
-        final animatedColor = colorTween.transform(t) ?? colors[0];
-
->>>>>>> 29e6bff (telasnovas)
         final pulse = 0.5 + 0.5 * sin(t * 2 * pi);
         final scale = 1.0 + 0.05 * pulse;
         final opacity = 0.8 + 0.2 * pulse;
@@ -1193,18 +851,12 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     );
   }
 
-<<<<<<< HEAD
-  Widget _buildProjectCarousel() {
-    return SizedBox(
-      height: 170,
-=======
   Widget _buildProjectCarousel(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final carouselHeight = screenHeight * 0.22; // Altura responsiva
 
     return SizedBox(
       height: carouselHeight,
->>>>>>> 29e6bff (telasnovas)
       child: PageView.builder(
         controller: _pageController,
         itemCount: 3,
@@ -1227,15 +879,9 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               return Transform.scale(
                 scale: scale,
                 child: Container(
-<<<<<<< HEAD
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 10,
-=======
                   margin: EdgeInsets.symmetric(
                     horizontal: MediaQuery.of(context).size.width * 0.02,
                     vertical: MediaQuery.of(context).size.height * 0.015,
->>>>>>> 29e6bff (telasnovas)
                   ),
                   child: _buildProjectCard(
                     context,
@@ -1264,15 +910,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     String desc,
     String date,
   ) {
-<<<<<<< HEAD
-    final screenHeight = MediaQuery.of(context).size.height;
-    final cardHeight = screenHeight * 0.22;
-
-    return Container(
-      width: 160,
-      height: cardHeight,
-      padding: const EdgeInsets.all(16),
-=======
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final cardHeight = screenHeight * 0.22;
@@ -1286,7 +923,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
       width: cardWidth,
       height: cardHeight,
       padding: EdgeInsets.all(screenWidth * 0.04),
->>>>>>> 29e6bff (telasnovas)
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF6D5DF6), Color(0xFF9E62FF)],
@@ -1312,16 +948,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                 child: Text(
                   title,
                   overflow: TextOverflow.ellipsis,
-<<<<<<< HEAD
-                  style: const TextStyle(color: Colors.white70, fontSize: 13),
-                ),
-              ),
-              PopupMenuButton<String>(
-                icon: const Icon(
-                  Icons.more_vert,
-                  color: Colors.white,
-                  size: 18,
-=======
                   style: TextStyle(
                     color: Colors.white70,
                     fontSize: titleFontSize,
@@ -1333,38 +959,12 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                   Icons.more_vert,
                   color: Colors.white,
                   size: iconSize,
->>>>>>> 29e6bff (telasnovas)
                 ),
                 color: const Color(0xFF2C2C2C),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 onSelected: (value) {
-<<<<<<< HEAD
-                  // Ações dos botões
-                },
-                itemBuilder:
-                    (BuildContext context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Text(
-                          'Editar',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          'Excluir',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'view',
-                        child: Text(
-                          'Visualizar',
-                          style: TextStyle(color: Colors.white),
-=======
                   // Ação de exclusão
                   if (value == 'delete') {
                     // Lógica para excluir o card
@@ -1383,38 +983,17 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                             color: Colors.white,
                             fontSize: titleFontSize,
                           ),
->>>>>>> 29e6bff (telasnovas)
                         ),
                       ),
                     ],
               ),
             ],
           ),
-<<<<<<< HEAD
-          const SizedBox(height: 8),
-=======
           SizedBox(height: screenHeight * 0.01),
->>>>>>> 29e6bff (telasnovas)
           Flexible(
             child: Text(
               desc,
               overflow: TextOverflow.ellipsis,
-<<<<<<< HEAD
-              maxLines: 2, // Limitar o número de linhas para evitar o overflow
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            date,
-            style: const TextStyle(
-              color: Colors.white70,
-              fontWeight: FontWeight.w500,
-=======
               maxLines: 2,
               style: TextStyle(
                 color: Colors.white,
@@ -1430,7 +1009,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               color: Colors.white70,
               fontWeight: FontWeight.w500,
               fontSize: dateFontSize,
->>>>>>> 29e6bff (telasnovas)
             ),
           ),
         ],
@@ -1438,14 +1016,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     );
   }
 
-<<<<<<< HEAD
-  Widget _buildInProgressHeader() {
-    return const Text(
-      'In Progress',
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 22,
-=======
   Widget _buildInProgressHeader(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final fontSize = screenWidth * 0.055;
@@ -1455,24 +1025,18 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
       style: TextStyle(
         color: Colors.white,
         fontSize: fontSize,
->>>>>>> 29e6bff (telasnovas)
         fontWeight: FontWeight.bold,
       ),
     );
   }
 
   Widget _buildTaskCard({
-<<<<<<< HEAD
-=======
     required BuildContext context,
->>>>>>> 29e6bff (telasnovas)
     required String title,
     required String subtitle,
     required String time,
     required double progress,
   }) {
-<<<<<<< HEAD
-=======
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final titleFontSize = screenWidth * 0.035;
@@ -1481,7 +1045,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     final progressFontSize = screenWidth * 0.025;
     final progressSize = screenWidth * 0.1;
 
->>>>>>> 29e6bff (telasnovas)
     return MouseRegion(
       onEnter: (_) {
         setState(() {
@@ -1490,23 +1053,15 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
       },
       onExit: (_) {
         setState(() {
-<<<<<<< HEAD
-          // Remove o efeito quando o mouse sai
-=======
->>>>>>> 29e6bff (telasnovas)
           _isHovered = false;
         });
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
-<<<<<<< HEAD
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-=======
         padding: EdgeInsets.symmetric(
           horizontal: screenWidth * 0.04,
           vertical: screenHeight * 0.02,
         ),
->>>>>>> 29e6bff (telasnovas)
         decoration: BoxDecoration(
           color: const Color(0xFF1E1E1E),
           borderRadius: BorderRadius.circular(18),
@@ -1521,10 +1076,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                   ]
                   : [],
         ),
-<<<<<<< HEAD
-
-=======
->>>>>>> 29e6bff (telasnovas)
         child: Row(
           children: [
             Expanded(
@@ -1533,23 +1084,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                 children: [
                   Text(
                     subtitle,
-<<<<<<< HEAD
-                    style: const TextStyle(color: Colors.white60, fontSize: 12),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    time,
-                    style: const TextStyle(color: Colors.white30, fontSize: 11),
-=======
                     style: TextStyle(
                       color: Colors.white60,
                       fontSize: subtitleFontSize,
@@ -1571,7 +1105,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                       color: Colors.white30,
                       fontSize: timeFontSize,
                     ),
->>>>>>> 29e6bff (telasnovas)
                   ),
                 ],
               ),
@@ -1580,13 +1113,8 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               alignment: Alignment.center,
               children: [
                 SizedBox(
-<<<<<<< HEAD
-                  height: 38,
-                  width: 38,
-=======
                   height: progressSize,
                   width: progressSize,
->>>>>>> 29e6bff (telasnovas)
                   child: CircularProgressIndicator(
                     value: progress,
                     strokeWidth: 4,
@@ -1598,14 +1126,10 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                 ),
                 Text(
                   "${(progress * 100).round()}%",
-<<<<<<< HEAD
-                  style: const TextStyle(color: Colors.white, fontSize: 10),
-=======
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: progressFontSize,
                   ),
->>>>>>> 29e6bff (telasnovas)
                 ),
               ],
             ),
@@ -1615,20 +1139,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     );
   }
 
-<<<<<<< HEAD
-  bool _isHovered = false;
-
-  Widget _buildDrawer() {
-    return Drawer(
-      backgroundColor: Colors.black.withOpacity(0.9),
-      child: Padding(
-        padding: const EdgeInsets.only(
-          top: 60,
-          left: 16,
-          right: 16,
-          bottom: 20,
-        ), // Adjusted padding
-=======
   Widget _buildDrawer() {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -1646,60 +1156,29 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
           right: screenWidth * 0.04,
           bottom: screenHeight * 0.03,
         ),
->>>>>>> 29e6bff (telasnovas)
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // User info section
             Row(
               children: [
-<<<<<<< HEAD
-                const CircleAvatar(
-                  radius: 25, // Slightly larger avatar
-=======
                 CircleAvatar(
                   radius: avatarSize / 2,
->>>>>>> 29e6bff (telasnovas)
                   backgroundImage: NetworkImage(
                     "https://i.pravatar.cc/150?img=11",
                   ),
                 ),
-<<<<<<< HEAD
-                const SizedBox(width: 12),
-                const Text(
-                  "Nome do Usuário",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-=======
                 SizedBox(width: screenWidth * 0.03),
                 Text(
                   "Nome do Usuário",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: titleFontSize,
->>>>>>> 29e6bff (telasnovas)
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
             ),
-<<<<<<< HEAD
-            const SizedBox(height: 30),
-            const Divider(color: Colors.white24), // Lighter divider
-
-            Expanded(
-              //
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  _drawerItem(Icons.home_outlined, "Início", true),
-                  _drawerItem(Icons.topic_outlined, "Tópicos"),
-                  _drawerItem(Icons.message_outlined, "Mensagens"),
-                  _drawerItem(Icons.notifications_outlined, "Notificações"),
-                  _drawerItem(Icons.bookmark_border, "Favoritos"),
-                  _drawerItem(Icons.person_outline, "Perfil"),
-=======
             SizedBox(height: screenHeight * 0.04),
             const Divider(color: Colors.white24),
 
@@ -1754,16 +1233,10 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                       "Planner Diário",
                     ),
                   ),
->>>>>>> 29e6bff (telasnovas)
                 ],
               ),
             ),
             const Divider(color: Colors.white24),
-<<<<<<< HEAD
-            // Settings or Logout (optional)
-            _drawerItem(Icons.settings_outlined, "Configurações"),
-            _drawerItem(Icons.logout, "Sair"),
-=======
             InkWell(
               onTap: () {
                 Navigator.pop(context);
@@ -1781,34 +1254,12 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               },
               child: _drawerItemResponsive(context, Icons.logout, "Sair"),
             ),
->>>>>>> 29e6bff (telasnovas)
           ],
         ),
       ),
     );
   }
 
-<<<<<<< HEAD
-  Widget _drawerItem(IconData icon, String title, [bool isActive = false]) {
-    return ListTile(
-      leading: Icon(icon, color: isActive ? Colors.blueAccent : Colors.white70),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isActive ? Colors.blueAccent : Colors.white,
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      onTap: () {
-        Navigator.pop(context);
-
-        print("$title tapped");
-      },
-      dense: true, // Reduce vertical padding
-      contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      hoverColor: Colors.white.withOpacity(0.1), // Subtle hover effect
-=======
   Widget _drawerItemResponsive(
     BuildContext context,
     IconData icon,
@@ -1851,7 +1302,6 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
           ],
         ],
       ),
->>>>>>> 29e6bff (telasnovas)
     );
   }
 }
