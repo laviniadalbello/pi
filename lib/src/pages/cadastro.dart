@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
 import 'dart:math';
 import 'package:planify/services/firebase_auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-=======
 import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'dart:math';
->>>>>>> 29e6bff (telasnovas)
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
@@ -22,7 +17,6 @@ class _CadastroPageState extends State<CadastroPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-<<<<<<< HEAD
   final FirebaseServiceAuth _authService = FirebaseServiceAuth();
   void _validateAndSubmit() {
   if (_formKey.currentState?.validate() ?? false) {
@@ -36,8 +30,6 @@ class _CadastroPageState extends State<CadastroPage> {
     _showDialog('Error', 'Please correct the errors in the form');
   }
 }
-=======
->>>>>>> 29e6bff (telasnovas)
 
   bool _isLoading = false;
 
@@ -190,19 +182,11 @@ class _CadastroPageState extends State<CadastroPage> {
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
                   ).copyWith(
-<<<<<<< HEAD
-                    backgroundColor: WidgetStateProperty.resolveWith(
-                      (states) => Colors.transparent,
-                    ),
-                    elevation: WidgetStateProperty.all(0),
-                    foregroundColor: WidgetStateProperty.all(Colors.white),
-=======
                     backgroundColor: MaterialStateProperty.resolveWith(
                       (states) => Colors.transparent,
                     ),
                     elevation: MaterialStateProperty.all(0),
                     foregroundColor: MaterialStateProperty.all(Colors.white),
->>>>>>> 29e6bff (telasnovas)
                   ),
                   child: Ink(
                     decoration: BoxDecoration(
@@ -317,7 +301,6 @@ class _CadastroPageState extends State<CadastroPage> {
     );
   }
 
-<<<<<<< HEAD
 Future<void> submitRegistration(
   String name,
   String email,
@@ -388,81 +371,6 @@ Future<void> submitRegistration(
   _showDialog('Erro', errorMessage);
 }
 }
-=======
-  Future<void> submitRegistration(
-    String name,
-    String email,
-    String password,
-  ) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    final String url = 'https://jsonplaceholder.typicode.com/users';
-    // URL de exemplo
-
-    final Map<String, String> requestData = {
-      'name': name,
-      'email': email,
-      'password': password,
-    };
-
-    try {
-      print('Enviando dados...');
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(requestData),
-      );
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      if (response.statusCode == 201) {
-        print('Registro com sucesso');
-
-        // Exibe o SnackBar de sucesso
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Cadastro realizado com sucesso!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        await Future.delayed(const Duration(seconds: 3));
-
-        // Redireciona para a tela de login
-        Navigator.pushReplacementNamed(context, '/login');
-      } else {
-        print('Erro ao registrar: ${response.statusCode}');
-        _showDialog('Erro', 'Não foi possível registrar o usuário.');
-      }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      print('Erro na conexão: $e');
-      _showDialog(
-        'Erro',
-        'Ocorreu um erro. Verifique sua conexão ou tente novamente mais tarde.',
-      );
-    }
-  }
-
-  void _validateAndSubmit() {
-    if (_formKey.currentState?.validate() ?? false) {
-      submitRegistration(
-        _nameController.text,
-        _emailController.text,
-        _passwordController.text,
-      );
-    } else {
-      _showDialog('Error', 'Please correct the errors');
-    }
-  }
-
->>>>>>> 29e6bff (telasnovas)
   void _showDialog(String title, String content) {
     showDialog(
       context: context,
@@ -485,11 +393,6 @@ Future<void> submitRegistration(
 }
 
 class AnimatedCheckbox extends StatefulWidget {
-<<<<<<< HEAD
-  const AnimatedCheckbox({super.key});
-
-=======
->>>>>>> 29e6bff (telasnovas)
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
 }

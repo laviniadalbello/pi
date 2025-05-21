@@ -1,10 +1,4 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import './src/pages/inicial.dart';
-import './src/pages/login.dart'; // <-- Importa a tela de login
-import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-=======
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:planify/src/pages/adicionartarefa.dart';
 import 'package:planify/src/pages/criarevento.dart';
@@ -28,7 +22,6 @@ import './src/pages/perfilvazio.dart';
 
 
 
->>>>>>> 29e6bff (telasnovas)
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,10 +31,7 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-<<<<<<< HEAD
-=======
 
->>>>>>> 29e6bff (telasnovas)
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -50,10 +40,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => Inicial(),
         '/login': (context) => const LoginPage(),
-<<<<<<< HEAD
-        // '/cadastro': (context) => CadastroPage(),
-      },
-=======
         '/cadastro': (context) => CadastroPage(),
         '/settings': (context) => const SettingsPage(),
         '/planner': (context) => const PlannerDiarioPage(),
@@ -87,7 +73,6 @@ class MyApp extends StatelessWidget {
 
       ],
     
->>>>>>> 29e6bff (telasnovas)
     );
   }
 }

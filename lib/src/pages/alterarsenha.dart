@@ -1,8 +1,4 @@
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'package:firebase_auth/firebase_auth.dart';
-=======
->>>>>>> 29e6bff (telasnovas)
 import 'dart:math';
 
 class AlterarSenhaPage extends StatefulWidget {
@@ -14,16 +10,8 @@ class AlterarSenhaPage extends StatefulWidget {
 
 class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   bool _obscureText = true;
-<<<<<<< HEAD
-  bool _isLoading = false;
-  final _formKey = GlobalKey<FormState>();
-  final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-
-=======
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _passwordController = TextEditingController();
->>>>>>> 29e6bff (telasnovas)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,17 +28,9 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
               onTap: () => Navigator.pop(context),
 =======
               onTap: () {
-                Navigator.pop(context);
-              },
->>>>>>> 29e6bff (telasnovas)
               child: const Icon(
-                Icons.arrow_back,
-                color: Colors.white,
-                size: 30,
               ),
             ),
-          ),
-          Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -68,26 +48,10 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
                 ),
-              ),
-            ),
-=======
-                _buildLoginForm(context),
-              ],
-            ),
-          ),
->>>>>>> 29e6bff (telasnovas)
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTitle() {
-    return Column(
       children: [
         const Text(
           "Change your ",
           textAlign: TextAlign.center,
-          style: TextStyle(
             fontSize: 46,
             fontWeight: FontWeight.bold,
             color: Colors.white,
