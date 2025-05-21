@@ -18,35 +18,31 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        body: Stack(
-          children: [
-            Container(color: Colors.black),
-            const AnimatedBlurredBackground(),
-            Positioned(
-              top: 40,
-              left: 20,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: const Icon(
-                  Icons.arrow_back,
-                  color: Colors.white,
-                  size: 30,
-                ),
+ Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(color: Colors.black),
+          const AnimatedBlurredBackground(),
+          Positioned(
+            top: 40,
+            left: 20,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: const Icon(
+                Icons.arrow_back,
+                color: Colors.white,
+                size: 30,
               ),
             ),
-            Center(
+          ),
+          Center(
+            child: SingleChildScrollView(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
                     "Welcome Back",
-                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 46,
                       fontWeight: FontWeight.bold,
@@ -57,12 +53,9 @@ class _LoginPageState extends State<LoginPage> {
                     shaderCallback:
                         (bounds) => const LinearGradient(
                           colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                         ).createShader(bounds),
                     child: const Text(
                       "Dear Friend",
-                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 46,
                         fontWeight: FontWeight.bold,
