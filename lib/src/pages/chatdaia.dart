@@ -212,36 +212,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-    _eyeAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 7),
-    )..repeat();
-    _eyeAnimation = TweenSequence<double>([
-      TweenSequenceItem(tween: ConstantTween<double>(52.0), weight: 46),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 52.0, end: 20.0),
-        weight: 2,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 20.0, end: 52.0),
-        weight: 2,
-      ),
-      TweenSequenceItem(tween: ConstantTween<double>(52.0), weight: 46),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 52.0, end: 20.0),
-        weight: 2,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 20.0, end: 52.0),
-        weight: 2,
-      ),
-    ]).animate(_eyeAnimationController);
-    _ballRotationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..repeat();
-=======
     _addInitialMessages();
 
     _sendButtonAnimationController = AnimationController(
@@ -411,7 +381,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         child: Text(emoji, style: const TextStyle(fontSize: 24)),
       ),
     );
->>>>>>> 29e6bff (telasnovas)
   }
 
   @override
