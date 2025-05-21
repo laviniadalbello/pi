@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'configuracoes.dart';
-<<<<<<< HEAD
-=======
-import 'iconedaia.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -13,21 +10,19 @@ const Color kAccentSecondary = Color(0xFF2CB67D);
 const Color kDarkTextPrimary = Color(0xFFFFFFFF);
 const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
->>>>>>> 29e6bff (telasnovas)
 
-class PerfilPage extends StatefulWidget {
-  const PerfilPage({super.key});
+class PerfilvazioPage extends StatefulWidget {
+  const PerfilvazioPage({super.key});
 
   @override
-  State<PerfilPage> createState() => _PerfilPageState();
+  State<PerfilvazioPage> createState() => _PerfilvazioPageState();
 }
 
-class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
+class _PerfilvazioPageState extends State<PerfilvazioPage>
+    with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   late AnimationController _circleController;
-<<<<<<< HEAD
-=======
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
 
@@ -35,51 +30,21 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   final String _userName = "USER";
   final String _userHandle = "@nomedousuario";
-  final String _userBio = "Designer & Developer";
+  final String _userBio = "Bio"; // Modificado: "Designer & Developer" -> "Bio"
   final List<Map<String, dynamic>> _userStats = [
-    {"label": "Projetos", "value": 12},
-    {"label": "Tarefas", "value": 48},
-    {"label": "Equipes", "value": 3},
+    {"label": "Projetos", "value": 0}, // Modificado: 12 -> 0
+    {"label": "Tarefas", "value": 0}, // Modificado: 48 -> 0
+    {"label": "Equipes", "value": 0}, // Modificado: 3 -> 0
   ];
-
-  final List<Map<String, dynamic>> _recentActivities = [
-    {
-      "type": "project",
-      "title": "Redesign App",
-      "date": "Hoje, 10:30",
-      "status": "Em andamento",
-      "color": Color(0xFF7F5AF0),
-    },
-    {
-      "type": "task",
-      "title": "Reunião com equipe",
-      "date": "Ontem, 14:00",
-      "status": "Concluído",
-      "color": Color(0xFF2CB67D),
-    },
-    {
-      "type": "team",
-      "title": "Equipe de Design",
-      "date": "2 dias atrás",
-      "status": "Novo membro",
-      "color": Colors.orangeAccent,
-    },
-  ];
->>>>>>> 29e6bff (telasnovas)
 
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-=======
 
->>>>>>> 29e6bff (telasnovas)
     _circleController = AnimationController(
       duration: const Duration(seconds: 6),
       vsync: this,
     )..repeat();
-<<<<<<< HEAD
-=======
 
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -89,57 +54,16 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       begin: const Offset(0, 1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
->>>>>>> 29e6bff (telasnovas)
   }
 
   @override
   void dispose() {
     _circleController.dispose();
-<<<<<<< HEAD
-
-    super.dispose();
-  }
-
-  Widget _buildMenuCard(BuildContext context) {
-    double bottomPadding = 60.0;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomPadding, left: 40, right: 40),
-      child: Material(
-        color: const Color.fromARGB(223, 17, 24, 39),
-        elevation: 8,
-        borderRadius: BorderRadius.circular(24),
-        child: Padding(
-          // Padding inside the card
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _menuItem(Icons.edit_outlined, 'Create Task'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.add_circle_outline, 'Create Project'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.group_outlined, 'Create Team'),
-              const SizedBox(height: 12),
-              _menuItem(Icons.schedule_outlined, 'Create Event'),
-              const SizedBox(height: 16),
-
-              FloatingActionButton(
-                mini: true,
-                backgroundColor: Colors.blueAccent,
-                elevation: 0,
-                shape: const CircleBorder(),
-                onPressed: () => Navigator.of(context).pop(), //
-                child: const Icon(Icons.close, size: 20, color: Colors.white),
-              ),
-            ],
-=======
     _slideController.dispose();
     super.dispose();
   }
 
   void _navigateToRoute(String routeName) {
-    // Fecha o drawer se estiver aberto
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
@@ -185,7 +109,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   Widget _buildSlidingMenu() {
     return Positioned(
-      bottom: 8,
+      bottom: 80,
       left: 30,
       right: 30,
       child: SlideTransition(
@@ -238,6 +162,17 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
                       _isCardVisible = false;
                       _slideController.reverse();
                     });
+                    _navigateToRoute('/criartime');
+                  },
+                  child: _menuItem(Icons.group_outlined, 'Criar Equipe'),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
                     _navigateToRoute('/criarevento');
                   },
                   child: _menuItem(Icons.schedule_outlined, 'Criar Evento'),
@@ -262,15 +197,12 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
                 ),
               ],
             ),
->>>>>>> 29e6bff (telasnovas)
           ),
         ),
       ),
     );
   }
 
-<<<<<<< HEAD
-=======
   Widget _menuItem(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -322,7 +254,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
               child: _bottomBarIcon(Icons.book_outlined),
             ),
             InkWell(
-              onTap: () {},
+              onTap: () {
+                // Já está na tela de perfil
+              },
               child: _bottomBarIcon(Icons.person_outline, isActive: true),
             ),
           ],
@@ -339,7 +273,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     );
   }
 
->>>>>>> 29e6bff (telasnovas)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -352,10 +285,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       body: SafeArea(
         child: Stack(
           children: [
-<<<<<<< HEAD
-=======
             // Círculos animados (mantidos do original)
->>>>>>> 29e6bff (telasnovas)
             Positioned.fill(
               child: Stack(
                 children: [
@@ -391,91 +321,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-<<<<<<< HEAD
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: const Icon(
-                            Icons.arrow_back,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const Text(
-                        'Profile',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 70),
-
-                  Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.white,
-                        child: Icon(
-                          Icons.image,
-                          color: Color(0xFF8875FF),
-                          size: 40,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Text(
-                        'USER',
-                        style: TextStyle(
-                          color: Color(0xFF8875FF),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const Text(
-                        '@nomedousuario',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          // ação do botão Edit
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(
-                            color: Color.fromARGB(137, 130, 11, 241),
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text('Edit'),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 30),
-
-                  // Botão My Projects
-                  _fixedButton(text: 'My Projects'),
-
-                  const SizedBox(height: 20),
-
-                  // Botão Settings
-                  _fixedButton(text: 'Settings'),
-                ],
-              ),
-            ),
-          ],
-=======
                   // Cabeçalho
                   _buildHeader(),
                   const SizedBox(height: 30),
@@ -488,56 +333,24 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
                   _buildStatsSection(),
                   const SizedBox(height: 30),
 
-                  // Atividades recentes
-                  _buildRecentActivitiesSection(),
+                  _buildEmptyActivitiesSection(),
                   const SizedBox(height: 30),
 
-                  // Botões de ação
                   _buildActionButtons(),
 
-                  // Espaço para o BottomBar e FAB
                   const SizedBox(height: 100),
                 ],
               ),
             ),
+
             if (_isCardVisible) _buildDimOverlay(),
             if (_isCardVisible) _buildSlidingMenu(),
-            // Adicione isso no final do Stack (antes do fechamento ']')
-Positioned(
-  bottom: -26, // Posição ajustável
-  right: -60,  // Posição ajustável
-  child: CloseableAiCard(
-    scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
-    enableScroll: true,
-  ),
-),
           ],
-          
->>>>>>> 29e6bff (telasnovas)
         ),
       ),
     );
   }
 
-<<<<<<< HEAD
-  Widget _menuItem(IconData icon, String label) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white10),
-        borderRadius: BorderRadius.circular(16),
-        color: Colors.white.withOpacity(0.03),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white, size: 20),
-          const SizedBox(width: 12),
-          Text(
-            label,
-            style: const TextStyle(color: Colors.white, fontSize: 14),
-=======
   Widget _buildHeader() {
     return Stack(
       alignment: Alignment.center,
@@ -591,7 +404,6 @@ Positioned(
                 onTap: () {
                   _showEditAvatarOptions();
                 },
-                
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -611,7 +423,6 @@ Positioned(
         ),
         const SizedBox(height: 16),
 
-        // Nome do usuário
         Text(
           _userName,
           style: const TextStyle(
@@ -622,14 +433,12 @@ Positioned(
         ),
         const SizedBox(height: 4),
 
-        // Handle do usuário
         Text(
           _userHandle,
           style: TextStyle(color: kDarkTextSecondary, fontSize: 16),
         ),
         const SizedBox(height: 8),
 
-        // Bio do usuário
         Text(
           _userBio,
           style: TextStyle(
@@ -693,7 +502,7 @@ Positioned(
     );
   }
 
-  Widget _buildRecentActivitiesSection() {
+  Widget _buildEmptyActivitiesSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -711,149 +520,44 @@ Positioned(
           ],
         ),
         const SizedBox(height: 12),
-        ..._recentActivities.map((activity) => _buildActivityItem(activity)),
+
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+          decoration: BoxDecoration(
+            color: kDarkElementBg,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.event_note,
+                color: kDarkTextSecondary.withOpacity(0.6),
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Nenhuma atividade',
+                style: TextStyle(
+                  color: kDarkTextPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Suas atividades recentes aparecerão aqui',
+                style: TextStyle(color: kDarkTextSecondary, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildActivityItem(Map<String, dynamic> activity) {
-    IconData activityIcon;
-    switch (activity["type"]) {
-      case "project":
-        activityIcon = Icons.folder;
-        break;
-      case "task":
-        activityIcon = Icons.task_alt;
-        break;
-      case "team":
-        activityIcon = Icons.group;
-        break;
-      default:
-        activityIcon = Icons.event_note;
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: kDarkElementBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: activity["color"].withOpacity(0.3), width: 1),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: activity["color"].withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(activityIcon, color: activity["color"], size: 24),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  activity["title"],
-                  style: const TextStyle(
-                    color: kDarkTextPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  activity["date"],
-                  style: TextStyle(color: kDarkTextSecondary, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: activity["color"].withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              activity["status"],
-              style: TextStyle(
-                color: activity["color"],
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
->>>>>>> 29e6bff (telasnovas)
-          ),
-        ],
-      ),
-    );
-  }
-
-<<<<<<< HEAD
-  Widget _buildFloatingActionButton() {
-    return Transform.translate(
-      offset: const Offset(0, 30),
-      child: FloatingActionButton(
-        backgroundColor: Colors.blueAccent,
-        elevation: 6,
-        shape: const CircleBorder(),
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            builder: _buildMenuCard,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-          );
-        },
-
-        child: const Icon(Icons.add, size: 28, color: Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildBottomBar() {
-    return BottomAppBar(
-      color: Colors.black,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.home_rounded),
-                  color: Colors.blueAccent,
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 28),
-                IconButton(
-                  icon: const Icon(Icons.folder_rounded),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.chat_bubble_outline),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-                const SizedBox(width: 28),
-                IconButton(
-                  icon: const Icon(Icons.person_outline),
-                  color: Colors.white30,
-                  onPressed: () {},
-                ),
-              ],
-=======
   Widget _buildActionButtons() {
     return Column(
       children: [
@@ -861,7 +565,7 @@ Positioned(
           icon: Icons.folder,
           label: 'Meus Projetos',
           onTap: () {
-            _navigateToRoute('/detalhesprojeto');
+            _navigateToRoute('/my_projects');
           },
         ),
         const SizedBox(height: 12),
@@ -878,39 +582,15 @@ Positioned(
         const SizedBox(height: 12),
         _buildActionButton(
           icon: Icons.analytics,
-          label: 'Meus Eventos ',
+          label: 'Estatísticas',
           onTap: () {
-            _navigateToRoute('/detalheseventos');
-          },
-        ),
-        const SizedBox(height: 12),
-        _buildActionButton(
-          icon: Icons.analytics,
-          label: 'Minhas Atividades',
-          onTap: () {
-            _navigateToRoute('/detalhestarefa');
+            _navigateToRoute('/statistics');
           },
         ),
       ],
     );
   }
-Widget _buildAiCardSection(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
 
-    return Transform.translate(
-      offset: Offset(screenWidth * 0.15, -25),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: Padding(
-          padding: EdgeInsets.only(right: screenWidth * 0.02),
-          child: CloseableAiCard(
-            scaleFactor: screenWidth < 360 ? 0.3 : 0.35,
-            enableScroll: true,
-          ),
-        ),
-      ),
-    );
-  }
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -942,7 +622,6 @@ Widget _buildAiCardSection(BuildContext context) {
               Icons.arrow_forward_ios,
               color: kDarkTextSecondary,
               size: 16,
->>>>>>> 29e6bff (telasnovas)
             ),
           ],
         ),
@@ -950,27 +629,6 @@ Widget _buildAiCardSection(BuildContext context) {
     );
   }
 
-<<<<<<< HEAD
-  Widget _fixedButton({required String text}) {
-    return Container(
-      height: 55,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: ListTile(
-        title: Text(text, style: const TextStyle(color: Colors.black)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {
-          if (text == 'Settings') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsApp()),
-            );
-          } else {}
-        },
-      ),
-=======
   void _showEditProfileDialog() {
     final nameController = TextEditingController(text: _userName);
     final handleController = TextEditingController(text: _userHandle);
@@ -1048,7 +706,7 @@ Widget _buildAiCardSection(BuildContext context) {
               ),
               ElevatedButton(
                 onPressed: () {
-                  // Aqui seria implementada a lógica para salvar as alterações
+                  //  lógica para salvar as alterações
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
@@ -1124,7 +782,7 @@ Widget _buildAiCardSection(BuildContext context) {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    // Lógica para tirar foto
+                    // Lógica para tirar foto, pode remoevr essa parte
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
@@ -1285,7 +943,6 @@ Widget _buildAiCardSection(BuildContext context) {
               ),
             ],
           ),
->>>>>>> 29e6bff (telasnovas)
     );
   }
 

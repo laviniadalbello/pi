@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
 import 'package:firebase_auth/firebase_auth.dart';
+=======
+>>>>>>> 29e6bff (telasnovas)
 import 'dart:math';
 
 class AlterarSenhaPage extends StatefulWidget {
@@ -11,11 +14,16 @@ class AlterarSenhaPage extends StatefulWidget {
 
 class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
   bool _obscureText = true;
+<<<<<<< HEAD
   bool _isLoading = false;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _newPasswordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+=======
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _passwordController = TextEditingController();
+>>>>>>> 29e6bff (telasnovas)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +36,13 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
             top: 40,
             left: 20,
             child: GestureDetector(
+<<<<<<< HEAD
               onTap: () => Navigator.pop(context),
+=======
+              onTap: () {
+                Navigator.pop(context);
+              },
+>>>>>>> 29e6bff (telasnovas)
               child: const Icon(
                 Icons.arrow_back,
                 color: Colors.white,
@@ -42,6 +56,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
               children: [
                 _buildTitle(),
                 const SizedBox(height: 20),
+<<<<<<< HEAD
                 _buildPasswordForm(context),
               ],
             ),
@@ -55,6 +70,12 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                 ),
               ),
             ),
+=======
+                _buildLoginForm(context),
+              ],
+            ),
+          ),
+>>>>>>> 29e6bff (telasnovas)
         ],
       ),
     );
@@ -73,11 +94,20 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
           ),
         ),
         ShaderMask(
+<<<<<<< HEAD
           shaderCallback: (bounds) => const LinearGradient(
             colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ).createShader(bounds),
+=======
+          shaderCallback:
+              (bounds) => const LinearGradient(
+                colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
+>>>>>>> 29e6bff (telasnovas)
           child: const Text(
             "Password",
             textAlign: TextAlign.center,
@@ -92,9 +122,16 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildPasswordForm(BuildContext context) {
     return SizedBox(
       width: 320,
+=======
+  Widget _buildLoginForm(BuildContext context) {
+    return SizedBox(
+      width: 320,
+      height: 428,
+>>>>>>> 29e6bff (telasnovas)
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -104,8 +141,14 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         child: Form(
           key: _formKey,
           child: Column(
+<<<<<<< HEAD
             mainAxisSize: MainAxisSize.min,
             children: [
+=======
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const SizedBox(height: 5),
+>>>>>>> 29e6bff (telasnovas)
               const Text(
                 "Password",
                 style: TextStyle(
@@ -115,6 +158,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
                 ),
               ),
               const SizedBox(height: 30),
+<<<<<<< HEAD
               _buildPasswordField("New Password", _newPasswordController),
               const SizedBox(height: 20),
               _buildPasswordField("Confirm Password", _confirmPasswordController),
@@ -122,6 +166,81 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
               _buildCheckbox(),
               const SizedBox(height: 25),
               _buildChangeButton(),
+=======
+              _buildPasswordField(),
+              const SizedBox(height: 20),
+              _buildPassword2Field(),
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.only(left: 20.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    AnimatedCheckbox(),
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {},
+                      child: RichText(
+                        text: const TextSpan(
+                          text: "Confirm   password  ",
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                          children: [
+                            TextSpan(
+                              text: "Change",
+                              style: TextStyle(
+                                color: Color(0xFFBF99F8),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 25),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _validateAndSubmit,
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                  ).copyWith(
+                    backgroundColor: MaterialStateProperty.resolveWith(
+                      (states) => Colors.transparent,
+                    ),
+                    elevation: MaterialStateProperty.all(0),
+                    foregroundColor: MaterialStateProperty.all(Colors.white),
+                  ),
+                  child: Ink(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Container(
+                      width: 129,
+                      height: 28,
+                      alignment: Alignment.center,
+                      constraints: const BoxConstraints(minHeight: 28),
+                      child: const Text(
+                        "Change",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+>>>>>>> 29e6bff (telasnovas)
             ],
           ),
         ),
@@ -129,6 +248,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
     );
   }
 
+<<<<<<< HEAD
   Widget _buildPasswordField(String label, TextEditingController controller) {
     return TextFormField(
       controller: controller,
@@ -136,6 +256,15 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
+=======
+  Widget _buildPasswordField() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscureText,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: "New Password",
+>>>>>>> 29e6bff (telasnovas)
         labelStyle: const TextStyle(color: Colors.white70),
         enabledBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: Colors.white70),
@@ -150,6 +279,7 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
             _obscureText ? Icons.visibility : Icons.visibility_off,
             color: Colors.white70,
           ),
+<<<<<<< HEAD
           onPressed: () => setState(() => _obscureText = !_obscureText),
         ),
       ),
@@ -162,12 +292,34 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
         if (label == "Confirm Password" && 
             value != _newPasswordController.text) {
           return 'Passwords do not match';
+=======
+          onPressed: () {
+            setState(() {
+              _obscureText = !_obscureText;
+            });
+          },
+          tooltip: _obscureText ? 'Show password' : 'Hide password',
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Password is required';
+        }
+        if (value.length < 8) {
+          return 'Password must be at least 8 characters';
+        }
+        if (!RegExp(
+          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
+        ).hasMatch(value)) {
+          return 'Password must contain letters, numbers, and at least one uppercase letter';
+>>>>>>> 29e6bff (telasnovas)
         }
         return null;
       },
     );
   }
 
+<<<<<<< HEAD
   Widget _buildCheckbox() {
     return Padding(
       padding: const EdgeInsets.only(left: 20.0),
@@ -323,6 +475,85 @@ class _AlterarSenhaPageState extends State<AlterarSenhaPage> {
 class AnimatedCheckbox extends StatefulWidget {
   const AnimatedCheckbox({super.key});
 
+=======
+  Widget _buildPassword2Field() {
+    return TextFormField(
+      controller: _passwordController,
+      obscureText: _obscureText,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: "Repete Password",
+        labelStyle: const TextStyle(color: Colors.white70),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.white70),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: Colors.purpleAccent),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscureText ? Icons.visibility : Icons.visibility_off,
+            color: Colors.white70,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscureText = !_obscureText;
+            });
+          },
+          tooltip: _obscureText ? 'Show password' : 'Hide password',
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Password is required';
+        }
+        if (value.length < 8) {
+          return 'Password must be at least 8 characters';
+        }
+        if (!RegExp(
+          r'^(?=.*?[0-9])(?=.*?[A-Za-z])(?=.*?[A-Z])',
+        ).hasMatch(value)) {
+          return 'Password must contain letters, numbers, and at least one uppercase letter';
+        }
+
+        return null;
+      },
+    );
+  }
+
+  void _validateAndSubmit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      _showDialog('Success', 'Registration successful');
+    } else {
+      _showDialog('Error', 'Please correct the errors');
+    }
+  }
+
+  void _showDialog(String title, String content) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class AnimatedCheckbox extends StatefulWidget {
+>>>>>>> 29e6bff (telasnovas)
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
 }

@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:planify/src/pages/adicionartarefa.dart';
+<<<<<<< HEAD
 import 'package:planify/src/pages/criartime.dart';
 import 'package:planify/src/pages/detalhesdastarefas.dart';
 import 'package:planify/src/pages/perfil.dart';
+=======
+import 'package:planify/src/pages/chatdaia.dart';
+import 'package:planify/src/pages/criartime.dart';
+import 'package:planify/src/pages/detalhesdastarefas.dart';
+import 'package:planify/src/pages/detalhesdoevento.dart';
+import 'package:planify/src/pages/perfilvazio.dart';
+import 'package:planify/src/pages/planner_diario.dart';
+import 'package:planify/src/pages/chatdaia.dart';
+>>>>>>> 29e6bff (telasnovas)
 import 'dart:math';
 import 'login.dart';
 import 'cadastro.dart';
@@ -17,7 +27,11 @@ class Inicial extends StatefulWidget {
 }
 
 class _InicialState extends State<Inicial> {
+<<<<<<< HEAD
   final bool _isButtonPressed = false;
+=======
+  bool _isButtonPressed = false;
+>>>>>>> 29e6bff (telasnovas)
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +46,11 @@ class _InicialState extends State<Inicial> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+<<<<<<< HEAD
                   SizedBox(height: 134),
+=======
+                  const SizedBox(height: 134),
+>>>>>>> 29e6bff (telasnovas)
                   Text(
                     "WELCOME",
                     textAlign: TextAlign.center,
@@ -44,6 +62,7 @@ class _InicialState extends State<Inicial> {
                     ),
                   ),
                   ShaderMask(
+<<<<<<< HEAD
                     shaderCallback:
                         (bounds) => LinearGradient(
                           colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
@@ -51,6 +70,14 @@ class _InicialState extends State<Inicial> {
                           end: Alignment.bottomRight,
                           stops: [0.0, 0.6],
                         ).createShader(bounds),
+=======
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      stops: [0.0, 0.6],
+                    ).createShader(bounds),
+>>>>>>> 29e6bff (telasnovas)
                     child: Text(
                       "PLANIFY",
                       textAlign: TextAlign.center,
@@ -62,7 +89,11 @@ class _InicialState extends State<Inicial> {
                       ),
                     ),
                   ),
+<<<<<<< HEAD
                   SizedBox(height: 34),
+=======
+                  const SizedBox(height: 34),
+>>>>>>> 29e6bff (telasnovas)
                   Text(
                     "Thousands of people are using planify\n to better organize themselves",
                     textAlign: TextAlign.center,
@@ -133,9 +164,13 @@ class _InicialState extends State<Inicial> {
                       ),
                     ),
                   ),
+<<<<<<< HEAD
 
                   const SizedBox(height: 34),
 
+=======
+                  const SizedBox(height: 34),
+>>>>>>> 29e6bff (telasnovas)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -149,7 +184,10 @@ class _InicialState extends State<Inicial> {
                       ),
                       GestureDetector(
                         onTap: () {
+<<<<<<< HEAD
                           // Navega para a página de cadastro
+=======
+>>>>>>> 29e6bff (telasnovas)
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -158,7 +196,11 @@ class _InicialState extends State<Inicial> {
                           );
                         },
                         child: const Text(
+<<<<<<< HEAD
                           "SIGN UP", // O texto que será um link
+=======
+                          "SIGN UP", 
+>>>>>>> 29e6bff (telasnovas)
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -174,9 +216,13 @@ class _InicialState extends State<Inicial> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
+<<<<<<< HEAD
                           builder:
                               (context) =>
                                   const HabitsPage(), // substitua pelo nome do widget da sua tela
+=======
+                          builder: (context) => const HabitsPage(),
+>>>>>>> 29e6bff (telasnovas)
                         ),
                       );
                     },
@@ -199,6 +245,7 @@ class _InicialState extends State<Inicial> {
                       ),
                     ),
                   ),
+<<<<<<< HEAD
 
                   /* botao para tela adicionar tarefa  */
                   const SizedBox(height: 24),
@@ -322,6 +369,8 @@ class _InicialState extends State<Inicial> {
                       ),
                     ),
                   ),
+=======
+>>>>>>> 29e6bff (telasnovas)
                 ],
               ),
             ),
@@ -331,7 +380,10 @@ class _InicialState extends State<Inicial> {
     );
   }
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 29e6bff (telasnovas)
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 
@@ -391,7 +443,11 @@ class BlurredGradientPainter extends CustomPainter {
       [Color(0xFFF549D6), Color(0xFFAB82E9)], // Rosa
     ];
 
+<<<<<<< HEAD
     // Ajustando o movimento para ser mais dinâmico, baseado no tamanho da tela
+=======
+   
+>>>>>>> 29e6bff (telasnovas)
     List<Offset> positions = [
       Offset(
         size.width * (0.2 + 0.1 * sin(animationValue * pi * 2)),

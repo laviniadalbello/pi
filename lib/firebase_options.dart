@@ -72,5 +72,9 @@ class DefaultFirebaseOptions {
     storageBucket: 'planify-f4b33.firebasestorage.app',
     iosBundleId: 'com.example.planify',
   );
+<<<<<<< HEAD
 
 }
+=======
+}
+>>>>>>> 29e6bff (telasnovas)
