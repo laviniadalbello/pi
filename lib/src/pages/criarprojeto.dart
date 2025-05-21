@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-<<<<<<< HEAD
-
-=======
 import 'iconedaia.dart';
->>>>>>> 29e6bff (telasnovas)
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -15,10 +11,6 @@ const Color kDarkTextPrimary = Color(0xFFFFFFFF);
 const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 29e6bff (telasnovas)
 class CreateProjectScreen extends StatefulWidget {
   const CreateProjectScreen({super.key});
 
@@ -29,19 +21,11 @@ class CreateProjectScreen extends StatefulWidget {
 class _CreateProjectScreenState extends State<CreateProjectScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-<<<<<<< HEAD
-  final _projectNameController = TextEditingController();
-  final _projectDescriptionController = TextEditingController();
-  final _projectDueDateController = TextEditingController();
-  final _memberEmailController = TextEditingController(); // Para o diálogo de adicionar membro
-
-=======
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _projectNameController = TextEditingController();
   final _projectDescriptionController = TextEditingController();
   final _projectDueDateController = TextEditingController();
   final _memberEmailController = TextEditingController();
->>>>>>> 29e6bff (telasnovas)
 
   List<Map<String, String>> _teamMembers = [];
 
@@ -55,38 +39,16 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     Colors.teal.shade300,
     Colors.lightBlue.shade300,
   ];
-<<<<<<< HEAD
-  // final Random _random = Random(); 
-
-  
-  bool _isFabMenuActive = false; 
-  late AnimationController _fabMenuSlideController; 
-  late Animation<Offset> _fabMenuSlideAnimation;
-
-  
-=======
 
   bool _isCardVisible = false;
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
 
->>>>>>> 29e6bff (telasnovas)
   List<String> _attachments = [];
 
   @override
   void initState() {
     super.initState();
-<<<<<<< HEAD
-    _fabMenuSlideController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _fabMenuSlideAnimation = Tween<Offset>(
-      begin: const Offset(0, 1), // Slide de baixo para cima
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-        parent: _fabMenuSlideController, curve: Curves.easeOut));
-=======
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -95,7 +57,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
       begin: const Offset(0, 1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
->>>>>>> 29e6bff (telasnovas)
   }
 
   @override
@@ -104,12 +65,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     _projectDescriptionController.dispose();
     _projectDueDateController.dispose();
     _memberEmailController.dispose();
-<<<<<<< HEAD
-    _fabMenuSlideController.dispose();
-    super.dispose();
-  }
-
-=======
     _slideController.dispose();
     super.dispose();
   }
@@ -122,65 +77,47 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     Navigator.of(context).pushNamed(routeName);
   }
 
->>>>>>> 29e6bff (telasnovas)
   void _showAddMemberDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: kDarkElementBg,
-<<<<<<< HEAD
-          title: const Text('Adicionar Membro', style: TextStyle(color: kDarkTextPrimary)),
-=======
           title: const Text(
             'Adicionar Membro',
             style: TextStyle(color: kDarkTextPrimary),
           ),
->>>>>>> 29e6bff (telasnovas)
           content: TextField(
             controller: _memberEmailController,
             style: const TextStyle(color: kDarkTextPrimary),
             decoration: InputDecoration(
               hintText: 'E-mail do membro',
               hintStyle: TextStyle(color: kDarkTextSecondary.withOpacity(0.7)),
-<<<<<<< HEAD
-              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: kDarkTextSecondary)),
-              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: kAccentPurple)),
-=======
               enabledBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: kDarkTextSecondary),
               ),
               focusedBorder: UnderlineInputBorder(
                 borderSide: BorderSide(color: kAccentPurple),
               ),
->>>>>>> 29e6bff (telasnovas)
             ),
             keyboardType: TextInputType.emailAddress,
           ),
           actions: <Widget>[
             TextButton(
-<<<<<<< HEAD
-              child: const Text('Cancelar', style: TextStyle(color: kDarkTextSecondary)),
-=======
               child: const Text(
                 'Cancelar',
                 style: TextStyle(color: kDarkTextSecondary),
               ),
->>>>>>> 29e6bff (telasnovas)
               onPressed: () {
                 Navigator.of(context).pop();
                 _memberEmailController.clear();
               },
             ),
             TextButton(
-<<<<<<< HEAD
-              child: const Text('Adicionar', style: TextStyle(color: kAccentPurple)),
-=======
               child: const Text(
                 'Adicionar',
                 style: TextStyle(color: kAccentPurple),
               ),
->>>>>>> 29e6bff (telasnovas)
               onPressed: () {
                 if (_memberEmailController.text.isNotEmpty &&
                     _memberEmailController.text.contains('@')) {
@@ -199,14 +136,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-<<<<<<< HEAD
-                      content: const Text('Por favor, insira um e-mail válido.', style: TextStyle(color: kDarkTextPrimary)),
-=======
                       content: const Text(
                         'Por favor, insira um e-mail válido.',
                         style: TextStyle(color: kDarkTextPrimary),
                       ),
->>>>>>> 29e6bff (telasnovas)
                       backgroundColor: kDarkElementBg,
                     ),
                   );
@@ -235,13 +168,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               onSurface: kDarkTextPrimary,
             ),
             dialogBackgroundColor: kDarkElementBg,
-<<<<<<< HEAD
-            buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
-=======
             buttonTheme: const ButtonThemeData(
               textTheme: ButtonTextTheme.primary,
             ),
->>>>>>> 29e6bff (telasnovas)
           ),
           child: child!,
         );
@@ -269,14 +198,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
       print("Cor: $_selectedProjectColor");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-<<<<<<< HEAD
-          content: const Text('Projeto criado com sucesso! (Simulação)', style: TextStyle(color: kDarkTextPrimary)),
-=======
           content: const Text(
             'Projeto criado com sucesso! (Simulação)',
             style: TextStyle(color: kDarkTextPrimary),
           ),
->>>>>>> 29e6bff (telasnovas)
           backgroundColor: kAccentSecondary,
         ),
       );
@@ -313,10 +238,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           borderRadius: BorderRadius.circular(12.0),
           borderSide: const BorderSide(color: kAccentPurple, width: 1.5),
         ),
-<<<<<<< HEAD
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-        suffixIcon: suffixIcon != null ? Icon(suffixIcon, color: kDarkTextSecondary) : null,
-=======
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16.0,
           vertical: 14.0,
@@ -325,44 +246,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             suffixIcon != null
                 ? Icon(suffixIcon, color: kDarkTextSecondary)
                 : null,
->>>>>>> 29e6bff (telasnovas)
       ),
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
-<<<<<<< HEAD
-      validator: validator ?? (value) {
-        if (value == null || value.isEmpty) {
-          return 'Por favor, preencha este campo.';
-        }
-        return null;
-      },
-    );
-  }
-  void _toggleFabMenuVisibility() {
-    if (mounted) {
-      setState(() {
-        _isFabMenuActive = !_isFabMenuActive;
-        if (_isFabMenuActive) {
-          _fabMenuSlideController.forward();
-        } else {
-          _fabMenuSlideController.reverse();
-        }
-      });
-    }
-  }
-
-  Widget _buildFloatingActionButton() {
-    return FloatingActionButton(
-      backgroundColor: kAccentPurple,
-      elevation: 6,
-      shape: const CircleBorder(),
-      onPressed: _toggleFabMenuVisibility,
-      child: Icon(
-        _isFabMenuActive ? Icons.close : Icons.add,
-        color: kDarkTextPrimary,
-        size: 28,
-=======
       validator:
           validator ??
           (value) {
@@ -392,27 +279,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           });
         },
         child: const Icon(Icons.add, size: 28, color: kDarkTextPrimary),
->>>>>>> 29e6bff (telasnovas)
       ),
     );
   }
 
   Widget _buildDimOverlay() {
-<<<<<<< HEAD
-    return GestureDetector(
-      onTap: _toggleFabMenuVisibility,
-      child: Container(color: Colors.black.withOpacity(0.6)),
-    );
-  }
-
-  Widget _buildFabSlidingMenu() {
-    return Positioned(
-      bottom: 80, 
-      left: 30,
-      right: 30,
-      child: SlideTransition(
-        position: _fabMenuSlideAnimation,
-=======
     return Positioned.fill(
       child: GestureDetector(
         onTap: () {
@@ -433,7 +304,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
       right: 30,
       child: SlideTransition(
         position: _slideAnimation,
->>>>>>> 29e6bff (telasnovas)
         child: Material(
           color: Colors.transparent,
           elevation: 8,
@@ -443,9 +313,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             decoration: BoxDecoration(
               color: kDarkElementBg,
               borderRadius: BorderRadius.circular(24),
-<<<<<<< HEAD
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))],
-=======
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.4),
@@ -453,29 +320,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                   offset: const Offset(0, 6),
                 ),
               ],
->>>>>>> 29e6bff (telasnovas)
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-<<<<<<< HEAD
-                _menuItem(Icons.attach_file, 'Anexar Arquivo', onTapAction: _pickFiles),
-                const SizedBox(height: 12),
-                _menuItem(Icons.notifications_none_outlined, 'Definir Lembrete', onTapAction: () {
-                  print("Definir Lembrete Tocado");
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Lembrete (simulação)")));
-                }),
-                const SizedBox(height: 12),
-                _menuItem(Icons.format_list_bulleted, 'Adicionar Subtarefa', onTapAction: () {
-                   print("Adicionar Subtarefa Tocado");
-                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Subtarefa (simulação)")));
-                }),
-                const SizedBox(height: 12),
-                _menuItem(Icons.comment_outlined, 'Comentários', onTapAction: () {
-                  print("Comentários Tocado");
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Comentários (simulação)")));
-                }),
-=======
                 InkWell(
                   onTap: () {
                     setState(() {
@@ -508,17 +356,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                   },
                   child: _menuItem(Icons.schedule_outlined, 'Criar Evento'),
                 ),
->>>>>>> 29e6bff (telasnovas)
                 const SizedBox(height: 16),
                 FloatingActionButton(
                   mini: true,
                   backgroundColor: kAccentPurple,
                   elevation: 0,
                   shape: const CircleBorder(),
-<<<<<<< HEAD
-                  onPressed: _toggleFabMenuVisibility,
-                  child: const Icon(Icons.close, size: 20, color: kDarkTextPrimary),
-=======
                   onPressed: () {
                     setState(() {
                       _isCardVisible = false;
@@ -530,7 +373,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                     size: 20,
                     color: kDarkTextPrimary,
                   ),
->>>>>>> 29e6bff (telasnovas)
                 ),
               ],
             ),
@@ -540,28 +382,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     );
   }
 
-<<<<<<< HEAD
-  Widget _menuItem(IconData icon, String label, {VoidCallback? onTapAction}) {
-    return GestureDetector(
-      onTap: () {
-        if (onTapAction != null) {
-          onTapAction();
-        }
-        _toggleFabMenuVisibility(); // Fecha o menu após a ação
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-          color: kDarkSurface.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: kDarkBorder.withOpacity(0.5)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: kDarkTextSecondary, size: 20),
-            const SizedBox(width: 12),
-            Text(label, style: const TextStyle(color: kDarkTextSecondary, fontSize: 14, fontWeight: FontWeight.w500)),
-=======
   Widget _menuItem(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -618,17 +438,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               },
               child: _bottomBarIcon(Icons.person_outline),
             ),
->>>>>>> 29e6bff (telasnovas)
           ],
         ),
       ),
     );
   }
 
-<<<<<<< HEAD
-  void _pickFiles() async {
-    
-=======
   Widget _bottomBarIcon(IconData icon, {bool isActive = false}) {
     return Icon(
       icon,
@@ -638,15 +453,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   }
 
   void _pickFiles() async {
->>>>>>> 29e6bff (telasnovas)
     if (mounted) {
       setState(() {
         _attachments.add("document_${_attachments.length + 1}.pdf");
       });
       ScaffoldMessenger.of(context).showSnackBar(
-<<<<<<< HEAD
-        SnackBar(content: Text('Arquivo "${_attachments.last}" anexado (simulação).', style: const TextStyle(color: kDarkTextPrimary)), backgroundColor: kAccentSecondary)
-=======
         SnackBar(
           content: Text(
             'Arquivo "${_attachments.last}" anexado (simulação).',
@@ -654,29 +465,16 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           ),
           backgroundColor: kAccentSecondary,
         ),
->>>>>>> 29e6bff (telasnovas)
       );
     }
     print("Função _pickFiles chamada.");
   }
-<<<<<<< HEAD
-  
 
-  
-=======
-
->>>>>>> 29e6bff (telasnovas)
   Widget _buildTeamMemberSection() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-<<<<<<< HEAD
-          ..._teamMembers.map((member) {
-            return _memberAvatar(member['imageUrl'], member['name']!);
-          }).toList(),
-          _addMemberButton(), // O botão "+"
-=======
           // Botão de adicionar membro
           GestureDetector(
             onTap: _showAddMemberDialog,
@@ -684,27 +482,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           ),
           // Lista de membros existentes
           ..._teamMembers.map((member) => _buildMemberAvatar(member)).toList(),
->>>>>>> 29e6bff (telasnovas)
         ],
       ),
     );
   }
 
-<<<<<<< HEAD
-  Widget _memberAvatar(String? imageUrl, String name) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 12),
-      child: Column(
-        children: [
-          CircleAvatar(
-            radius: 25,
-            backgroundColor: kDarkElementBg,
-            backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
-            child: imageUrl == null ? Text(name.isNotEmpty ? name[0].toUpperCase() : '?', style: const TextStyle(color: kDarkTextPrimary, fontWeight: FontWeight.bold, fontSize: 18)) : null,
-          ),
-          const SizedBox(height: 4),
-          Text(name, style: const TextStyle(color: kDarkTextSecondary, fontSize: 12)),
-=======
   Widget _buildMemberAvatar(Map<String, String> member) {
     return Padding(
       padding: const EdgeInsets.only(left: 8.0, right: 8.0),
@@ -769,17 +551,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             member["name"] ?? "Sem nome",
             style: const TextStyle(color: kDarkTextSecondary, fontSize: 12),
           ),
->>>>>>> 29e6bff (telasnovas)
         ],
       ),
     );
   }
 
-<<<<<<< HEAD
-  Widget _addMemberButton() {
-=======
   Widget _buildAddMemberButton() {
->>>>>>> 29e6bff (telasnovas)
     return GestureDetector(
       onTap: _showAddMemberDialog,
       child: Padding(
@@ -792,36 +569,24 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               decoration: BoxDecoration(
                 color: kDarkElementBg,
                 shape: BoxShape.circle,
-<<<<<<< HEAD
-                border: Border.all(color: kDarkTextSecondary.withOpacity(0.5), width: 1.5),
-=======
                 border: Border.all(
                   color: kDarkTextSecondary.withOpacity(0.5),
                   width: 1.5,
                 ),
->>>>>>> 29e6bff (telasnovas)
               ),
               child: const Icon(Icons.add, color: kDarkTextSecondary, size: 28),
             ),
             const SizedBox(height: 4),
-<<<<<<< HEAD
-            const Text("Adic.", style: TextStyle(color: kDarkTextSecondary, fontSize: 12)),
-=======
             const Text(
               "Adic.",
               style: TextStyle(color: kDarkTextSecondary, fontSize: 12),
             ),
->>>>>>> 29e6bff (telasnovas)
           ],
         ),
       ),
     );
   }
-<<<<<<< HEAD
-  
-=======
 
->>>>>>> 29e6bff (telasnovas)
   @override
   Widget build(BuildContext context) {
     return Theme(
@@ -844,15 +609,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           backgroundColor: kDarkSurface,
           elevation: 0.5,
           iconTheme: IconThemeData(color: kDarkTextPrimary),
-<<<<<<< HEAD
-          titleTextStyle: TextStyle(color: kDarkTextPrimary, fontWeight: FontWeight.bold, fontSize: 18),
-=======
           titleTextStyle: TextStyle(
             color: kDarkTextPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
->>>>>>> 29e6bff (telasnovas)
         ),
         inputDecorationTheme: InputDecorationTheme(
           labelStyle: const TextStyle(color: kDarkTextSecondary),
@@ -870,24 +631,16 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             borderRadius: BorderRadius.circular(12.0),
             borderSide: const BorderSide(color: kAccentPurple, width: 1.5),
           ),
-<<<<<<< HEAD
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 14.0),
-=======
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16.0,
             vertical: 14.0,
           ),
->>>>>>> 29e6bff (telasnovas)
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: kAccentPurple,
             foregroundColor: kDarkTextPrimary,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-<<<<<<< HEAD
-            textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-=======
             textStyle: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -895,7 +648,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0),
             ),
->>>>>>> 29e6bff (telasnovas)
           ),
         ),
         chipTheme: ChipThemeData(
@@ -908,12 +660,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             side: const BorderSide(color: kDarkBorder),
           ),
         ),
-<<<<<<< HEAD
-        textSelectionTheme: const TextSelectionThemeData(cursorColor: kAccentPurple),
-        dialogBackgroundColor: kDarkElementBg,
-      ),
-      child: Scaffold(
-=======
         textSelectionTheme: const TextSelectionThemeData(
           cursorColor: kAccentPurple,
         ),
@@ -921,7 +667,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
       ),
       child: Scaffold(
         key: _scaffoldKey,
->>>>>>> 29e6bff (telasnovas)
         appBar: AppBar(
           title: const Text('Criar Novo Projeto'),
           leading: IconButton(
@@ -931,28 +676,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
         ),
         floatingActionButton: _buildFloatingActionButton(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-<<<<<<< HEAD
-        bottomNavigationBar: BottomAppBar(
-            color: kDarkSurface,
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8.0,
-            child: SizedBox(
-              height: 60,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: <Widget>[
-                  IconButton(icon: const Icon(Icons.home_outlined, color: kDarkTextSecondary), onPressed: () {}),
-                  IconButton(icon: const Icon(Icons.folder_outlined, color: kDarkTextSecondary), onPressed: () {}),
-                  const SizedBox(width: 40), // Espaço para o FAB
-                  IconButton(icon: const Icon(Icons.bar_chart_outlined, color: kDarkTextSecondary), onPressed: () {}),
-                  IconButton(icon: const Icon(Icons.person_outline, color: kDarkTextSecondary), onPressed: () {}),
-                ],
-              ),
-            ),
-        ),
-=======
         bottomNavigationBar: _buildBottomBar(),
->>>>>>> 29e6bff (telasnovas)
         body: Stack(
           children: [
             SingleChildScrollView(
@@ -964,18 +688,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                   children: <Widget>[
                     const Text(
                       'Detalhes do Projeto',
-<<<<<<< HEAD
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kDarkTextPrimary),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildTextField(_projectNameController, 'Nome do Projeto', validator: (val) => val == null || val.isEmpty ? "Nome do projeto é obrigatório" : null),
-                    const SizedBox(height: 20),
-                    _buildTextField(_projectDescriptionController, 'Descrição do Projeto', maxLines: 3),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Membros do Projeto',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: kDarkTextSecondary),
-=======
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -1006,18 +718,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                         fontWeight: FontWeight.w500,
                         color: kDarkTextSecondary,
                       ),
->>>>>>> 29e6bff (telasnovas)
                     ),
                     const SizedBox(height: 12),
                     _buildTeamMemberSection(), // Nova seção de membros
                     const SizedBox(height: 20),
-<<<<<<< HEAD
-                    _buildTextField(_projectDueDateController, 'Data de Entrega (DD/MM/AAAA)', onTap: _selectDueDate, readOnly: true, suffixIcon: Icons.calendar_today, validator: (val) => val == null || val.isEmpty ? "Data de entrega é obrigatória" : null),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'Prioridade do Projeto',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: kDarkTextSecondary),
-=======
                     _buildTextField(
                       _projectDueDateController,
                       'Data de Entrega (DD/MM/AAAA)',
@@ -1038,22 +742,17 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                         fontWeight: FontWeight.w500,
                         color: kDarkTextSecondary,
                       ),
->>>>>>> 29e6bff (telasnovas)
                     ),
                     const SizedBox(height: 10),
                     _buildPrioritySelector(),
                     const SizedBox(height: 20),
                     const Text(
                       'Cor do Projeto',
-<<<<<<< HEAD
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: kDarkTextSecondary),
-=======
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
                         color: kDarkTextSecondary,
                       ),
->>>>>>> 29e6bff (telasnovas)
                     ),
                     const SizedBox(height: 10),
                     _buildProjectColorSelector(),
@@ -1064,19 +763,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                         child: const Text('Criar Projeto'),
                       ),
                     ),
-<<<<<<< HEAD
-                    const SizedBox(height: 100), // Espaço para o BottomAppBar e FAB
-=======
                     const SizedBox(height: 100),
->>>>>>> 29e6bff (telasnovas)
                   ],
                 ),
               ),
             ),
-<<<<<<< HEAD
-            if (_isFabMenuActive) _buildDimOverlay(),
-            if (_isFabMenuActive) _buildFabSlidingMenu(),
-=======
             if (_isCardVisible) _buildDimOverlay(),
             if (_isCardVisible) _buildSlidingMenu(),
             Positioned(
@@ -1088,7 +779,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                 enableScroll: true,
               ),
             ),
->>>>>>> 29e6bff (telasnovas)
           ],
         ),
       ),
@@ -1099,14 +789,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     final priorities = ['Baixa', 'Média', 'Alta', 'Urgente'];
     return DropdownButtonFormField<String>(
       value: _selectedPriority,
-<<<<<<< HEAD
-      items: priorities.map((String priority) {
-        return DropdownMenuItem<String>(
-          value: priority,
-          child: Text(priority),
-        );
-      }).toList(),
-=======
       items:
           priorities.map((String priority) {
             return DropdownMenuItem<String>(
@@ -1114,7 +796,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               child: Text(priority),
             );
           }).toList(),
->>>>>>> 29e6bff (telasnovas)
       onChanged: (String? newValue) {
         if (mounted) {
           setState(() {
@@ -1123,14 +804,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
         }
       },
       decoration: InputDecoration(
-<<<<<<< HEAD
-        // labelText: 'Prioridade', // Removido para consistência com _buildTextField
-        filled: true,
-        fillColor: kDarkElementBg,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: kAccentPurple)),
-=======
         // labelText: 'Prioridade',
         filled: true,
         fillColor: kDarkElementBg,
@@ -1146,7 +819,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: kAccentPurple),
         ),
->>>>>>> 29e6bff (telasnovas)
       ),
       dropdownColor: kDarkElementBg,
       style: const TextStyle(color: kDarkTextPrimary),
@@ -1177,18 +849,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
-<<<<<<< HEAD
-                border: isSelected
-                    ? Border.all(color: kDarkTextPrimary.withOpacity(0.8), width: 2.5) 
-                    : Border.all(color: Colors.transparent, width: 0),
-                boxShadow: isSelected
-                    ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 5, spreadRadius: 1)]
-                    : [],
-              ),
-              child: isSelected
-                  ? Icon(Icons.check, color: kDarkTextPrimary.withOpacity(0.8), size: 20) // Ajuste na cor do ícone
-                  : null,
-=======
                 border:
                     isSelected
                         ? Border.all(
@@ -1215,7 +875,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                         size: 20,
                       )
                       : null,
->>>>>>> 29e6bff (telasnovas)
             ),
           );
         },
@@ -1223,7 +882,3 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     );
   }
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 29e6bff (telasnovas)
