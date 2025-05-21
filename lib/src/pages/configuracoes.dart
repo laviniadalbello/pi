@@ -1,8 +1,6 @@
+
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-=======
 import 'iconedaia.dart';
->>>>>>> 29e6bff (telasnovas)
 
 void main() => runApp(const SettingsApp());
 
@@ -12,9 +10,6 @@ class SettingsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-<<<<<<< HEAD
-      theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: Colors.black),
-=======
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.black,
         colorScheme: const ColorScheme.dark(
@@ -22,7 +17,6 @@ class SettingsApp extends StatelessWidget {
           secondary: Color(0xFF2CB67D),
         ),
       ),
->>>>>>> 29e6bff (telasnovas)
       home: const SettingsPage(),
       debugShowCheckedModeBanner: false,
     );
@@ -36,12 +30,6 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-<<<<<<< HEAD
-class _SettingsPageState extends State<SettingsPage> {
-  bool permission = true;
-  bool pushNotification = false;
-  bool darkMode = true;
-=======
 class _SettingsPageState extends State<SettingsPage>
     with SingleTickerProviderStateMixin {
   bool permission = true;
@@ -214,82 +202,10 @@ class _SettingsPageState extends State<SettingsPage>
       },
     );
   }
->>>>>>> 29e6bff (telasnovas)
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-<<<<<<< HEAD
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(80),
-        child: AppBar(
-          backgroundColor: Colors.black,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-            onPressed: () {},
-          ),
-          title: const Padding(
-            padding: EdgeInsets.only(top: 30), // desce o título
-            child: Text(
-              'Settings',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.w500),
-            ),
-          ),
-          centerTitle: true,
-          elevation: 0,
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const SizedBox(height: 60),
-            _buildSwitchTile("Permission", permission, (val) {
-              setState(() => permission = val);
-            }),
-            const SizedBox(height: 12),
-            _buildSwitchTile("Push Notification", pushNotification, (val) {
-              setState(() => pushNotification = val);
-            }),
-            const SizedBox(height: 12),
-            _buildSwitchTile("Dark Mood", darkMode, (val) {
-              setState(() => darkMode = val);
-            }),
-            const SizedBox(height: 20),
-            _buildNavTile("Security"),
-            const SizedBox(height: 12),
-            _buildNavTile("Help"),
-            const SizedBox(height: 12),
-            _buildNavTile("About Application"),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchTile(
-    String title,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF10101E),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      height: 60,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(color: Colors.white)),
-          Switch(
-            value: value,
-            onChanged: onChanged,
-            activeColor: Colors.blueAccent,
-            inactiveThumbColor: Colors.grey,
-            inactiveTrackColor: Colors.grey.withOpacity(0.3),
-=======
       body: Stack(
         children: [
           // Fundo com gradiente
@@ -452,29 +368,12 @@ class _SettingsPageState extends State<SettingsPage>
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
             ),
->>>>>>> 29e6bff (telasnovas)
           ),
         ],
       ),
     );
   }
 
-<<<<<<< HEAD
-  Widget _buildNavTile(String title) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF10101E),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      height: 60,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(color: Colors.white)),
-          const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16),
-        ],
-=======
   Widget _buildAnimatedSwitchTile(
     String title,
     String subtitle,
@@ -632,7 +531,6 @@ class _SettingsPageState extends State<SettingsPage>
             ),
           ),
         ),
->>>>>>> 29e6bff (telasnovas)
       ),
     );
   }
