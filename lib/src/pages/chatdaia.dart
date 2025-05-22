@@ -2,11 +2,11 @@ import "package:flutter/material.dart";
 import "dart:async";
 import "package:file_picker/file_picker.dart";
 import "dart:math" as math;
-import '../pages/widgets/closeable_ai_card.dart';
 import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
 import 'package:planify/services/smart_reply_service.dart';
 import 'package:google_mlkit_smart_reply/google_mlkit_smart_reply.dart';
 import 'package:google_mlkit_commons/google_mlkit_commons.dart' as mlcommons;
+import 'package:planify/services/smart_reply_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
