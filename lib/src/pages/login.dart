@@ -3,6 +3,8 @@ import 'cadastro.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+import 'dart:convert';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

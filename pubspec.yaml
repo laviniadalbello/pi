@@ -59,9 +59,4 @@ flutter:
       fonts:
         - asset: assets/fonts/Roboto_Condensed-Light.ttf
           weight: 300
-    - family: NotoSans
-      fonts:
-        - asset: fonts/NotoSans-Regular.ttf # Adapte o caminho e o nome do arquivo
-    - family: NotoColorEmoji # Se você precisar de suporte a emojis coloridos
-      fonts:
-        - asset: fonts/NotoColorEmoji.ttf 
+    
