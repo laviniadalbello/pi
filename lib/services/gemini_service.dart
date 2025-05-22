@@ -1,4 +1,4 @@
-lib/services/gemini_service.dart
+
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:convert'; // Para jsonEncode e jsonDecode
 
