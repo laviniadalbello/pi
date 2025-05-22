@@ -491,7 +491,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                 Navigator.of(context).pop();
               },
             ),
-            actions: [],
+            actions: const [],
           ),
         ),
       ),

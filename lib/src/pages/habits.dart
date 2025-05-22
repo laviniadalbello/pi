@@ -258,7 +258,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                       child: Material(
                         color: Colors.transparent,
                         elevation: 8,
-                        borderRadius: BorderRadius.only(
+                        borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(24),
                           bottomLeft: Radius.circular(24),
                         ),
@@ -266,7 +266,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                           padding: EdgeInsets.all(screenWidth * 0.04),
                           decoration: BoxDecoration(
                             color: const Color.fromARGB(223, 17, 24, 39),
-                            borderRadius: BorderRadius.only(
+                            borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(24),
                               bottomLeft: Radius.circular(24),
                             ),
@@ -294,7 +294,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   IconButton(
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.close,
                                       color: Colors.white,
                                     ),
@@ -327,7 +327,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                                       },
                                       background: Container(
                                         alignment: Alignment.centerRight,
-                                        padding: EdgeInsets.only(right: 20.0),
+                                        padding: const EdgeInsets.only(right: 20.0),
                                         decoration: BoxDecoration(
                                           color: Colors.red,
                                           borderRadius: BorderRadius.circular(
@@ -706,8 +706,8 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                 right: 8,
                 top: 8,
                 child: Container(
-                  padding: EdgeInsets.all(4),
-                  decoration: BoxDecoration(
+                  padding: const EdgeInsets.all(4),
+                  decoration: const BoxDecoration(
                     color: Colors.red,
                     shape: BoxShape.circle,
                   ),
@@ -775,7 +775,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
             const Color.fromARGB(255, 243, 33, 208),
           ], 0),
           _animatedCircleResponsive(context, 0.85, 0.02, 0.01, [
-            Color.fromARGB(164, 180, 34, 238),
+            const Color.fromARGB(164, 180, 34, 238),
             Colors.deepPurpleAccent,
           ], 1),
           _animatedCircleResponsive(context, 0.45, 0.045, 0.012, [
@@ -787,11 +787,11 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
             const Color.fromARGB(255, 149, 226, 4),
           ], 3),
           _animatedCircleResponsive(context, 0.9, 0.09, 0.02, [
-            Color.fromARGB(173, 36, 17, 204),
+            const Color.fromARGB(173, 36, 17, 204),
             const Color.fromARGB(255, 218, 20, 20),
           ], 4),
           _animatedCircleResponsive(context, 0.25, 0.03, 0.015, [
-            Color.fromARGB(255, 222, 87, 240),
+            const Color.fromARGB(255, 222, 87, 240),
             const Color.fromARGB(255, 27, 112, 1),
           ], 5),
         ],
@@ -969,7 +969,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                     // Lógica para excluir o card
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(SnackBar(content: Text('Card excluído')));
+                    ).showSnackBar(const SnackBar(content: Text('Card excluído')));
                   }
                 },
                 itemBuilder:
@@ -1070,7 +1070,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                     BoxShadow(
                       color: Colors.black.withOpacity(0.3),
                       blurRadius: 10,
-                      offset: Offset(0, 4),
+                      offset: const Offset(0, 4),
                     ),
                   ]
                   : [],
@@ -1163,7 +1163,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               children: [
                 CircleAvatar(
                   radius: avatarSize / 2,
-                  backgroundImage: NetworkImage(
+                  backgroundImage: const NetworkImage(
                     "https://i.pravatar.cc/150?img=11",
                   ),
                 ),

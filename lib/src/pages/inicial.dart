@@ -1,12 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:planify/src/pages/adicionartarefa.dart';
-import 'package:planify/src/pages/chatdaia.dart';
-import 'package:planify/src/pages/criartime.dart';
-import 'package:planify/src/pages/detalhesdastarefas.dart';
-import 'package:planify/src/pages/detalhesdoevento.dart';
-import 'package:planify/src/pages/perfilvazio.dart';
-import 'package:planify/src/pages/planner_diario.dart';
-import 'package:planify/src/pages/chatdaia.dart';
 import 'dart:math';
 import 'login.dart';
 import 'cadastro.dart';
@@ -21,7 +13,7 @@ class Inicial extends StatefulWidget {
 }
 
 class _InicialState extends State<Inicial> {
-  bool _isButtonPressed = false;
+  final bool _isButtonPressed = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +29,7 @@ class _InicialState extends State<Inicial> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const SizedBox(height: 134),
-                  Text(
+                  const Text(
                     "WELCOME",
                     textAlign: TextAlign.center,
                     style: TextStyle(
@@ -48,13 +40,13 @@ class _InicialState extends State<Inicial> {
                     ),
                   ),
                   ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
+                    shaderCallback: (bounds) => const LinearGradient(
                       colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       stops: [0.0, 0.6],
                     ).createShader(bounds),
-                    child: Text(
+                    child: const Text(
                       "PLANIFY",
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -66,14 +58,14 @@ class _InicialState extends State<Inicial> {
                     ),
                   ),
                   const SizedBox(height: 34),
-                  Text(
+                  const Text(
                     "Thousands of people are using planify\n to better organize themselves",
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 20,
                       fontFamily: 'Roboto',
                       fontWeight: FontWeight.w300,
-                      color: const Color.fromARGB(228, 255, 255, 255),
+                      color: Color.fromARGB(228, 255, 255, 255),
                     ),
                   ),
                   const SizedBox(height: 38),
@@ -98,10 +90,10 @@ class _InicialState extends State<Inicial> {
                           colors: [Color(0xFF6735B1), Color(0xFFAB82E9)],
                         ),
                         borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
-                            color: const Color(0xFF714DA6),
-                            offset: const Offset(0, 2),
+                            color: Color(0xFF714DA6),
+                            offset: Offset(0, 2),
                             blurRadius: 8,
                             spreadRadius: -2,
                           ),
@@ -140,7 +132,7 @@ class _InicialState extends State<Inicial> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      const Text(
                         "  DON´T HAVE AN ACCOUNT? ",
                         style: TextStyle(
                           fontSize: 16,
@@ -256,13 +248,13 @@ class BlurredGradientPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint =
-        Paint()..maskFilter = MaskFilter.blur(BlurStyle.normal, 100);
+        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
     // Cores do gradiente
     List<List<Color>> gradientColors = [
-      [Color(0xFF7526D4), Color(0xFFAB82E9)], // Roxo
-      [Color(0xFF2C26D4), Color(0xFF497FF5)], // Azul
-      [Color(0xFFF549D6), Color(0xFFAB82E9)], // Rosa
+      [const Color(0xFF7526D4), const Color(0xFFAB82E9)], // Roxo
+      [const Color(0xFF2C26D4), const Color(0xFF497FF5)], // Azul
+      [const Color(0xFFF549D6), const Color(0xFFAB82E9)], // Rosa
     ];
 
    

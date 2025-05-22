@@ -14,7 +14,7 @@ class FirestoreTasksService {
   }) async {
     // Substitua 'test_user_id' pelo ID do usuário logado REAL
     // Isso é crucial para que cada usuário veja apenas suas tarefas.
-    final userId =
+    const userId =
         'test_user_id'; // <--- Substitua pelo ID do usuário autenticado!
 
     final newTask = Task(
@@ -34,7 +34,7 @@ class FirestoreTasksService {
   // Método para listar tarefas
   Future<List<Task>> listUserTasks({String? filter}) async {
     // Substitua 'test_user_id' pelo ID do usuário logado REAL
-    final userId =
+    const userId =
         'test_user_id'; // <--- Substitua pelo ID do usuário autenticado!
 
     Query query = _db.collection('tasks').where('userId', isEqualTo: userId);
@@ -71,7 +71,7 @@ class FirestoreTasksService {
   // Método para encontrar tarefa por título (usado pelo Gemini se não houver ID)
   Future<Task?> findTaskByTitle(String title) async {
     // Substitua 'test_user_id' pelo ID do usuário logado REAL
-    final userId =
+    const userId =
         'test_user_id'; // <--- Substitua pelo ID do usuário autenticado!
 
     final snapshot = await _db

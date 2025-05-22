@@ -1,8 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'configuracoes.dart';
 import 'iconedaia.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -29,9 +30,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   bool _isCardVisible = false;
 
-  final String _userName = "USER";
-  final String _userHandle = "@nomedousuario";
-  final String _userBio = "Designer & Developer";
+  String _userName = "USER";
+  String _userHandle = "@nomedousuario";
+  String _userBio = "Designer & Developer";
   final List<Map<String, dynamic>> _userStats = [
     {"label": "Projetos", "value": 12},
     {"label": "Tarefas", "value": 48},
@@ -44,14 +45,14 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       "title": "Redesign App",
       "date": "Hoje, 10:30",
       "status": "Em andamento",
-      "color": Color(0xFF7F5AF0),
+      "color": const Color(0xFF7F5AF0),
     },
     {
       "type": "task",
       "title": "Reunião com equipe",
       "date": "Ontem, 14:00",
       "status": "Concluído",
-      "color": Color(0xFF2CB67D),
+      "color": const Color(0xFF2CB67D),
     },
     {
       "type": "team",
@@ -66,6 +67,11 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
 
+    if (FirebaseAuth.instance.currentUser == null) {
+      print('Usuário não está logado');
+      return;
+    }
+
     _circleController = AnimationController(
       duration: const Duration(seconds: 6),
       vsync: this,
@@ -79,6 +85,51 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       begin: const Offset(0, 1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+
+    _loadUserData(); 
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        print('Buscando dados do usuário ${user.uid}');
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        print('Dados encontrados: ${doc.data()}'); 
+
+        if (doc.exists) {
+          setState(() {
+            _userName = doc['name'] ?? 'Usuário'; 
+            _userHandle = '@${user.email?.split('@').first ?? 'usuario'}';
+            _userBio = doc['bio'] ?? 'Bio padrão';
+          });
+        } else {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .set({
+            'name': user.displayName ?? 'Novo Usuário', 
+            'email': user.email,
+            'profileComplete': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'bio': 'Bio padrão',
+          });
+
+          await _loadUserData();
+        }
+      }
+    } catch (e) {
+      print('Erro ao carregar dados do usuário: $e');
+      setState(() {
+        _userName = 'Usuário';
+        _userHandle = '@usuario';
+        _userBio = 'Bio não disponível';
+      });
+    }
   }
 
   @override
@@ -89,7 +140,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   void _navigateToRoute(String routeName) {
-    // Fecha o drawer se estiver aberto
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
@@ -288,6 +338,10 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    print('UID do usuário logado: ${user?.uid}');
+    print('Email do usuário: ${user?.email}');
+
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: Colors.black,
@@ -302,30 +356,60 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             Positioned.fill(
               child: Stack(
                 children: [
-                  _animatedCircle(20, 150, 6, [
-                    Colors.lightBlueAccent,
-                    const Color.fromARGB(255, 243, 33, 208),
-                  ], 0),
-                  _animatedCircle(350, 130, 4, [
-                    Color.fromARGB(164, 180, 34, 238),
-                    Colors.deepPurpleAccent,
-                  ], 1),
-                  _animatedCircle(180, 150, 5, [
-                    Colors.amberAccent,
-                    Colors.orange,
-                  ], 2),
-                  _animatedCircle(40, 115, 5, [
-                    Colors.pinkAccent,
-                    const Color.fromARGB(255, 149, 226, 4),
-                  ], 3),
-                  _animatedCircle(370, 150, 8, [
-                    Color.fromARGB(173, 36, 17, 204),
-                    const Color.fromARGB(255, 218, 20, 20),
-                  ], 4),
-                  _animatedCircle(100, 120, 6, [
-                    Color.fromARGB(255, 222, 87, 240),
-                    const Color.fromARGB(255, 27, 112, 1),
-                  ], 5),
+                  _animatedCircle(
+                      20,
+                      150,
+                      6,
+                      [
+                        Colors.lightBlueAccent,
+                        const Color.fromARGB(255, 243, 33, 208),
+                      ],
+                      0),
+                  _animatedCircle(
+                      350,
+                      130,
+                      4,
+                      [
+                        const Color.fromARGB(164, 180, 34, 238),
+                        Colors.deepPurpleAccent,
+                      ],
+                      1),
+                  _animatedCircle(
+                      180,
+                      150,
+                      5,
+                      [
+                        Colors.amberAccent,
+                        Colors.orange,
+                      ],
+                      2),
+                  _animatedCircle(
+                      40,
+                      115,
+                      5,
+                      [
+                        Colors.pinkAccent,
+                        const Color.fromARGB(255, 149, 226, 4),
+                      ],
+                      3),
+                  _animatedCircle(
+                      370,
+                      150,
+                      8,
+                      [
+                        const Color.fromARGB(173, 36, 17, 204),
+                        const Color.fromARGB(255, 218, 20, 20),
+                      ],
+                      4),
+                  _animatedCircle(
+                      100,
+                      120,
+                      6,
+                      [
+                        const Color.fromARGB(255, 222, 87, 240),
+                        const Color.fromARGB(255, 27, 112, 1),
+                      ],
+                      5),
                 ],
               ),
             ),
@@ -361,16 +445,16 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             if (_isCardVisible) _buildDimOverlay(),
             if (_isCardVisible) _buildSlidingMenu(),
             // Adicione isso no final do Stack (antes do fechamento ']')
-Positioned(
-  bottom: -26, // Posição ajustável
-  right: -60,  // Posição ajustável
-  child: CloseableAiCard(
-    scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
-    enableScroll: true,
-  ),
-),
+            Positioned(
+              bottom: -26, // Posição ajustável
+              right: -60, // Posição ajustável
+              child: CloseableAiCard(
+                scaleFactor:
+                    MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
+                enableScroll: true,
+              ),
+            ),
           ],
-          
         ),
       ),
     );
@@ -413,11 +497,14 @@ Positioned(
   }
 
   Widget _buildProfileSection() {
+    if (_userName == "Carregando...") {
+      return const Center(child: CircularProgressIndicator());
+    }
     return Column(
       children: [
         Stack(
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 50,
               backgroundColor: kDarkElementBg,
               child: Icon(Icons.person, color: kAccentPurple, size: 50),
@@ -429,7 +516,6 @@ Positioned(
                 onTap: () {
                   _showEditAvatarOptions();
                 },
-                
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -463,7 +549,7 @@ Positioned(
         // Handle do usuário
         Text(
           _userHandle,
-          style: TextStyle(color: kDarkTextSecondary, fontSize: 16),
+          style: const TextStyle(color: kDarkTextSecondary, fontSize: 16),
         ),
         const SizedBox(height: 8),
 
@@ -483,7 +569,7 @@ Positioned(
             _showEditProfileDialog();
           },
           style: OutlinedButton.styleFrom(
-            side: BorderSide(color: kAccentPurple),
+            side: const BorderSide(color: kAccentPurple),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -507,26 +593,25 @@ Positioned(
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children:
-            _userStats.map((stat) {
-              return Column(
-                children: [
-                  Text(
-                    stat["value"].toString(),
-                    style: const TextStyle(
-                      color: kDarkTextPrimary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    stat["label"],
-                    style: TextStyle(color: kDarkTextSecondary, fontSize: 14),
-                  ),
-                ],
-              );
-            }).toList(),
+        children: _userStats.map((stat) {
+          return Column(
+            children: [
+              Text(
+                stat["value"].toString(),
+                style: const TextStyle(
+                  color: kDarkTextPrimary,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                stat["label"],
+                style: const TextStyle(color: kDarkTextSecondary, fontSize: 14),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -535,10 +620,10 @@ Positioned(
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Atividades Recentes',
               style: TextStyle(
                 color: kDarkTextPrimary,
@@ -604,7 +689,8 @@ Positioned(
                 const SizedBox(height: 4),
                 Text(
                   activity["date"],
-                  style: TextStyle(color: kDarkTextSecondary, fontSize: 12),
+                  style:
+                      const TextStyle(color: kDarkTextSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -669,7 +755,8 @@ Positioned(
       ],
     );
   }
-Widget _buildAiCardSection(BuildContext context) {
+
+  Widget _buildAiCardSection(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Transform.translate(
@@ -686,6 +773,7 @@ Widget _buildAiCardSection(BuildContext context) {
       ),
     );
   }
+
   Widget _buildActionButton({
     required IconData icon,
     required String label,
@@ -726,101 +814,106 @@ Widget _buildAiCardSection(BuildContext context) {
 
   void _showEditProfileDialog() {
     final nameController = TextEditingController(text: _userName);
-    final handleController = TextEditingController(text: _userHandle);
     final bioController = TextEditingController(text: _userBio);
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: kDarkElementBg,
-            title: const Text(
-              'Editar Perfil',
-              style: TextStyle(color: kDarkTextPrimary),
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    style: const TextStyle(color: kDarkTextPrimary),
-                    decoration: InputDecoration(
-                      labelText: 'Nome',
-                      labelStyle: TextStyle(color: kDarkTextSecondary),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: kDarkTextSecondary),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: kAccentPurple),
-                      ),
-                    ),
+      builder: (context) => AlertDialog(
+        backgroundColor: kDarkElementBg,
+        title: const Text(
+          'Editar Perfil',
+          style: TextStyle(color: kDarkTextPrimary),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                style: const TextStyle(color: kDarkTextPrimary),
+                decoration: const InputDecoration(
+                  labelText: 'Nome',
+                  labelStyle: TextStyle(color: kDarkTextSecondary),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: kDarkTextSecondary),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: handleController,
-                    style: const TextStyle(color: kDarkTextPrimary),
-                    decoration: InputDecoration(
-                      labelText: 'Nome de usuário',
-                      labelStyle: TextStyle(color: kDarkTextSecondary),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: kDarkTextSecondary),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: kAccentPurple),
-                      ),
-                    ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: kAccentPurple),
                   ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: bioController,
-                    style: const TextStyle(color: kDarkTextPrimary),
-                    maxLines: 3,
-                    decoration: InputDecoration(
-                      labelText: 'Bio',
-                      alignLabelWithHint: true,
-                      labelStyle: TextStyle(color: kDarkTextSecondary),
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: kDarkTextSecondary),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: kAccentPurple),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Cancelar',
-                  style: TextStyle(color: kDarkTextSecondary),
                 ),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  // Aqui seria implementada a lógica para salvar as alterações
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Perfil atualizado com sucesso!',
-                        style: TextStyle(color: kDarkTextPrimary),
-                      ),
-                      backgroundColor: kAccentSecondary,
-                    ),
-                  );
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: kAccentPurple),
-                child: Text(
-                  'Salvar',
-                  style: TextStyle(color: kDarkTextPrimary),
+              const SizedBox(height: 16),
+              TextField(
+                controller: bioController,
+                style: const TextStyle(color: kDarkTextPrimary),
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Bio',
+                  alignLabelWithHint: true,
+                  labelStyle: TextStyle(color: kDarkTextSecondary),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: kDarkTextSecondary),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: kAccentPurple),
+                  ),
                 ),
               ),
             ],
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: kDarkTextSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                final user = FirebaseAuth.instance.currentUser;
+                if (user != null) {
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(user.uid)
+                      .update({
+                    'nome': nameController.text, // Salva como 'nome'
+                    'bio': bioController.text,
+                    'profileComplete': true,
+                  });
+
+                  setState(() {
+                    _userName = nameController.text;
+                    _userBio = bioController.text;
+                  });
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Perfil atualizado com sucesso!'),
+                      backgroundColor: kAccentSecondary,
+                    ),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Erro ao atualizar perfil: $e'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: kAccentPurple),
+            child: const Text(
+              'Salvar',
+              style: TextStyle(color: kDarkTextPrimary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -831,87 +924,86 @@ Widget _buildAiCardSection(BuildContext context) {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder:
-          (context) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Alterar foto de perfil',
-                  style: TextStyle(
-                    color: kDarkTextPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ListTile(
-                  leading: const Icon(
-                    Icons.photo_library,
-                    color: kAccentPurple,
-                  ),
-                  title: const Text(
-                    'Escolher da galeria',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Lógica para escolher da galeria
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Foto de perfil atualizada!',
-                          style: TextStyle(color: kDarkTextPrimary),
-                        ),
-                        backgroundColor: kAccentSecondary,
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.camera_alt, color: kAccentPurple),
-                  title: const Text(
-                    'Tirar foto',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Lógica para tirar foto
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Foto de perfil atualizada!',
-                          style: TextStyle(color: kDarkTextPrimary),
-                        ),
-                        backgroundColor: kAccentSecondary,
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.redAccent),
-                  title: const Text(
-                    'Remover foto',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Lógica para remover foto
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Foto de perfil removida!',
-                          style: TextStyle(color: kDarkTextPrimary),
-                        ),
-                        backgroundColor: Colors.redAccent,
-                      ),
-                    );
-                  },
-                ),
-              ],
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Alterar foto de perfil',
+              style: TextStyle(
+                color: kDarkTextPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library,
+                color: kAccentPurple,
+              ),
+              title: const Text(
+                'Escolher da galeria',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Lógica para escolher da galeria
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Foto de perfil atualizada!',
+                      style: TextStyle(color: kDarkTextPrimary),
+                    ),
+                    backgroundColor: kAccentSecondary,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: kAccentPurple),
+              title: const Text(
+                'Tirar foto',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Lógica para tirar foto
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Foto de perfil atualizada!',
+                      style: TextStyle(color: kDarkTextPrimary),
+                    ),
+                    backgroundColor: kAccentSecondary,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.redAccent),
+              title: const Text(
+                'Remover foto',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Lógica para remover foto
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Foto de perfil removida!',
+                      style: TextStyle(color: kDarkTextPrimary),
+                    ),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -922,122 +1014,121 @@ Widget _buildAiCardSection(BuildContext context) {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder:
-          (context) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Opções',
-                  style: TextStyle(
-                    color: kDarkTextPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ListTile(
-                  leading: const Icon(Icons.share, color: kAccentPurple),
-                  title: const Text(
-                    'Compartilhar perfil',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Lógica para compartilhar perfil
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Link do perfil copiado para a área de transferência!',
-                          style: TextStyle(color: kDarkTextPrimary),
-                        ),
-                        backgroundColor: kAccentSecondary,
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.download, color: kAccentPurple),
-                  title: const Text(
-                    'Exportar dados',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Lógica para exportar dados
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Dados exportados com sucesso!',
-                          style: TextStyle(color: kDarkTextPrimary),
-                        ),
-                        backgroundColor: kAccentSecondary,
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.logout, color: Colors.redAccent),
-                  title: const Text(
-                    'Sair',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Lógica para sair
-                    _showLogoutConfirmationDialog();
-                  },
-                ),
-              ],
+      builder: (context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Opções',
+              style: TextStyle(
+                color: kDarkTextPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-          ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(Icons.share, color: kAccentPurple),
+              title: const Text(
+                'Compartilhar perfil',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Lógica para compartilhar perfil
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Link do perfil copiado para a área de transferência!',
+                      style: TextStyle(color: kDarkTextPrimary),
+                    ),
+                    backgroundColor: kAccentSecondary,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.download, color: kAccentPurple),
+              title: const Text(
+                'Exportar dados',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Lógica para exportar dados
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Dados exportados com sucesso!',
+                      style: TextStyle(color: kDarkTextPrimary),
+                    ),
+                    backgroundColor: kAccentSecondary,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
+              title: const Text(
+                'Sair',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                // Lógica para sair
+                _showLogoutConfirmationDialog();
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   void _showLogoutConfirmationDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: kDarkElementBg,
-            title: const Text(
-              'Sair',
-              style: TextStyle(color: kDarkTextPrimary),
-            ),
-            content: const Text(
-              'Tem certeza que deseja sair?',
+      builder: (context) => AlertDialog(
+        backgroundColor: kDarkElementBg,
+        title: const Text(
+          'Sair',
+          style: TextStyle(color: kDarkTextPrimary),
+        ),
+        content: const Text(
+          'Tem certeza que deseja sair?',
+          style: TextStyle(color: kDarkTextSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancelar',
               style: TextStyle(color: kDarkTextSecondary),
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Cancelar',
-                  style: TextStyle(color: kDarkTextSecondary),
-                ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Lógica para fazer logout
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Logout realizado com sucesso!',
-                        style: TextStyle(color: kDarkTextPrimary),
-                      ),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Lógica para fazer logout
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Logout realizado com sucesso!',
+                    style: TextStyle(color: kDarkTextPrimary),
+                  ),
                   backgroundColor: Colors.redAccent,
                 ),
-                child: Text('Sair', style: TextStyle(color: kDarkTextPrimary)),
-              ),
-            ],
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+            ),
+            child:
+                const Text('Sair', style: TextStyle(color: kDarkTextPrimary)),
           ),
+        ],
+      ),
     );
   }
 

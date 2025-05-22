@@ -29,7 +29,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
   File? _logoImage;
   final ImagePicker _picker = ImagePicker();
   final TextEditingController _memberEmailController = TextEditingController();
-  List<Map<String, String>> _teamMembers = [
+  final List<Map<String, String>> _teamMembers = [
     {"name": "Jeny", "imageUrl": "assets/jeny.png"},
     {"name": "Mehrin", "imageUrl": "assets/mehrin.png"},
     {"name": "Avishek", "imageUrl": "assets/avishek.png"},
@@ -114,7 +114,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: kAccentPurple, width: 1),
+                borderSide: const BorderSide(color: kAccentPurple, width: 1),
               ),
             ),
             keyboardType: TextInputType.emailAddress,
@@ -179,7 +179,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
                   _memberEmailController.clear();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text(
                         'Por favor, insira um e-mail válido.',
                         style: TextStyle(color: kDarkTextPrimary),
@@ -395,8 +395,8 @@ class _CreateTeamPageState extends State<CreateTeamPage>
 
   @override
   Widget build(BuildContext context) {
-    final fabHeight = 56.0; // Standard FAB height
-    final bottomNavBarHeight = kToolbarHeight + 5;
+    const fabHeight = 56.0; // Standard FAB height
+    const bottomNavBarHeight = kToolbarHeight + 5;
 
     return Scaffold(
       key: _scaffoldKey, // Adicionado scaffoldKey
@@ -417,7 +417,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
                     const Color.fromARGB(255, 243, 33, 208),
                   ], 0),
                   _animatedCircle(350, 130, 4, [
-                    Color.fromARGB(164, 180, 34, 238),
+                    const Color.fromARGB(164, 180, 34, 238),
                     Colors.deepPurpleAccent,
                   ], 1),
                   _animatedCircle(180, 150, 5, [
@@ -429,11 +429,11 @@ class _CreateTeamPageState extends State<CreateTeamPage>
                     const Color.fromARGB(255, 149, 226, 4),
                   ], 3),
                   _animatedCircle(370, 150, 8, [
-                    Color.fromARGB(173, 36, 17, 204),
+                    const Color.fromARGB(173, 36, 17, 204),
                     const Color.fromARGB(255, 218, 20, 20),
                   ], 4),
                   _animatedCircle(100, 120, 6, [
-                    Color.fromARGB(255, 222, 87, 240),
+                    const Color.fromARGB(255, 222, 87, 240),
                     const Color.fromARGB(255, 27, 112, 1),
                   ], 5),
                 ],
@@ -464,7 +464,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
                   _buildTypeSelector(),
                   const SizedBox(height: 50),
                   _buildCreateTeamButton(),
-                  SizedBox(height: bottomNavBarHeight + fabHeight / 2 + 20),
+                  const SizedBox(height: bottomNavBarHeight + fabHeight / 2 + 20),
                 ],
               ),
             ),
@@ -531,7 +531,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
             backgroundImage: _logoImage != null ? FileImage(_logoImage!) : null,
             child:
                 _logoImage == null
-                    ? Icon(Icons.image_outlined, color: kAccentPurple, size: 40)
+                    ? const Icon(Icons.image_outlined, color: kAccentPurple, size: 40)
                     : null,
           ),
           const SizedBox(height: 12),
@@ -579,7 +579,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: kAccentPurple, width: 1.5),
+            borderSide: const BorderSide(color: kAccentPurple, width: 1.5),
           ),
         ),
       ),
@@ -594,7 +594,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
         children: [
           ..._teamMembers
               .map((member) => _avatar(member['imageUrl']!, member['name']!))
-              .toList(),
+              ,
           _addMemberButton(),
         ],
       ),

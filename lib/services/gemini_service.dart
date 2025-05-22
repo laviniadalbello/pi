@@ -1,4 +1,4 @@
-// lib/services/gemini_service.dart
+lib/services/gemini_service.dart
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:convert'; // Para jsonEncode e jsonDecode
 
@@ -125,5 +125,13 @@ class GeminiService {
     }
   }
 
-  void close() {}
+  void clearChatHistory() {
+    _chat = _model.startChat(history: []);
+    _addInitialSystemMessage(); // Garante que o prompt inicial seja adicionado novamente
+  }
+
+  void close() {
+    // Atualmente, não há um método de 'close' explícito para o Gemini SDK
+    // como no ML Kit, mas é bom ter para consistência.
+  }
 }

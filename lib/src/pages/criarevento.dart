@@ -139,10 +139,10 @@ class _CreateEventPageState extends State<CreateEventPage>
             decoration: InputDecoration(
               hintText: 'E-mail do participante',
               hintStyle: TextStyle(color: kDarkTextSecondary.withOpacity(0.7)),
-              enabledBorder: UnderlineInputBorder(
+              enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: kDarkTextSecondary),
               ),
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: kAccentPurple),
               ),
             ),
@@ -181,8 +181,8 @@ class _CreateEventPageState extends State<CreateEventPage>
                   _participantEmailController.clear();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
+                    const SnackBar(
+                      content: Text(
                         'Por favor, insira um e-mail válido.',
                         style: TextStyle(color: kDarkTextPrimary),
                       ),
@@ -217,10 +217,9 @@ class _CreateEventPageState extends State<CreateEventPage>
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
             ),
-            dialogBackgroundColor: kDarkElementBg,
             buttonTheme: const ButtonThemeData(
               textTheme: ButtonTextTheme.primary,
-            ),
+            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -252,11 +251,10 @@ class _CreateEventPageState extends State<CreateEventPage>
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
             ),
-            dialogBackgroundColor: kDarkElementBg,
             buttonTheme: const ButtonThemeData(
               textTheme: ButtonTextTheme.primary,
             ),
-            timePickerTheme: TimePickerThemeData(
+            timePickerTheme: const TimePickerThemeData(
               backgroundColor: kDarkElementBg,
               hourMinuteTextColor: kDarkTextPrimary,
               hourMinuteColor: kDarkSurface,
@@ -266,7 +264,7 @@ class _CreateEventPageState extends State<CreateEventPage>
               dialBackgroundColor: kDarkSurface,
               entryModeIconColor: kAccentPurple,
               helpTextStyle: TextStyle(color: kDarkTextSecondary),
-            ),
+            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -277,10 +275,12 @@ class _CreateEventPageState extends State<CreateEventPage>
         setState(() {
           controller.text = pickedTime.format(context);
           // Atualizar _initialStartTime ou _initialEndTime se estiver editando e o usuário mudar a hora
-          if (controller == _eventStartTimeController)
+          if (controller == _eventStartTimeController) {
             _initialStartTime = pickedTime;
-          if (controller == _eventEndTimeController)
+          }
+          if (controller == _eventEndTimeController) {
             _initialEndTime = pickedTime;
+          }
         });
       }
     }
@@ -637,7 +637,7 @@ class _CreateEventPageState extends State<CreateEventPage>
               participant['imageUrl'],
               participant['name'] ?? 'N/A',
             );
-          }).toList(),
+          }),
           _addParticipantButton(),
         ],
       ),
@@ -771,12 +771,10 @@ class _CreateEventPageState extends State<CreateEventPage>
           primary: kAccentPurple,
           secondary: kAccentSecondary,
           surface: kDarkSurface,
-          background: kDarkPrimaryBg,
           error: Colors.redAccent,
           onPrimary: kDarkTextPrimary,
           onSecondary: kDarkTextPrimary,
           onSurface: kDarkTextPrimary,
-          onBackground: kDarkTextPrimary,
           onError: kDarkTextPrimary,
         ),
         appBarTheme: AppBarTheme(
