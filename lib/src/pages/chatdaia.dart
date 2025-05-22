@@ -5,7 +5,8 @@ import "dart:math" as math;
 import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
 import 'package:planify/services/smart_reply_service.dart';
 import 'package:google_mlkit_smart_reply/google_mlkit_smart_reply.dart';
-import 'package:google_mlkit_commons/google_mlkit_commons.dart' as mlcommons;
+import 'package:google_mlkit_commons/google_mlkit_commons.dart';
+
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -55,7 +56,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   late AnimationController _sendButtonAnimationController;
   late Animation<double> _sendButtonAnimation;
 
-  late SmartReplyService _smartReplyService; 
+  late SmartReplyService _smartReplyService;
   List<String> _smartReplies = [];
 
   @override
@@ -93,11 +94,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
         ),
       ]);
-   _smartReplyService.addConversation(
+      _smartReplyService.addConversation(
           "Olá! Agora com envio de arquivos e reações (pressione e segure uma mensagem)!",
           false);
-      _smartReplyService
-          .addConversation("Que demais! Vou testar o envio de arquivo.", true);
+      _smartReplyService.addConversation(
+          "Que demais! Vou testar o envio de arquivo.", true);
     });
   }
 
@@ -123,9 +124,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     _scrollToBottom();
 
-    _smartReplyService.addConversation(newMessage.text, newMessage.isUser);
+    if (isUser) {
+      _smartReplyService.addLocalUserMessage(text);
+    } else {
+      _smartReplyService.addRemoteUserMessage(text);
+    }
 
-    final List<String> aiSuggestions = await _smartReplyService.suggestReplies();
+    final List<String> aiSuggestions =
+        await _smartReplyService.suggestReplies();
     String aiResponseText;
 
     if (aiSuggestions.isNotEmpty) {
@@ -150,8 +156,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       });
 
       _scrollToBottom();
-       _smartReplyService.addConversation(aiResponse.text, aiResponse.isUser);
-       _generateSmartRepliesForUser();
+      _smartReplyService.addConversation(aiResponse.text, aiResponse.isUser);
+      _generateSmartRepliesForUser();
     });
   }
 
@@ -265,7 +271,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textController.dispose();
     _scrollController.dispose();
     _sendButtonAnimationController.dispose();
-    _smartReplyService.dispose();
     super.dispose();
   }
 
@@ -328,7 +333,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-          if (_smartReplies.isNotEmpty && !_isAiTyping) // Não mostre enquanto a IA estiver digitando
+          if (_smartReplies.isNotEmpty &&
+              !_isAiTyping) // Não mostre enquanto a IA estiver digitando
             _buildSmartReplySuggestions(),
           _buildInputArea(),
         ],
@@ -341,8 +347,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: kDarkSurface,
       child: Wrap(
-        spacing: 8.0, 
-        runSpacing: 4.0, 
+        spacing: 8.0,
+        runSpacing: 4.0,
         children: _smartReplies.map((reply) {
           return ActionChip(
             label: Text(reply, style: const TextStyle(color: kDarkTextPrimary)),
@@ -352,8 +358,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               side: const BorderSide(color: kDarkBorder),
             ),
             onPressed: () {
-              _textController.text = reply; 
-              _sendMessage(); 
+              _textController.text = reply;
+              _sendMessage();
             },
           );
         }).toList(),
@@ -376,16 +382,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           right: message.isUser ? 0 : 64,
         ),
         child: Column(
-          crossAxisAlignment:
-              message.isUser
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
+          crossAxisAlignment: message.isUser
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment:
-                  message.isUser
-                      ? MainAxisAlignment.end
-                      : MainAxisAlignment.start,
+              mainAxisAlignment: message.isUser
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (!message.isUser)
@@ -456,10 +460,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         Text(
                           message.text,
                           style: TextStyle(
-                            color:
-                                message.isUser
-                                    ? kDarkTextPrimary
-                                    : kDarkTextPrimary,
+                            color: message.isUser
+                                ? kDarkTextPrimary
+                                : kDarkTextPrimary,
                             fontSize: 16,
                           ),
                         ),
@@ -483,10 +486,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             Padding(
               padding: const EdgeInsets.only(top: 4, left: 8, right: 8),
               child: Row(
-                mainAxisAlignment:
-                    message.isUser
-                        ? MainAxisAlignment.end
-                        : MainAxisAlignment.start,
+                mainAxisAlignment: message.isUser
+                    ? MainAxisAlignment.end
+                    : MainAxisAlignment.start,
                 children: [
                   if (message.reaction != null)
                     Container(
