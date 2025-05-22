@@ -1,12 +1,12 @@
 import 'package:google_mlkit_smart_reply/google_mlkit_smart_reply.dart';
-import 'package:google_mlkit_commons/google_mlkit_commons.dart' as mlcommons;
+import 'package:google_mlkit_commons/google_mlkit_commons.dart' as mlcommons; // <<--- ESSA LINHA É CRÍTICA!
 import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
 import 'dart:io';
 
 class SmartReplyService {
   late SmartReply smartReply;
-  final List<TextMessage> _conversation = [];
-  bool _isModelLoaded = false; 
+  final List<mlcommons.TextMessage> _conversation = []; // Use mlcommons.TextMessage
+  bool _isModelLoaded = false;
 
   SmartReplyService() {
     _initSmartReply();
@@ -14,46 +14,47 @@ class SmartReplyService {
 
   Future<void> _initSmartReply() async {
     try {
+
       final model = await FirebaseMlModelDownloader.instance.getModel(
         'smart_reply_model', 
-        mlcommons.ModelDownloadType.latestModel,
+        FirebaseModelDownloadType.latestModel,
         FirebaseModelDownloadConditions(
-          iosAllowsCellularAccess: true,
-          iosAllowsBackgroundDownloading: true,
+          androidAllowsFirewallApks: true,
+          androidAllowsDeviceIdle: true,
           androidAllowsUnmeteredNetwork: true,
-          androidAllowsCharging: true,
+          iosAllowsCellularAccess: true,
+          iosUnmeteredOnly: false,
         ),
       );
       final modelFile = model.file;
-      smartReply = SmartReply(localModel: modelFile);
-      _isModelLoaded = true; 
+
+      smartReply = SmartReply(localModel: mlcommons.LocalModel(modelFile.path)); 
+      _isModelLoaded = true;
       print("ML Kit Smart Reply model loaded from Firebase: ${modelFile.path}");
     } catch (e) {
       print("Erro ao baixar o modelo do Firebase ML Kit Smart Reply: $e");
       print("Usando o modelo padrão embutido do SmartReply.");
+  
       smartReply = SmartReply(); 
-      _isModelLoaded = false; 
+      _isModelLoaded = false;
     }
   }
 
   void addConversation(String text, bool isUser) {
     if (isUser) {
-      _conversation.add(TextMessage.createForLocalUser(
+      _conversation.add(mlcommons.TextMessage.createForLocalUser(
         text,
         DateTime.now().millisecondsSinceEpoch,
-
       ));
     } else {
-      _conversation.add(TextMessage.createForRemoteUser(
+      _conversation.add(mlcommons.TextMessage.createForRemoteUser(
         text,
         DateTime.now().millisecondsSinceEpoch,
-
       ));
     }
   }
 
   Future<List<String>> suggestReplies() async {
-   
     if (_conversation.isEmpty) {
       print("Conversa vazia, sem sugestões SmartReply.");
       return [];

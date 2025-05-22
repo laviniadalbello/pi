@@ -18,6 +18,8 @@ import './src/pages/planner_diario.dart';
 import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
+import '../src/pages/chatdaia.dart';
+
 
 
 
