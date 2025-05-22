@@ -3,10 +3,7 @@ import "dart:async";
 import "package:file_picker/file_picker.dart";
 import "dart:math" as math;
 import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
-import 'package:planify/services/smart_reply_service.dart';
-import 'package:google_mlkit_smart_reply/google_mlkit_smart_reply.dart';
-import 'package:google_mlkit_commons/google_mlkit_commons.dart';
-
+import 'package:planify/services/smart_reply_service.dart' as sr_service;
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -16,28 +13,6 @@ const Color kAccentSecondary = Color(0xFF2CB67D);
 const Color kDarkTextPrimary = Color(0xFFFFFFFF);
 const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
-
-class Message {
-  final String id;
-  final String text;
-  final bool isUser;
-  final DateTime timestamp;
-  String? fileName;
-  String? filePath;
-  String? reaction;
-  String? userId;
-
-  Message({
-    required this.id,
-    required this.text,
-    required this.isUser,
-    required this.timestamp,
-    this.fileName,
-    this.filePath,
-    this.reaction,
-    this.userId,
-  });
-}
 
 class ChatScreen extends StatefulWidget {
   final String title;
@@ -49,20 +24,20 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
-  final List<Message> _messages = [];
+  final List<sr_service.Message> _messages = [];
   final ScrollController _scrollController = ScrollController();
   bool _isAiTyping = false;
 
   late AnimationController _sendButtonAnimationController;
   late Animation<double> _sendButtonAnimation;
 
-  late SmartReplyService _smartReplyService;
+  late sr_service.SmartReply _smartReplyService;
   List<String> _smartReplies = [];
 
   @override
   void initState() {
     super.initState();
-    _smartReplyService = SmartReplyService();
+    _smartReplyService = sr_service.SmartReply();
     _addInitialMessages();
 
     _sendButtonAnimationController = AnimationController(
@@ -80,25 +55,36 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void _addInitialMessages() {
     setState(() {
       _messages.addAll([
-        Message(
+        sr_service.Message(
           id: "1",
           text:
               "Olá! Agora com envio de arquivos e reações (pressione e segure uma mensagem)!",
           isUser: false,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 2)),
+          timestamp: DateTime.now()
+              .subtract(const Duration(minutes: 2))
+              .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
+          sender: 'bot',
         ),
-        Message(
+        sr_service.Message(
           id: "2",
           text: "Que demais! Vou testar o envio de arquivo.",
           isUser: true,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
+          timestamp: DateTime.now()
+              .subtract(const Duration(minutes: 1))
+              .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
+          sender: 'user',
         ),
       ]);
-      _smartReplyService.addConversation(
+      _smartReplyService.addMessageFromChatbot(
           "Olá! Agora com envio de arquivos e reações (pressione e segure uma mensagem)!",
-          false);
-      _smartReplyService.addConversation(
-          "Que demais! Vou testar o envio de arquivo.", true);
+          DateTime.now()
+              .subtract(const Duration(minutes: 2))
+              .microsecondsSinceEpoch);
+      _smartReplyService.addMessageFromUser(
+          "Que demais! Vou testar o envio de arquivo.",
+          DateTime.now()
+              .subtract(const Duration(minutes: 1))
+              .microsecondsSinceEpoch);
     });
   }
 
@@ -106,11 +92,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final String messageText = text ?? _textController.text.trim();
     if (messageText.isEmpty && fileName == null) return;
 
-    final newMessage = Message(
+    // CORREÇÃO AQUI: Adicionando 'sender' e convertendo timestamp para microsecondsSinceEpoch
+    final newMessage = sr_service.Message(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       text: messageText,
       isUser: true,
-      timestamp: DateTime.now(),
+      timestamp: DateTime.now()
+          .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
+      sender: 'user', // CORREÇÃO: Adicionar 'sender'
       fileName: fileName,
       filePath: filePath,
     );
@@ -124,18 +113,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     _scrollToBottom();
 
-    if (isUser) {
-      _smartReplyService.addLocalUserMessage(text);
-    } else {
-      _smartReplyService.addRemoteUserMessage(text);
-    }
+    _smartReplyService.addMessageFromUser(
+        newMessage.text, newMessage.timestamp);
 
-    final List<String> aiSuggestions =
+    //if (isUser) {
+    //_smartReplyService.addLocalUserMessage(text);
+    //} else {
+    //_smartReplyService.addRemoteUserMessage(text);
+    //}
+
+    final sr_service.SmartReplySuggestionResult aiSuggestionsResult =
         await _smartReplyService.suggestReplies();
     String aiResponseText;
 
-    if (aiSuggestions.isNotEmpty) {
-      aiResponseText = aiSuggestions.first;
+    if (aiSuggestionsResult.status ==
+            sr_service.SmartReplySuggestionResultStatus.success &&
+        aiSuggestionsResult.suggestions.isNotEmpty) {
+      aiResponseText = aiSuggestionsResult.suggestions.first;
     } else {
       aiResponseText = _getFallbackAiResponse(messageText);
     }
@@ -143,11 +137,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
 
-      final aiResponse = Message(
+      final aiResponse = sr_service.Message(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         text: aiResponseText,
         isUser: false,
-        timestamp: DateTime.now(),
+        timestamp: DateTime.now()
+            .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
+        sender: 'bot', // CORREÇÃO: Adicionar 'sender'
       );
 
       setState(() {
@@ -156,16 +152,23 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       });
 
       _scrollToBottom();
-      _smartReplyService.addConversation(aiResponse.text, aiResponse.isUser);
+      _smartReplyService.addMessageFromChatbot(
+          aiResponse.text, aiResponse.timestamp);
       _generateSmartRepliesForUser();
     });
   }
 
   void _generateSmartRepliesForUser() async {
-    final List<String> replies = await _smartReplyService.suggestReplies();
+    final sr_service.SmartReplySuggestionResult result =
+        await _smartReplyService.suggestReplies();
     if (mounted) {
       setState(() {
-        _smartReplies = replies;
+        if (result.status ==
+            sr_service.SmartReplySuggestionResultStatus.success) {
+          _smartReplies = result.suggestions;
+        } else {
+          _smartReplies = [];
+        }
       });
     }
   }
@@ -208,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
   }
 
-  void _showReactionMenu(Message message) {
+  void _showReactionMenu(sr_service.Message message) {
     showModalBottomSheet(
       context: context,
       backgroundColor: kDarkSurface,
@@ -247,7 +250,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _reactionButton(String emoji, Message message) {
+  Widget _reactionButton(String emoji, sr_service.Message message) {
     return InkWell(
       onTap: () {
         setState(() {
@@ -271,6 +274,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textController.dispose();
     _scrollController.dispose();
     _sendButtonAnimationController.dispose();
+    _smartReplyService.close();
     super.dispose();
   }
 
@@ -367,7 +371,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildMessageItem(Message message) {
+  Widget _buildMessageItem(sr_service.Message message) {
     return GestureDetector(
       onLongPress: () {
         if (!message.isUser) {
@@ -504,9 +508,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       ),
                     ),
                   Text(
-                    _formatTimestamp(message.timestamp),
+                    _formatTimestamp(DateTime.fromMicrosecondsSinceEpoch(message.timestamp)),
                     style: TextStyle(color: kDarkTextSecondary, fontSize: 12),
-                  ),
+                    ),
                 ],
               ),
             ),
