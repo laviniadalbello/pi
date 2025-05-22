@@ -1,9 +1,14 @@
-import "package:flutter/material.dart";
-import "dart:async";
-import "package:file_picker/file_picker.dart";
-import "dart:math" as math;
-import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
-import 'package:planify/services/smart_reply_service.dart' as sr_service;
+// lib/screens/chatdaia.dart
+
+import 'package:flutter/material.dart';
+import 'dart:async';
+import 'package:file_picker/file_picker.dart';
+import 'dart:math' as math;
+import 'dart:convert';
+import 'package:planify/models/task.dart';
+import 'package:planify/services/gemini_service.dart';
+import 'package:planify/services/firestore_tasks_service.dart';
+import 'package:planify/models/message.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -24,20 +29,32 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
-  final List<sr_service.Message> _messages = [];
+  final List<Message> _messages = []; // **AGORA USANDO SUA CLASSE Message**
   final ScrollController _scrollController = ScrollController();
   bool _isAiTyping = false;
 
   late AnimationController _sendButtonAnimationController;
   late Animation<double> _sendButtonAnimation;
 
-  late sr_service.SmartReply _smartReplyService;
-  List<String> _smartReplies = [];
+  // REMOVA AS LINHAS RELACIONADAS AO SmartReply - se por acaso ainda existirem
+  // late sr_service.SmartReply _smartReplyService;
+  // List<String> _smartReplies = [];
+
+  // ************* NOVAS INSTÂNCIAS DE SERVIÇOS *************
+  late GeminiService _geminiService;
+  late FirestoreTasksService _firestoreTasksService;
+  // *******************************************************
 
   @override
   void initState() {
     super.initState();
-    _smartReplyService = sr_service.SmartReply();
+    // REMOVA: _smartReplyService = sr_service.SmartReply(); // Se ainda estiver aqui
+
+    // ************* INICIALIZE SEUS NOVOS SERVIÇOS *************
+    _geminiService = GeminiService();
+    _firestoreTasksService = FirestoreTasksService();
+    // *******************************************************
+
     _addInitialMessages();
 
     _sendButtonAnimationController = AnimationController(
@@ -55,36 +72,29 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void _addInitialMessages() {
     setState(() {
       _messages.addAll([
-        sr_service.Message(
+        Message(
+          // **USANDO SUA CLASSE Message**
           id: "1",
           text:
-              "Olá! Agora com envio de arquivos e reações (pressione e segure uma mensagem)!",
+              "Olá! Sou seu assistente Planify. Como posso ajudar a organizar suas tarefas?",
           isUser: false,
-          timestamp: DateTime.now()
-              .subtract(const Duration(minutes: 2))
-              .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
+          timestamp: DateTime.now().microsecondsSinceEpoch,
           sender: 'bot',
         ),
-        sr_service.Message(
+        // Remova a mensagem de exemplo do usuário ou adapte-a, se ainda estiver aqui
+        /*
+        Message( // **USANDO SUA CLASSE Message**
           id: "2",
           text: "Que demais! Vou testar o envio de arquivo.",
           isUser: true,
-          timestamp: DateTime.now()
-              .subtract(const Duration(minutes: 1))
-              .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
+          timestamp: DateTime.now().subtract(const Duration(minutes: 1)).microsecondsSinceEpoch,
           sender: 'user',
         ),
+        */
       ]);
-      _smartReplyService.addMessageFromChatbot(
-          "Olá! Agora com envio de arquivos e reações (pressione e segure uma mensagem)!",
-          DateTime.now()
-              .subtract(const Duration(minutes: 2))
-              .microsecondsSinceEpoch);
-      _smartReplyService.addMessageFromUser(
-          "Que demais! Vou testar o envio de arquivo.",
-          DateTime.now()
-              .subtract(const Duration(minutes: 1))
-              .microsecondsSinceEpoch);
+      // REMOVA as chamadas do SmartReply para mensagens iniciais, se ainda estiverem aqui
+      // _smartReplyService.addMessageFromChatbot(...);
+      // _smartReplyService.addMessageFromUser(...);
     });
   }
 
@@ -92,14 +102,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final String messageText = text ?? _textController.text.trim();
     if (messageText.isEmpty && fileName == null) return;
 
-    // CORREÇÃO AQUI: Adicionando 'sender' e convertendo timestamp para microsecondsSinceEpoch
-    final newMessage = sr_service.Message(
+    final newMessage = Message(
+      // **USANDO SUA CLASSE Message**
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       text: messageText,
       isUser: true,
-      timestamp: DateTime.now()
-          .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
-      sender: 'user', // CORREÇÃO: Adicionar 'sender'
+      timestamp: DateTime.now().microsecondsSinceEpoch,
+      sender: 'user',
       fileName: fileName,
       filePath: filePath,
     );
@@ -108,44 +117,182 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _messages.add(newMessage);
       _textController.clear();
       _isAiTyping = true;
-      _smartReplies = [];
+      // REMOVA: _smartReplies = []; // Limpa as sugestões do Smart Reply, se ainda estiver aqui
     });
 
     _scrollToBottom();
 
-    _smartReplyService.addMessageFromUser(
-        newMessage.text, newMessage.timestamp);
+    // REMOVA AQUI: _smartReplyService.addMessageFromUser(newMessage.text, newMessage.timestamp);
+    // REMOVA AQUI: final sr_service.SmartReplySuggestionResult aiSuggestionsResult = await _smartReplyService.suggestReplies();
+    // REMOVA AQUI: print('Sugestões da IA (para resposta do bot): ${aiSuggestionsResult.suggestions}');
+    // REMOVA AQUI: String aiResponseText;
 
-    //if (isUser) {
-    //_smartReplyService.addLocalUserMessage(text);
-    //} else {
-    //_smartReplyService.addRemoteUserMessage(text);
-    //}
+    // ************* CHAMA A API GEMINI PARA OBTER A RESPOSTA INTELIGENTE *************
+    String aiRawResponse =
+        await _geminiService.getGeminiResponse(newMessage.text);
+    String aiResponseText =
+        aiRawResponse; // A resposta padrão é o que o Gemini retornou
 
-    final sr_service.SmartReplySuggestionResult aiSuggestionsResult =
-        await _smartReplyService.suggestReplies();
-    print(
-        'Sugestões da IA (para resposta do bot): ${aiSuggestionsResult.suggestions}');
-    String aiResponseText;
-
-    if (aiSuggestionsResult.status ==
-            sr_service.SmartReplySuggestionResultStatus.success &&
-        aiSuggestionsResult.suggestions.isNotEmpty) {
-      aiResponseText = aiSuggestionsResult.suggestions.first;
-    } else {
-      aiResponseText = _getFallbackAiResponse(messageText);
+    // Tenta decodificar a resposta do Gemini como JSON para identificar ações
+    Map<String, dynamic>? aiAction;
+    try {
+      aiAction = json.decode(aiRawResponse);
+    } catch (e) {
+      // Se não for JSON, significa que é uma resposta em texto puro
+      debugPrint("Resposta do Gemini não é JSON válido: $e");
     }
 
-    Future.delayed(const Duration(seconds: 2), () {
+    // ************* LÓGICA DE INTERPRETAÇÃO DE AÇÕES E CONEXÃO COM FIRESTORE *************
+    if (aiAction != null &&
+        aiAction.containsKey('action') &&
+        aiAction.containsKey('parameters')) {
+      final String action = aiAction['action'];
+      final Map<String, dynamic> parameters = aiAction['parameters'];
+
+      try {
+        switch (action) {
+          case 'create_task':
+            DateTime? dueDate;
+            if (parameters['dueDate'] != null) {
+              try {
+                dueDate = DateTime.parse(parameters['dueDate']);
+              } catch (e) {
+                debugPrint(
+                    "Erro ao parsear data de vencimento: ${parameters['dueDate']}");
+              }
+            }
+            await _firestoreTasksService.createUserTask(
+              title: parameters['title'],
+              dueDate: dueDate,
+              priority: parameters['priority'],
+            );
+            aiResponseText =
+                "Tarefa '${parameters['title']}' criada com sucesso no Firestore!";
+            break;
+
+          case 'list_tasks':
+            final List<Task> tasks = await _firestoreTasksService.listUserTasks(
+                filter: parameters['filter']);
+            if (tasks.isEmpty) {
+              aiResponseText =
+                  "Não encontrei nenhuma tarefa com este filtro no Firestore.";
+            } else {
+              aiResponseText =
+                  "Aqui estão as tarefas (${parameters['filter'] ?? 'todas'}):";
+              for (var i = 0; i < tasks.length; i++) {
+                aiResponseText +=
+                    "\n${i + 1}. ${tasks[i].title} (Vence: ${tasks[i].dueDate?.toIso8601String().substring(0, 10) ?? 'N/A'}, Pri: ${tasks[i].priority ?? 'N/A'}, Concluída: ${tasks[i].status == 'completed' ? 'Sim' : 'Não'})";
+              }
+            }
+            break;
+
+          case 'update_task':
+            String? taskIdToUpdate;
+            // O Gemini pode retornar o ID ou o título. Priorize o ID.
+            if (parameters['taskId'] != null) {
+              taskIdToUpdate = parameters['taskId'];
+            } else if (parameters['title'] != null) {
+              // Se o Gemini enviar o título em vez do ID, procure a tarefa pelo título
+              final Task? task = await _firestoreTasksService
+                  .findTaskByTitle(parameters['title']);
+              if (task != null) {
+                taskIdToUpdate = task.id;
+              }
+            }
+
+            if (taskIdToUpdate == null) {
+              aiResponseText =
+                  "Não consegui identificar a tarefa para atualizar. Por favor, forneça o ID ou o nome exato.";
+              break;
+            }
+
+            DateTime? newDueDate;
+            if (parameters['newDueDate'] != null) {
+              try {
+                newDueDate = DateTime.parse(parameters['newDueDate']);
+              } catch (e) {
+                debugPrint(
+                    "Erro ao parsear nova data de vencimento: ${parameters['newDueDate']}");
+              }
+            }
+
+            await _firestoreTasksService.updateUserTask(
+              taskId: taskIdToUpdate,
+              newTitle: parameters['newTitle'],
+              newDueDate: newDueDate,
+              newPriority: parameters['newPriority'],
+              isCompleted: parameters['isCompleted'],
+            );
+            aiResponseText = "Tarefa atualizada com sucesso no Firestore!";
+            break;
+
+          case 'delete_task':
+            String? taskIdToDelete;
+            // O Gemini pode retornar o ID ou o título. Priorize o ID.
+            if (parameters['taskId'] != null) {
+              taskIdToDelete = parameters['taskId'];
+            } else if (parameters['title'] != null) {
+              // Se o Gemini enviar o título em vez do ID, procure a tarefa pelo título
+              final Task? task = await _firestoreTasksService
+                  .findTaskByTitle(parameters['title']);
+              if (task != null) {
+                taskIdToDelete = task.id;
+              }
+            }
+
+            if (taskIdToDelete == null) {
+              aiResponseText =
+                  "Não consegui identificar a tarefa para deletar. Por favor, forneça o ID ou o nome exato.";
+              break;
+            }
+
+            await _firestoreTasksService.deleteTask(taskId: taskIdToDelete!);
+            aiResponseText = "Tarefa deletada com sucesso do Firestore!";
+            break;
+
+          case 'add_project_task': // Se você quiser que o bot também possa adicionar tarefas de projeto
+            // Você precisará de um projectId nos parâmetros ou de alguma forma inferir/pedir
+            final String? projectId = parameters['projectId'];
+            final String? taskTitle = parameters['title'];
+            if (projectId != null && taskTitle != null) {
+              // Note: _currentUserId viria da autenticação
+              await _firestoreTasksService.addProjectTask(projectId, taskTitle,
+                  'test_user_id_gemini'); // Substitua 'test_user_id_gemini' pelo ID do usuário real
+              aiResponseText =
+                  "Tarefa '$taskTitle' adicionada ao projeto '$projectId' com sucesso.";
+            } else {
+              aiResponseText =
+                  "Para adicionar uma tarefa de projeto, preciso do ID do projeto e do título da tarefa.";
+            }
+            break;
+
+          default:
+            // Se a ação não for reconhecida, o aiResponseText já será a resposta original do Gemini
+            break;
+        }
+      } catch (e) {
+        debugPrint("Erro ao executar ação do Firestore: $e");
+        aiResponseText =
+            "Ocorreu um erro ao tentar executar sua solicitação no banco de dados: $e";
+      }
+    }
+    // Se a resposta do Gemini não for JSON, 'aiResponseText' já é o texto da IA.
+    // Se for JSON mas a ação falhou, 'aiResponseText' já foi atualizado com a mensagem de erro.
+
+    // REMOVA ESTA FUNÇÃO: String _getFallbackAiResponse(String message) { ... }
+    // O Gemini agora é responsável por TODAS as respostas.
+
+    Future.delayed(const Duration(seconds: 1), () {
+      // Atraso reduzido para simular resposta mais rápida
       if (!mounted) return;
 
-      final aiResponse = sr_service.Message(
+      final aiResponse = Message(
+        // **USANDO SUA CLASSE Message**
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         text: aiResponseText,
         isUser: false,
-        timestamp: DateTime.now()
-            .microsecondsSinceEpoch, // CORREÇÃO: Usar microsecondsSinceEpoch
-        sender: 'bot', // CORREÇÃO: Adicionar 'sender'
+        timestamp: DateTime.now().microsecondsSinceEpoch,
+        sender: 'bot',
       );
 
       setState(() {
@@ -154,41 +301,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       });
 
       _scrollToBottom();
-      _smartReplyService.addMessageFromChatbot(
-          aiResponse.text, aiResponse.timestamp);
-      _generateSmartRepliesForUser();
+      // REMOVA AQUI: _smartReplyService.addMessageFromChatbot(...); // Se ainda estiver aqui
+      // REMOVA AQUI: _generateSmartRepliesForUser(); // Não precisamos mais disso
     });
   }
 
-  void _generateSmartRepliesForUser() async {
-    final sr_service.SmartReplySuggestionResult result =
-        await _smartReplyService.suggestReplies();
-    print('Sugestões do Smart Reply (para o usuário): ${result.suggestions}');
-    print('Status do Smart Reply: ${result.status}');
-    if (mounted) {
-      setState(() {
-        if (result.status ==
-            sr_service.SmartReplySuggestionResultStatus.success) {
-          _smartReplies = result.suggestions;
-        } else {
-          _smartReplies = [];
-        }
-      });
-    }
-  }
+  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, se ainda estiver aqui:
+  // void _generateSmartRepliesForUser() async { ... }
 
-  String _getFallbackAiResponse(String message) {
-    if (message.toLowerCase().contains("arquivo")) {
-      return "Recebi seu arquivo! Posso ajudar com a análise ou processamento desse conteúdo.";
-    } else if (message.toLowerCase().contains("olá") ||
-        message.toLowerCase().contains("oi")) {
-      return "Olá! Como posso ajudar você hoje?";
-    } else if (message.toLowerCase().contains("ajuda")) {
-      return "Estou aqui para ajudar! Você pode me perguntar sobre qualquer assunto ou enviar arquivos para análise.";
-    } else {
-      return "Hmm, essa é uma ótima pergunta! Deixe-me pensar um pouco mais sobre isso.";
-    }
-  }
+  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, se ainda estiver aqui:
+  // String _getFallbackAiResponse(String message) { ... }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -207,15 +329,19 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     if (result != null) {
       PlatformFile file = result.files.first;
+      // Adapte a mensagem para o Gemini, se ele for processar arquivos
+      // Para este cenário, o Gemini não vai realmente "processar" o arquivo, apenas o texto do usuário.
       _sendMessage(
-        text: "Enviando arquivo: ${file.name}",
+        text:
+            "Acabei de enviar o arquivo: ${file.name}. Você pode me ajudar a analisá-lo?",
         fileName: file.name,
         filePath: file.path,
       );
     }
   }
 
-  void _showReactionMenu(sr_service.Message message) {
+  void _showReactionMenu(Message message) {
+    // **USANDO SUA CLASSE Message**
     showModalBottomSheet(
       context: context,
       backgroundColor: kDarkSurface,
@@ -254,7 +380,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _reactionButton(String emoji, sr_service.Message message) {
+  Widget _reactionButton(String emoji, Message message) {
+    // **USANDO SUA CLASSE Message**
     return InkWell(
       onTap: () {
         setState(() {
@@ -278,7 +405,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textController.dispose();
     _scrollController.dispose();
     _sendButtonAnimationController.dispose();
-    _smartReplyService.close();
+    // REMOVA: _smartReplyService.close(); // Se ainda estiver aqui
+    _geminiService.close(); // Chame close para o GeminiService
+    // Para FirestoreTasksService, geralmente não há um método 'close' específico,
+    // pois o Firebase SDK gerencia as conexões.
     super.dispose();
   }
 
@@ -306,7 +436,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: kDarkTextPrimary),
+            icon: const Icon(Icons.more_vert, color: kDarkTextSecondary),
             onPressed: () {
               // Implementar menu de opções
             },
@@ -341,44 +471,26 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-          if (_smartReplies.isNotEmpty &&
-              !_isAiTyping) // Não mostre enquanto a IA estiver digitando
-            _buildSmartReplySuggestions(),
+          // REMOVA ESTA SEÇÃO INTEIRA DE _buildSmartReplySuggestions(), se ainda estiver aqui
+          // if (_smartReplies.isNotEmpty && !_isAiTyping)
+          //   _buildSmartReplySuggestions(),
           _buildInputArea(),
         ],
       ),
     );
   }
 
-  Widget _buildSmartReplySuggestions() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: kDarkSurface,
-      child: Wrap(
-        spacing: 8.0,
-        runSpacing: 4.0,
-        children: _smartReplies.map((reply) {
-          return ActionChip(
-            label: Text(reply, style: const TextStyle(color: kDarkTextPrimary)),
-            backgroundColor: kDarkElementBg,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: const BorderSide(color: kDarkBorder),
-            ),
-            onPressed: () {
-              _textController.text = reply;
-              _sendMessage();
-            },
-          );
-        }).toList(),
-      ),
-    );
-  }
+  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, se ainda estiver aqui:
+  // Widget _buildSmartReplySuggestions() {
+  //   return Container( ... );
+  // }
 
-  Widget _buildMessageItem(sr_service.Message message) {
+  Widget _buildMessageItem(Message message) {
+    // **USANDO SUA CLASSE Message**
     return GestureDetector(
       onLongPress: () {
         if (!message.isUser) {
+          // Somente o bot pode receber reações no seu exemplo original
           _showReactionMenu(message);
         }
       },

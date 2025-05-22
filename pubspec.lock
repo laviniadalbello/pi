@@ -289,22 +289,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.23.0"
-  firebase_ml_model_downloader:
-    dependency: "direct main"
-    description:
-      name: firebase_ml_model_downloader
-      sha256: ad4cd5096e9b4a02b239ba231df8c48942bd5cd68e510c0e60659d69a24060da
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.3+4"
-  firebase_ml_model_downloader_platform_interface:
-    dependency: transitive
-    description:
-      name: firebase_ml_model_downloader_platform_interface
-      sha256: "317b2f6eb16b74812090aa1350ff43672ff2913b40bc847b642a08b33c1fdade"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.5+6"
   fixnum:
     dependency: transitive
     description:
@@ -381,22 +365,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.7"
-  google_mlkit_commons:
-    dependency: "direct main"
-    description:
-      name: google_mlkit_commons
-      sha256: "8f40fbac10685cad4715d11e6a0d86837d9ad7168684dfcad29610282a88e67a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.11.0"
-  google_mlkit_smart_reply:
-    dependency: "direct main"
-    description:
-      name: google_mlkit_smart_reply
-      sha256: "0c3d737e46f20aa4d4953860ee5757e5250e58f90351f8e2afdeb1d609c7047e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.13.0"
   http:
     dependency: "direct main"
     description:
