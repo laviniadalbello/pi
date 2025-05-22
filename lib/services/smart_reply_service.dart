@@ -5,6 +5,7 @@ enum SmartReplySuggestionResultStatus {
   success,
   notSupportedLanguage,
   noReply,
+  error, 
 }
 
 /// Representa uma mensagem de texto de um determinado usuário em uma conversa,
@@ -34,16 +35,11 @@ class Message {
   Map<String, dynamic> toJson() => {
         'message': text,
         'timestamp': timestamp,
-        'userId': sender, // O Smart Reply nativo espera 'userId', mapeamos 'sender' para ele.
+        'userId':
+            sender, // O Smart Reply nativo espera 'userId', mapeamos 'sender' para ele.
       };
 }
 
-/// Especifica o status do resultado da resposta inteligente.
-enum SmartReplySuggestionResultStatus {
-  success,
-  notSupportedLanguage,
-  noReply,
-}
 
 /// Um objeto que contém os resultados da sugestão de resposta inteligente.
 class SmartReplySuggestionResult {
@@ -59,8 +55,9 @@ class SmartReplySuggestionResult {
   /// Retorna uma instância de [SmartReplySuggestionResult] de um dado [json].
   factory SmartReplySuggestionResult.fromJson(Map<dynamic, dynamic> json) {
     // Certifique-se de que 'status' é int antes de toInt()
-    final status =
-        SmartReplySuggestionResultStatus.values[json['status'] is int ? json['status'] : (json['status'] as double).toInt()];
+    final status = SmartReplySuggestionResultStatus.values[json['status'] is int
+        ? json['status']
+        : (json['status'] as double).toInt()];
     final suggestions = <String>[];
     if (status == SmartReplySuggestionResultStatus.success) {
       for (final dynamic line in json['suggestions']) {
@@ -76,7 +73,6 @@ class SmartReplySuggestionResult {
         'suggestions': suggestions,
       };
 }
-
 
 class SmartReply {
   static const MethodChannel _channel =
@@ -130,17 +126,20 @@ class SmartReply {
       final result =
           await _channel.invokeMethod('nlp#startSmartReply', <String, dynamic>{
         // Não precisa de um 'id' global aqui se a API nativa não exigir
-        'conversation': _conversation.map((message) => message.toJson()).toList()
+        'conversation':
+            _conversation.map((message) => message.toJson()).toList()
       });
 
       if (result == null) {
-        return SmartReplySuggestionResult(status: SmartReplySuggestionResultStatus.error, suggestions: []);
+        return SmartReplySuggestionResult(
+            status: SmartReplySuggestionResultStatus.error, suggestions: []);
       }
 
       return SmartReplySuggestionResult.fromJson(result);
     } on PlatformException catch (e) {
       print("Failed to get smart replies via MethodChannel: ${e.message}");
-      return SmartReplySuggestionResult(status: SmartReplySuggestionResultStatus.error, suggestions: []);
+      return SmartReplySuggestionResult(
+          status: SmartReplySuggestionResultStatus.error, suggestions: []);
     }
   }
 

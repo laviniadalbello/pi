@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'cadastro.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:convert';
-
+import 'dart:async';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -18,7 +17,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
 
   @override
- Widget build(BuildContext context) {
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
@@ -50,10 +49,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   ShaderMask(
-                    shaderCallback:
-                        (bounds) => const LinearGradient(
-                          colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
-                        ).createShader(bounds),
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [Color(0xFF3254FF), Color(0xFFCDA2FF)],
+                    ).createShader(bounds),
                     child: const Text(
                       "Dear Friend",
                       style: TextStyle(
@@ -189,10 +187,9 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed:
-                    _isLoading
-                        ? null
-                        : () => login(
+                onPressed: _isLoading
+                    ? null
+                    : () => login(
                           _emailController.text,
                           _passwordController.text,
                           context,
@@ -208,29 +205,27 @@ class _LoginPageState extends State<LoginPage> {
                       Colors.transparent, // Mantém o estilo quando desabilitado
                 ).copyWith(
                   backgroundColor: WidgetStateProperty.resolveWith(
-                    (states) =>
-                        states.contains(WidgetState.disabled)
-                            ? Colors.transparent
-                            : Colors.transparent,
+                    (states) => states.contains(WidgetState.disabled)
+                        ? Colors.transparent
+                        : Colors.transparent,
                   ),
                   elevation: WidgetStateProperty.all(0),
                   foregroundColor: WidgetStateProperty.all(Colors.white),
                 ),
                 child: Ink(
                   decoration: BoxDecoration(
-                    gradient:
-                        _isLoading
-                            ? const LinearGradient(
-                              // Gradiente mais suave durante loading
-                              colors: [Color(0xFFC9B2F0), Color(0xFF8E5DDB)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                            : const LinearGradient(
-                              colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                    gradient: _isLoading
+                        ? const LinearGradient(
+                            // Gradiente mais suave durante loading
+                            colors: [Color(0xFFC9B2F0), Color(0xFF8E5DDB)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : const LinearGradient(
+                            colors: [Color(0xFFAB82E9), Color(0xFF7526D4)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Container(
@@ -238,22 +233,21 @@ class _LoginPageState extends State<LoginPage> {
                     height: 28,
                     alignment: Alignment.center,
                     constraints: const BoxConstraints(minHeight: 28),
-                    child:
-                        _isLoading
-                            ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
                               ),
-                            )
-                            : const Text(
-                              "LOGIN",
-                              style: TextStyle(fontSize: 16),
                             ),
+                          )
+                        : const Text(
+                            "LOGIN",
+                            style: TextStyle(fontSize: 16),
+                          ),
                   ),
                 ),
               ),
@@ -361,13 +355,19 @@ class _LoginPageState extends State<LoginPage> {
     try {
       setState(() => _isLoading = true);
 
+      // Adicionar logs para depuração
+      debugPrint('Tentando login com email: $email');
+
       final UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
+          .signInWithEmailAndPassword(email: email, password: password)
+          .timeout(const Duration(seconds: 10), onTimeout: () {
+        throw TimeoutException('Tempo excedido ao tentar conectar');
+      });
 
       if (!mounted) return;
 
       if (userCredential.user != null) {
-        Navigator.pushNamed(context, '/home');
+        Navigator.pushNamed(context, '/habitos');
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -378,19 +378,48 @@ class _LoginPageState extends State<LoginPage> {
           errorMessage = 'E-mail inválido';
           break;
         case 'user-not-found':
+          errorMessage = 'Nenhum usuário encontrado com este e-mail';
+          break;
         case 'wrong-password':
-          errorMessage = 'E-mail ou senha incorretos';
+          errorMessage = 'Senha incorreta';
           break;
         case 'user-disabled':
           errorMessage = 'Conta desativada';
+          break;
+        case 'network-request-failed':
+          errorMessage = 'Problema de conexão com a internet';
           break;
         default:
           errorMessage = 'Erro ao fazer login: ${e.message}';
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMessage), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 5),
+        ),
       );
+      debugPrint('Erro de autenticação: ${e.code} - ${e.message}');
+    } on TimeoutException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message ?? 'Tempo excedido'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro desconhecido: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      debugPrint('Erro desconhecido: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -399,6 +428,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
+// Mantenha suas classes AnimatedBlurredBackground e BlurredGradientPainter existentes
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 
@@ -447,8 +477,8 @@ class BlurredGradientPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint =
-        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
+    final Paint paint = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
     final List<List<Color>> gradientColors = [
       [const Color(0xFF7526D4), const Color(0xFFAB82E9)], // Roxo
