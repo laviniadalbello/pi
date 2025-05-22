@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
+import 'package:planify/services/gemini_service.dart';
 
 void main() => runApp(const SettingsApp());
 

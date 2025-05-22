@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'iconedaia.dart';
+import 'package:planify/services/gemini_service.dart'; // <--- ADICIONE ESTA LINHA
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -27,6 +27,7 @@ class _AddTaskPageState extends State<AddTaskPage>
   bool _isCardVisible = false;
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
+  late GeminiService _geminiService; // <--- DECLARE O GEMINISERVICE AQUI
 
   final TextEditingController _taskNameController = TextEditingController(
     text: 'Mobile Application design',
@@ -72,6 +73,8 @@ class _AddTaskPageState extends State<AddTaskPage>
       begin: const Offset(0, 1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+
+    _geminiService = GeminiService(); // <--- INICIALIZE O GEMINISERVICE AQUI
   }
 
   @override
@@ -81,6 +84,7 @@ class _AddTaskPageState extends State<AddTaskPage>
     _dateController.dispose();
     _startTimeController.dispose();
     _endTimeController.dispose();
+    _geminiService.close(); // <--- NÃO ESQUEÇA DE FECHAR O SERVIÇO
     super.dispose();
   }
 
@@ -335,6 +339,7 @@ class _AddTaskPageState extends State<AddTaskPage>
             child: CloseableAiCard(
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
+              geminiService: _geminiService, // <--- ADICIONE ESTA LINHA AQUI!
             ),
           ),
         ],
@@ -836,6 +841,8 @@ class _AddTaskPageState extends State<AddTaskPage>
   }
 }
 
+// O main() e MyApp() estão corretos para testar esta tela individualmente.
+// Se esta tela for parte de um MaterialApp maior, você pode remover este main().
 void main() {
   runApp(const MyApp());
 }

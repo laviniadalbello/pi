@@ -2,7 +2,9 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'chatdaia.dart';
+import 'chatdaia.dart'; // Importe chatdaia.dart se você for redirecionar para a tela de chat completa
+import 'package:planify/services/gemini_service.dart'; // Importe seu GeminiService
+import 'dart:convert'; // Para jsonDecode se necessário
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -46,11 +48,13 @@ const String submitSvg = '''
 class CloseableAiCard extends StatefulWidget {
   final double scaleFactor;
   final bool enableScroll; // Novo parâmetro para habilitar scroll
+  final GeminiService geminiService; // <--- Adicione aqui
 
   const CloseableAiCard({
     Key? key,
     this.scaleFactor = 1.0,
     this.enableScroll = true, // Habilitado por padrão
+    required this.geminiService, // <--- Torne-o obrigatório
   }) : super(key: key);
 
   @override
@@ -65,32 +69,17 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
   // Controlador de scroll para a área de chat
   final ScrollController _scrollController = ScrollController();
 
-  // Lista de mensagens para demonstração
-  final List<Map<String, String>> _messages = [
-    {'sender': 'ai', 'text': 'Olá! Como posso ajudar você hoje?'},
-    {'sender': 'user', 'text': 'Preciso de ajuda com meu projeto'},
-    {
-      'sender': 'ai',
-      'text': 'Claro! Que tipo de projeto você está trabalhando?',
-    },
-    {'sender': 'user', 'text': 'Um aplicativo Flutter'},
-    {
-      'sender': 'ai',
-      'text':
-          'Ótimo! Flutter é uma excelente escolha para desenvolvimento multiplataforma. Quais são suas dúvidas específicas?',
-    },
-    {'sender': 'user', 'text': 'Como implementar animações fluidas?'},
-    {
-      'sender': 'ai',
-      'text':
-          'Para animações fluidas no Flutter, você pode usar o AnimationController com Curves personalizadas. Vou te mostrar alguns exemplos:',
-    },
-    {
-      'sender': 'ai',
-      'text':
-          '1. Use AnimationController com vsync\n2. Defina a duração da animação\n3. Use Curves como easeInOut para suavidade\n4. Aplique a animação em Transform, Opacity ou outros widgets',
-    },
-  ];
+  // Lista de mensagens que será preenchida dinamicamente
+  final List<Map<String, String>> _messages = []; // <--- Comece vazia ou com uma mensagem inicial do AI
+
+  @override
+  void initState() {
+    super.initState();
+    // Adicionar uma mensagem inicial do AI ao iniciar, se a lista estiver vazia
+    if (_messages.isEmpty) {
+      _messages.add({'sender': 'ai', 'text': 'Olá! Como posso ajudar você hoje?'});
+    }
+  }
 
   void _handleTapOutside() {
     if (_isChecked) {
@@ -154,12 +143,79 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
                 scrollController: _scrollController,
                 enableScroll: widget.enableScroll,
                 messages: _messages,
+                geminiService: widget.geminiService, // <--- Passe o GeminiService
+                onSendMessage: (message) { // <--- Adicione o callback para enviar mensagem
+                  _handleSendMessage(message);
+                },
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleSendMessage(String message) async {
+    if (message.isEmpty) return;
+
+    setState(() {
+      _messages.add({'sender': 'user', 'text': message});
+    });
+
+    // Rolar para o final das mensagens
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+
+    try {
+      final aiRawResponse = await widget.geminiService.getGeminiResponse(message);
+
+      // Verifique se a resposta é uma chamada de função (JSON) ou texto
+      if (aiRawResponse.startsWith('{') && aiRawResponse.endsWith('}')) {
+        // Isso é uma chamada de função, você pode querer processá-la aqui
+        // ou passá-la para a tela completa do ChatScreen.
+        // Por enquanto, vamos exibir um placeholder ou processar uma ação simples
+        final Map<String, dynamic> action = json.decode(aiRawResponse);
+        String actionMessage = "Detectada ação: ${action['action']}";
+        if (action['parameters'] != null) {
+          actionMessage += " com parâmetros: ${action['parameters']}";
+        }
+        setState(() {
+          _messages.add({'sender': 'ai', 'text': '🤖 ${actionMessage}'});
+        });
+        // IMPORTANTE: Aqui você precisaria implementar a lógica para realmente chamar
+        // as funções do Firestore (create_task, list_tasks, etc.) baseadas em `action['action']`
+        // e `action['parameters']`. Esta lógica está provavelmente em `chatdaia.dart` e precisaria ser reutilizada.
+        // Ou, uma vez que a caixa é clicada, ela leva para a tela completa do ChatScreen, onde essa lógica já existe.
+
+      } else {
+        setState(() {
+          _messages.add({'sender': 'ai', 'text': aiRawResponse});
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _messages.add({'sender': 'ai', 'text': 'Ocorreu um erro ao processar sua solicitação.'});
+      });
+      print('Erro ao obter resposta do Gemini no AiInputCard: $e');
+    }
+
+    // Rolar novamente para o final após a resposta do AI
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 }
 
@@ -170,6 +226,8 @@ class AiInputCard extends StatefulWidget {
   final ScrollController scrollController;
   final bool enableScroll;
   final List<Map<String, String>> messages;
+  final GeminiService geminiService; // <--- Adicione aqui
+  final ValueChanged<String> onSendMessage; // <--- Adicione aqui
 
   const AiInputCard({
     Key? key,
@@ -179,6 +237,8 @@ class AiInputCard extends StatefulWidget {
     required this.scrollController,
     required this.enableScroll,
     required this.messages,
+    required this.geminiService, // <--- Torne-o obrigatório
+    required this.onSendMessage, // <--- Torne-o obrigatório
   }) : super(key: key);
 
   @override
@@ -203,8 +263,7 @@ class _AiInputCardState extends State<AiInputCard>
   final double _initialCardWidth = 12 * 16.0;
   final double _initialCardHeight = 12 * 16.0;
   final double _checkedCardWidth = 360.0;
-  final double _checkedCardHeight =
-      480.0; // Aumentado para acomodar mais conteúdo
+  final double _checkedCardHeight = 480.0;
   final double _borderRadius = 3 * 16.0;
   final double _checkedBorderRadius = 20.0;
   final double _eyeMovementFactor = 0.05;
@@ -215,17 +274,14 @@ class _AiInputCardState extends State<AiInputCard>
     final message = _messageController.text;
     if (message.isEmpty) return;
 
-    final response = await _processMessageWithML(message);
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(response)));
-
+    widget.onSendMessage(message); // <--- Chame o callback para enviar mensagem
     _messageController.clear();
   }
 
-  Future<String> _processMessageWithML(String message) async {
-    return "📌 ML Kit respondeu: ${message}";
-  }
+  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, ela é a causa do problema
+  // Future<String> _processMessageWithML(String message) async {
+  //   return "📌 ML Kit respondeu: ${message}";
+  // }
 
   @override
   void initState() {
@@ -360,12 +416,12 @@ class _AiInputCardState extends State<AiInputCard>
                     boxShadow:
                         widget.isHovering && !widget.isChecked
                             ? [
-                              BoxShadow(
-                                color: kAccentPurple.withOpacity(0.25),
-                                blurRadius: 40,
-                                offset: Offset(0, 10),
-                              ),
-                            ]
+                                BoxShadow(
+                                  color: kAccentPurple.withOpacity(0.25),
+                                  blurRadius: 40,
+                                  offset: Offset(0, 10),
+                                ),
+                              ]
                             : [],
                   ),
                   transform: _calculateTransform(
@@ -551,7 +607,7 @@ class _AiInputCardState extends State<AiInputCard>
   Widget _buildChatInterface() {
     final screenSize = MediaQuery.of(context).size;
     final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
+    // final screenHeight = screenSize.height; // Não usado
 
     // Tamanhos responsivos
     final messageFontSize = screenWidth * 0.035;
@@ -597,7 +653,7 @@ class _AiInputCardState extends State<AiInputCard>
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => ChatScreen(title: "meu chat"),
+                          builder: (context) => ChatScreen(title: "meu chat", geminiService: widget.geminiService), // <--- Passe o GeminiService aqui
                         ),
                       );
                     },
@@ -623,9 +679,9 @@ class _AiInputCardState extends State<AiInputCard>
             child:
                 widget.enableScroll
                     ? SingleChildScrollView(
-                      controller: widget.scrollController,
-                      child: _buildChatMessages(messageFontSize),
-                    )
+                        controller: widget.scrollController,
+                        child: _buildChatMessages(messageFontSize),
+                      )
                     : _buildChatMessages(messageFontSize),
           ),
 

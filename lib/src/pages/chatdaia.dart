@@ -5,11 +5,12 @@ import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'dart:math' as math;
 import 'dart:convert';
-import 'package:planify/models/task.dart';
-import 'package:planify/services/gemini_service.dart';
-import 'package:planify/services/firestore_tasks_service.dart';
-import 'package:planify/models/message.dart';
+import 'package:planify/models/task.dart'; // Certifique-se de que task.dart está em lib/models/
+import 'package:planify/services/gemini_service.dart'; // Certifique-se de que gemini_service.dart está em lib/services/
+import 'package:planify/services/firestore_tasks_service.dart'; // Certifique-se de que firestore_tasks_service.dart está em lib/services/
+import 'package:planify/models/message.dart'; // Certifique-se de que message.dart está em lib/models/
 
+// Cores (mantidas do seu código original)
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
 const Color kDarkElementBg = Color(0xFF202A44);
@@ -21,39 +22,34 @@ const Color kDarkBorder = Color(0xFF2D3748);
 
 class ChatScreen extends StatefulWidget {
   final String title;
+  final GeminiService geminiService; // <--- ESTA LINHA É CRÍTICA
 
-  const ChatScreen({super.key, required this.title});
+  const ChatScreen({Key? key, required this.title, required this.geminiService})
+      : super(key: key);
+
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  _ChatScreenState createState() => _ChatScreenState();
 }
 
 class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
-  final TextEditingController _textController = TextEditingController();
-  final List<Message> _messages = []; // **AGORA USANDO SUA CLASSE Message**
-  final ScrollController _scrollController = ScrollController();
-  bool _isAiTyping = false;
-
-  late AnimationController _sendButtonAnimationController;
-  late Animation<double> _sendButtonAnimation;
-
-  // REMOVA AS LINHAS RELACIONADAS AO SmartReply - se por acaso ainda existirem
-  // late sr_service.SmartReply _smartReplyService;
-  // List<String> _smartReplies = [];
-
-  // ************* NOVAS INSTÂNCIAS DE SERVIÇOS *************
+  // DECLARAÇÃO DE VARIÁVEIS DE ESTADO
   late GeminiService _geminiService;
   late FirestoreTasksService _firestoreTasksService;
-  // *******************************************************
+  final List<Message> _messages = [];
+  bool _isAiTyping = false;
+  final TextEditingController _textController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  late AnimationController _sendButtonAnimationController;
+  late Animation<double> _sendButtonAnimation;
 
   @override
   void initState() {
     super.initState();
-    // REMOVA: _smartReplyService = sr_service.SmartReply(); // Se ainda estiver aqui
+    // Inicializa o GeminiService com a instância passada pelo widget pai
+    _geminiService = widget.geminiService;
 
-    // ************* INICIALIZE SEUS NOVOS SERVIÇOS *************
-    _geminiService = GeminiService();
+    // Inicializa o FirestoreTasksService
     _firestoreTasksService = FirestoreTasksService();
-    // *******************************************************
 
     _addInitialMessages();
 
@@ -73,7 +69,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     setState(() {
       _messages.addAll([
         Message(
-          // **USANDO SUA CLASSE Message**
           id: "1",
           text:
               "Olá! Sou seu assistente Planify. Como posso ajudar a organizar suas tarefas?",
@@ -81,20 +76,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           timestamp: DateTime.now().microsecondsSinceEpoch,
           sender: 'bot',
         ),
-        // Remova a mensagem de exemplo do usuário ou adapte-a, se ainda estiver aqui
-        /*
-        Message( // **USANDO SUA CLASSE Message**
-          id: "2",
-          text: "Que demais! Vou testar o envio de arquivo.",
-          isUser: true,
-          timestamp: DateTime.now().subtract(const Duration(minutes: 1)).microsecondsSinceEpoch,
-          sender: 'user',
-        ),
-        */
       ]);
-      // REMOVA as chamadas do SmartReply para mensagens iniciais, se ainda estiverem aqui
-      // _smartReplyService.addMessageFromChatbot(...);
-      // _smartReplyService.addMessageFromUser(...);
     });
   }
 
@@ -103,7 +85,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     if (messageText.isEmpty && fileName == null) return;
 
     final newMessage = Message(
-      // **USANDO SUA CLASSE Message**
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       text: messageText,
       isUser: true,
@@ -117,32 +98,21 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _messages.add(newMessage);
       _textController.clear();
       _isAiTyping = true;
-      // REMOVA: _smartReplies = []; // Limpa as sugestões do Smart Reply, se ainda estiver aqui
     });
 
     _scrollToBottom();
 
-    // REMOVA AQUI: _smartReplyService.addMessageFromUser(newMessage.text, newMessage.timestamp);
-    // REMOVA AQUI: final sr_service.SmartReplySuggestionResult aiSuggestionsResult = await _smartReplyService.suggestReplies();
-    // REMOVA AQUI: print('Sugestões da IA (para resposta do bot): ${aiSuggestionsResult.suggestions}');
-    // REMOVA AQUI: String aiResponseText;
-
-    // ************* CHAMA A API GEMINI PARA OBTER A RESPOSTA INTELIGENTE *************
     String aiRawResponse =
         await _geminiService.getGeminiResponse(newMessage.text);
-    String aiResponseText =
-        aiRawResponse; // A resposta padrão é o que o Gemini retornou
+    String aiResponseText = aiRawResponse;
 
-    // Tenta decodificar a resposta do Gemini como JSON para identificar ações
     Map<String, dynamic>? aiAction;
     try {
       aiAction = json.decode(aiRawResponse);
     } catch (e) {
-      // Se não for JSON, significa que é uma resposta em texto puro
       debugPrint("Resposta do Gemini não é JSON válido: $e");
     }
 
-    // ************* LÓGICA DE INTERPRETAÇÃO DE AÇÕES E CONEXÃO COM FIRESTORE *************
     if (aiAction != null &&
         aiAction.containsKey('action') &&
         aiAction.containsKey('parameters')) {
@@ -188,11 +158,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
           case 'update_task':
             String? taskIdToUpdate;
-            // O Gemini pode retornar o ID ou o título. Priorize o ID.
             if (parameters['taskId'] != null) {
               taskIdToUpdate = parameters['taskId'];
             } else if (parameters['title'] != null) {
-              // Se o Gemini enviar o título em vez do ID, procure a tarefa pelo título
               final Task? task = await _firestoreTasksService
                   .findTaskByTitle(parameters['title']);
               if (task != null) {
@@ -220,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               taskId: taskIdToUpdate,
               newTitle: parameters['newTitle'],
               newDueDate: newDueDate,
-              newPriority: parameters['newPriority'],
+              newPriority: parameters['priority'], // Corrigido para priority
               isCompleted: parameters['isCompleted'],
             );
             aiResponseText = "Tarefa atualizada com sucesso no Firestore!";
@@ -228,11 +196,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
           case 'delete_task':
             String? taskIdToDelete;
-            // O Gemini pode retornar o ID ou o título. Priorize o ID.
             if (parameters['taskId'] != null) {
               taskIdToDelete = parameters['taskId'];
             } else if (parameters['title'] != null) {
-              // Se o Gemini enviar o título em vez do ID, procure a tarefa pelo título
               final Task? task = await _firestoreTasksService
                   .findTaskByTitle(parameters['title']);
               if (task != null) {
@@ -250,14 +216,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             aiResponseText = "Tarefa deletada com sucesso do Firestore!";
             break;
 
-          case 'add_project_task': // Se você quiser que o bot também possa adicionar tarefas de projeto
-            // Você precisará de um projectId nos parâmetros ou de alguma forma inferir/pedir
+          case 'add_project_task':
             final String? projectId = parameters['projectId'];
             final String? taskTitle = parameters['title'];
             if (projectId != null && taskTitle != null) {
-              // Note: _currentUserId viria da autenticação
-              await _firestoreTasksService.addProjectTask(projectId, taskTitle,
-                  'test_user_id_gemini'); // Substitua 'test_user_id_gemini' pelo ID do usuário real
+              await _firestoreTasksService.addProjectTask(
+                  projectId, taskTitle, 'test_user_id_gemini');
               aiResponseText =
                   "Tarefa '$taskTitle' adicionada ao projeto '$projectId' com sucesso.";
             } else {
@@ -267,7 +231,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             break;
 
           default:
-            // Se a ação não for reconhecida, o aiResponseText já será a resposta original do Gemini
             break;
         }
       } catch (e) {
@@ -276,18 +239,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             "Ocorreu um erro ao tentar executar sua solicitação no banco de dados: $e";
       }
     }
-    // Se a resposta do Gemini não for JSON, 'aiResponseText' já é o texto da IA.
-    // Se for JSON mas a ação falhou, 'aiResponseText' já foi atualizado com a mensagem de erro.
-
-    // REMOVA ESTA FUNÇÃO: String _getFallbackAiResponse(String message) { ... }
-    // O Gemini agora é responsável por TODAS as respostas.
 
     Future.delayed(const Duration(seconds: 1), () {
-      // Atraso reduzido para simular resposta mais rápida
       if (!mounted) return;
 
       final aiResponse = Message(
-        // **USANDO SUA CLASSE Message**
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         text: aiResponseText,
         isUser: false,
@@ -301,16 +257,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       });
 
       _scrollToBottom();
-      // REMOVA AQUI: _smartReplyService.addMessageFromChatbot(...); // Se ainda estiver aqui
-      // REMOVA AQUI: _generateSmartRepliesForUser(); // Não precisamos mais disso
     });
   }
-
-  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, se ainda estiver aqui:
-  // void _generateSmartRepliesForUser() async { ... }
-
-  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, se ainda estiver aqui:
-  // String _getFallbackAiResponse(String message) { ... }
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -329,8 +277,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     if (result != null) {
       PlatformFile file = result.files.first;
-      // Adapte a mensagem para o Gemini, se ele for processar arquivos
-      // Para este cenário, o Gemini não vai realmente "processar" o arquivo, apenas o texto do usuário.
       _sendMessage(
         text:
             "Acabei de enviar o arquivo: ${file.name}. Você pode me ajudar a analisá-lo?",
@@ -341,7 +287,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   void _showReactionMenu(Message message) {
-    // **USANDO SUA CLASSE Message**
     showModalBottomSheet(
       context: context,
       backgroundColor: kDarkSurface,
@@ -381,7 +326,6 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   }
 
   Widget _reactionButton(String emoji, Message message) {
-    // **USANDO SUA CLASSE Message**
     return InkWell(
       onTap: () {
         setState(() {
@@ -405,10 +349,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textController.dispose();
     _scrollController.dispose();
     _sendButtonAnimationController.dispose();
-    // REMOVA: _smartReplyService.close(); // Se ainda estiver aqui
-    _geminiService.close(); // Chame close para o GeminiService
-    // Para FirestoreTasksService, geralmente não há um método 'close' específico,
-    // pois o Firebase SDK gerencia as conexões.
+    _geminiService.close();
     super.dispose();
   }
 
@@ -471,26 +412,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-          // REMOVA ESTA SEÇÃO INTEIRA DE _buildSmartReplySuggestions(), se ainda estiver aqui
-          // if (_smartReplies.isNotEmpty && !_isAiTyping)
-          //   _buildSmartReplySuggestions(),
           _buildInputArea(),
         ],
       ),
     );
   }
 
-  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, se ainda estiver aqui:
-  // Widget _buildSmartReplySuggestions() {
-  //   return Container( ... );
-  // }
-
   Widget _buildMessageItem(Message message) {
-    // **USANDO SUA CLASSE Message**
     return GestureDetector(
       onLongPress: () {
         if (!message.isUser) {
-          // Somente o bot pode receber reações no seu exemplo original
           _showReactionMenu(message);
         }
       },
