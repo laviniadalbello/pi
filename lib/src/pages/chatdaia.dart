@@ -2,6 +2,11 @@ import "package:flutter/material.dart";
 import "dart:async";
 import "package:file_picker/file_picker.dart";
 import "dart:math" as math;
+import '../pages/widgets/closeable_ai_card.dart';
+import 'package:firebase_ml_model_downloader/firebase_ml_model_downloader.dart';
+import 'package:planify/services/smart_reply_service.dart';
+import 'package:google_mlkit_smart_reply/google_mlkit_smart_reply.dart';
+import 'package:google_mlkit_commons/google_mlkit_commons.dart' as mlcommons;
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -20,6 +25,7 @@ class Message {
   String? fileName;
   String? filePath;
   String? reaction;
+  String? userId;
 
   Message({
     required this.id,
@@ -29,6 +35,7 @@ class Message {
     this.fileName,
     this.filePath,
     this.reaction,
+    this.userId,
   });
 }
 
@@ -49,9 +56,13 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   late AnimationController _sendButtonAnimationController;
   late Animation<double> _sendButtonAnimation;
 
+  late SmartReplyService _smartReplyService; 
+  List<String> _smartReplies = [];
+
   @override
   void initState() {
     super.initState();
+    _smartReplyService = SmartReplyService();
     _addInitialMessages();
 
     _sendButtonAnimationController = AnimationController(
@@ -83,10 +94,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           timestamp: DateTime.now().subtract(const Duration(minutes: 1)),
         ),
       ]);
+   _smartReplyService.addConversation(
+          "Olá! Agora com envio de arquivos e reações (pressione e segure uma mensagem)!",
+          false);
+      _smartReplyService
+          .addConversation("Que demais! Vou testar o envio de arquivo.", true);
     });
   }
 
-  void _sendMessage({String? text, String? fileName, String? filePath}) {
+  void _sendMessage({String? text, String? fileName, String? filePath}) async {
     final String messageText = text ?? _textController.text.trim();
     if (messageText.isEmpty && fileName == null) return;
 
@@ -103,17 +119,28 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       _messages.add(newMessage);
       _textController.clear();
       _isAiTyping = true;
+      _smartReplies = [];
     });
 
     _scrollToBottom();
 
-    // Simular resposta da IA após um pequeno atraso
+    _smartReplyService.addConversation(newMessage.text, newMessage.isUser);
+
+    final List<String> aiSuggestions = await _smartReplyService.suggestReplies();
+    String aiResponseText;
+
+    if (aiSuggestions.isNotEmpty) {
+      aiResponseText = aiSuggestions.first;
+    } else {
+      aiResponseText = _getFallbackAiResponse(messageText);
+    }
+
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
 
       final aiResponse = Message(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
-        text: _getAiResponse(messageText),
+        text: aiResponseText,
         isUser: false,
         timestamp: DateTime.now(),
       );
@@ -124,10 +151,21 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       });
 
       _scrollToBottom();
+       _smartReplyService.addConversation(aiResponse.text, aiResponse.isUser);
+       _generateSmartRepliesForUser();
     });
   }
 
-  String _getAiResponse(String message) {
+  void _generateSmartRepliesForUser() async {
+    final List<String> replies = await _smartReplyService.suggestReplies();
+    if (mounted) {
+      setState(() {
+        _smartReplies = replies;
+      });
+    }
+  }
+
+  String _getFallbackAiResponse(String message) {
     if (message.toLowerCase().contains("arquivo")) {
       return "Recebi seu arquivo! Posso ajudar com a análise ou processamento desse conteúdo.";
     } else if (message.toLowerCase().contains("olá") ||
@@ -136,7 +174,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     } else if (message.toLowerCase().contains("ajuda")) {
       return "Estou aqui para ajudar! Você pode me perguntar sobre qualquer assunto ou enviar arquivos para análise.";
     } else {
-      return "Entendi sua mensagem. Posso fornecer mais informações sobre esse assunto se você precisar.";
+      return "Hmm, essa é uma ótima pergunta! Deixe-me pensar um pouco mais sobre isso.";
     }
   }
 
@@ -228,6 +266,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _textController.dispose();
     _scrollController.dispose();
     _sendButtonAnimationController.dispose();
+    _smartReplyService.dispose();
     super.dispose();
   }
 
@@ -290,8 +329,35 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
+          if (_smartReplies.isNotEmpty && !_isAiTyping) // Não mostre enquanto a IA estiver digitando
+            _buildSmartReplySuggestions(),
           _buildInputArea(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSmartReplySuggestions() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: kDarkSurface,
+      child: Wrap(
+        spacing: 8.0, 
+        runSpacing: 4.0, 
+        children: _smartReplies.map((reply) {
+          return ActionChip(
+            label: Text(reply, style: const TextStyle(color: kDarkTextPrimary)),
+            backgroundColor: kDarkElementBg,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: const BorderSide(color: kDarkBorder),
+            ),
+            onPressed: () {
+              _textController.text = reply; 
+              _sendMessage(); 
+            },
+          );
+        }).toList(),
       ),
     );
   }
