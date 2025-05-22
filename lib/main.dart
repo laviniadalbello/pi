@@ -18,6 +18,7 @@ import './src/pages/planner_diario.dart';
 import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 
