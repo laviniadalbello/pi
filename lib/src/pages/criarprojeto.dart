@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'iconedaia.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -169,7 +168,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             ),
             buttonTheme: const ButtonThemeData(
               textTheme: ButtonTextTheme.primary,
-            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+            ),
+            dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );

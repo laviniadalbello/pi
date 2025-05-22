@@ -1,7 +1,6 @@
 import 'detalhesdoevento.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:math';
 import 'iconedaia.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -219,7 +218,8 @@ class _CreateEventPageState extends State<CreateEventPage>
             ),
             buttonTheme: const ButtonThemeData(
               textTheme: ButtonTextTheme.primary,
-            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+            ),
+            dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );

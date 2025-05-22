@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart'; // <--- ADICIONE ESTA LINHA
 
@@ -110,7 +109,8 @@ class _AddTaskPageState extends State<AddTaskPage>
               onPrimary: kDarkTextPrimary,
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
-            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+            ),
+            dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -154,7 +154,8 @@ class _AddTaskPageState extends State<AddTaskPage>
               onPrimary: kDarkTextPrimary,
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
-            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+            ),
+            dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
