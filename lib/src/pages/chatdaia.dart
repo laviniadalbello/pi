@@ -124,6 +124,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     final sr_service.SmartReplySuggestionResult aiSuggestionsResult =
         await _smartReplyService.suggestReplies();
+    print(
+        'Sugestões da IA (para resposta do bot): ${aiSuggestionsResult.suggestions}');
     String aiResponseText;
 
     if (aiSuggestionsResult.status ==
@@ -161,6 +163,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   void _generateSmartRepliesForUser() async {
     final sr_service.SmartReplySuggestionResult result =
         await _smartReplyService.suggestReplies();
+    print('Sugestões do Smart Reply (para o usuário): ${result.suggestions}');
+    print('Status do Smart Reply: ${result.status}');
     if (mounted) {
       setState(() {
         if (result.status ==
@@ -508,9 +512,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       ),
                     ),
                   Text(
-                    _formatTimestamp(DateTime.fromMicrosecondsSinceEpoch(message.timestamp)),
+                    _formatTimestamp(
+                        DateTime.fromMicrosecondsSinceEpoch(message.timestamp)),
                     style: TextStyle(color: kDarkTextSecondary, fontSize: 12),
-                    ),
+                  ),
                 ],
               ),
             ),

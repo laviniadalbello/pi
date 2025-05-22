@@ -1,68 +1,14 @@
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; // Mantenha este import para MethodChannel
 
-
-class SmartReply {
-  static const MethodChannel _channel =
-      MethodChannel('google_mlkit_smart_reply');
-
-  final List<Message> _conversation = [];
-
-  List<Message> get conversation => _conversation;
-
-
-  final id = DateTime.now().microsecondsSinceEpoch.toString();
-
-  /// Adds a [Message] to the [conversation] for local user.
-  void addMessageFromUser(String message, int timestamp) {
-    // CORREÇÃO AQUI: Adicionando 'id' e 'isUser'
-    _conversation.add(Message(
-      id: DateTime.now().microsecondsSinceEpoch.toString(), // Gerar um ID único
-      text: message,
-      timestamp: timestamp,
-      sender: 'user',
-      isUser: true, // É uma mensagem do usuário
-    ));
-  }
-
-  /// Adds a [Message] to the [conversation] for a remote user.
-  void addMessageFromChatbot(String message, int timestamp) {
-    // CORREÇÃO AQUI: Adicionando 'id' e 'isUser'
-    _conversation.add(Message(
-      id: DateTime.now().microsecondsSinceEpoch.toString(), // Gerar um ID único
-      text: message,
-      timestamp: timestamp,
-      sender: 'bot',
-      isUser: false, // É uma mensagem do chatbot
-    ));
-  }
-
-  /// Clears the [conversation].
-  void clearConversation() {
-    _conversation.clear();
-  }
-
-  /// Suggests possible replies in the context of a chat [conversation].
-  Future<SmartReplySuggestionResult> suggestReplies() async {
-    if (_conversation.isEmpty) {
-      return SmartReplySuggestionResult(
-          status: SmartReplySuggestionResultStatus.noReply, suggestions: []);
-    }
-
-    final result =
-        await _channel.invokeMethod('nlp#startSmartReply', <String, dynamic>{
-      'id': id,
-      'conversation': _conversation.map((message) => message.toJson()).toList()
-    });
-
-    return SmartReplySuggestionResult.fromJson(result);
-  }
-
-  /// Closes the underlying resources including models used for reply inference.
-  Future<void> close() =>
-      _channel.invokeMethod('nlp#closeSmartReply', {'id': id});
+// Definições de status do Smart Reply
+enum SmartReplySuggestionResultStatus {
+  success,
+  notSupportedLanguage,
+  noReply,
 }
 
-/// Represents a text message from a certain user in a conversation, providing context for SmartReply to generate reply suggestions.
+/// Representa uma mensagem de texto de um determinado usuário em uma conversa,
+/// fornecendo contexto para o SmartReply gerar sugestões de resposta.
 class Message {
   final String id; // Campo adicionado
   final String text;
@@ -84,36 +30,37 @@ class Message {
     this.reaction,
   });
 
-  /// Returns a json representation of an instance of [Message].
+  /// Retorna uma representação JSON de uma instância de [Message].
   Map<String, dynamic> toJson() => {
         'message': text,
         'timestamp': timestamp,
-        'userId': sender, // O Smart Reply espera 'userId', mapeamos 'sender' para ele.
+        'userId': sender, // O Smart Reply nativo espera 'userId', mapeamos 'sender' para ele.
       };
 }
 
-/// Specifies the status of the smart reply result.
+/// Especifica o status do resultado da resposta inteligente.
 enum SmartReplySuggestionResultStatus {
   success,
   notSupportedLanguage,
   noReply,
 }
 
-/// An object that contains the smart reply suggestion results.
+/// Um objeto que contém os resultados da sugestão de resposta inteligente.
 class SmartReplySuggestionResult {
-  /// Status of the smart reply suggestions result.
+  /// Status dos resultados da sugestão de resposta inteligente.
   SmartReplySuggestionResultStatus status;
 
-  /// A list of the suggestions.
+  /// Uma lista das sugestões.
   List<String> suggestions;
 
-  /// Constructor to create an instance of [SmartReplySuggestionResult].
+  /// Construtor para criar uma instância de [SmartReplySuggestionResult].
   SmartReplySuggestionResult({required this.status, required this.suggestions});
 
-  /// Returns an instance of [SmartReplySuggestionResult] from a given [json].
+  /// Retorna uma instância de [SmartReplySuggestionResult] de um dado [json].
   factory SmartReplySuggestionResult.fromJson(Map<dynamic, dynamic> json) {
+    // Certifique-se de que 'status' é int antes de toInt()
     final status =
-        SmartReplySuggestionResultStatus.values[json['status'].toInt()];
+        SmartReplySuggestionResultStatus.values[json['status'] is int ? json['status'] : (json['status'] as double).toInt()];
     final suggestions = <String>[];
     if (status == SmartReplySuggestionResultStatus.success) {
       for (final dynamic line in json['suggestions']) {
@@ -123,9 +70,81 @@ class SmartReplySuggestionResult {
     return SmartReplySuggestionResult(status: status, suggestions: suggestions);
   }
 
-  /// Returns a json representation of an instance of [SmartReplySuggestionResult].
+  /// Retorna uma representação JSON de uma instância de [SmartReplySuggestionResult].
   Map<String, dynamic> toJson() => {
-        'status': status.name,
+        'status': status.index, // Use index para serializar para JSON
         'suggestions': suggestions,
       };
+}
+
+
+class SmartReply {
+  static const MethodChannel _channel =
+      MethodChannel('google_mlkit_smart_reply'); // Nome do canal
+
+  final List<Message> _conversation = [];
+
+  List<Message> get conversation => _conversation;
+
+  // Não use 'final id' aqui, pois ele será criado apenas uma vez.
+  // Geraremos um ID no invokeMethod ou faremos com que a instância nativa gerencie.
+  // Por enquanto, vamos passar o ID da conversa.
+
+  /// Adiciona uma [Message] à [conversation] para o usuário local.
+  void addMessageFromUser(String messageText, int timestamp) {
+    _conversation.add(Message(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      text: messageText,
+      timestamp: timestamp,
+      sender: 'user',
+      isUser: true,
+    ));
+    // Não precisa invocar canal aqui, será enviado em suggestReplies
+  }
+
+  /// Adiciona uma [Message] à [conversation] para um usuário remoto (chatbot).
+  void addMessageFromChatbot(String messageText, int timestamp) {
+    _conversation.add(Message(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      text: messageText,
+      timestamp: timestamp,
+      sender: 'bot',
+      isUser: false,
+    ));
+    // Não precisa invocar canal aqui, será enviado em suggestReplies
+  }
+
+  /// Limpa a [conversation].
+  void clearConversation() {
+    _conversation.clear();
+  }
+
+  /// Sugere possíveis respostas no contexto de uma conversa de chat.
+  Future<SmartReplySuggestionResult> suggestReplies() async {
+    if (_conversation.isEmpty) {
+      return SmartReplySuggestionResult(
+          status: SmartReplySuggestionResultStatus.noReply, suggestions: []);
+    }
+
+    try {
+      final result =
+          await _channel.invokeMethod('nlp#startSmartReply', <String, dynamic>{
+        // Não precisa de um 'id' global aqui se a API nativa não exigir
+        'conversation': _conversation.map((message) => message.toJson()).toList()
+      });
+
+      if (result == null) {
+        return SmartReplySuggestionResult(status: SmartReplySuggestionResultStatus.error, suggestions: []);
+      }
+
+      return SmartReplySuggestionResult.fromJson(result);
+    } on PlatformException catch (e) {
+      print("Failed to get smart replies via MethodChannel: ${e.message}");
+      return SmartReplySuggestionResult(status: SmartReplySuggestionResultStatus.error, suggestions: []);
+    }
+  }
+
+  /// Fecha os recursos subjacentes usados para inferência de resposta.
+  // O método close() geralmente não precisa do 'id' global se a instância for única
+  Future<void> close() => _channel.invokeMethod('nlp#closeSmartReply');
 }
