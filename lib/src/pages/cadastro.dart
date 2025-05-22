@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:planify/services/firebase_auth_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:convert';
 
 class CadastroPage extends StatefulWidget {
   const CadastroPage({super.key});
