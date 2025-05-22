@@ -246,7 +246,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               break;
             }
 
-            await _firestoreTasksService.deleteTask(taskId: taskIdToDelete!);
+            await _firestoreTasksService.deleteTask(taskId: taskIdToDelete);
             aiResponseText = "Tarefa deletada com sucesso do Firestore!";
             break;
 
@@ -391,7 +391,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       },
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: kDarkElementBg,
           shape: BoxShape.circle,
         ),
@@ -626,7 +626,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Text(
                     _formatTimestamp(
                         DateTime.fromMicrosecondsSinceEpoch(message.timestamp)),
-                    style: TextStyle(color: kDarkTextSecondary, fontSize: 12),
+                    style: const TextStyle(color: kDarkTextSecondary, fontSize: 12),
                   ),
                 ],
               ),
@@ -682,7 +682,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           child: Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: kDarkTextSecondary,
               shape: BoxShape.circle,
             ),

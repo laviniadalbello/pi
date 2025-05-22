@@ -18,7 +18,6 @@ import './src/pages/planner_diario.dart';
 import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
 
@@ -39,9 +38,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => Inicial(),
+        '/': (context) => const Inicial(),
         '/login': (context) => const LoginPage(),
-        '/cadastro': (context) => CadastroPage(),
+        '/cadastro': (context) => const CadastroPage(),
         '/settings': (context) => const SettingsPage(),
         '/planner': (context) => const PlannerDiarioPage(),
         '/perfil': (context) => const PerfilPage(),

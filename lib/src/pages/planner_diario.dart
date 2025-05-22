@@ -325,8 +325,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
               onPrimary: kDarkTextPrimary,
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
-            ),
-            dialogBackgroundColor: kDarkElementBg,
+            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -566,7 +565,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                             ),
                             child: _buildTimelineItemCard(item, context),
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                   ),
@@ -1058,7 +1057,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${item.startTime.format(context)}',
+                    item.startTime.format(context),
                     style: TextStyle(
                       color: kDarkTextSecondary,
                       fontSize: _getResponsiveSize(

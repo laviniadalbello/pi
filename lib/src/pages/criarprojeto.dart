@@ -27,7 +27,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   final _projectDueDateController = TextEditingController();
   final _memberEmailController = TextEditingController();
 
-  List<Map<String, String>> _teamMembers = [];
+  final List<Map<String, String>> _teamMembers = [];
 
   String? _selectedPriority = 'Média';
   Color _selectedProjectColor = kAccentPurple;
@@ -44,7 +44,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
 
-  List<String> _attachments = [];
+  final List<String> _attachments = [];
 
   @override
   void initState() {
@@ -93,10 +93,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             decoration: InputDecoration(
               hintText: 'E-mail do membro',
               hintStyle: TextStyle(color: kDarkTextSecondary.withOpacity(0.7)),
-              enabledBorder: UnderlineInputBorder(
+              enabledBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: kDarkTextSecondary),
               ),
-              focusedBorder: UnderlineInputBorder(
+              focusedBorder: const UnderlineInputBorder(
                 borderSide: BorderSide(color: kAccentPurple),
               ),
             ),
@@ -135,8 +135,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                   _memberEmailController.clear();
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
+                    const SnackBar(
+                      content: Text(
                         'Por favor, insira um e-mail válido.',
                         style: TextStyle(color: kDarkTextPrimary),
                       ),
@@ -167,10 +167,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
             ),
-            dialogBackgroundColor: kDarkElementBg,
             buttonTheme: const ButtonThemeData(
               textTheme: ButtonTextTheme.primary,
-            ),
+            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -193,12 +192,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
       print("Nome do Projeto: ${_projectNameController.text}");
       print("Descrição: ${_projectDescriptionController.text}");
       print("Data de Entrega: ${_projectDueDateController.text}");
-      print("Membros: ${_teamMembers}");
+      print("Membros: $_teamMembers");
       print("Prioridade: $_selectedPriority");
       print("Cor: $_selectedProjectColor");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
+        const SnackBar(
+          content: Text(
             'Projeto criado com sucesso! (Simulação)',
             style: TextStyle(color: kDarkTextPrimary),
           ),
@@ -481,7 +480,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             child: _buildAddMemberButton(),
           ),
           // Lista de membros existentes
-          ..._teamMembers.map((member) => _buildMemberAvatar(member)).toList(),
+          ..._teamMembers.map((member) => _buildMemberAvatar(member)),
         ],
       ),
     );
@@ -597,12 +596,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           primary: kAccentPurple,
           secondary: kAccentSecondary,
           surface: kDarkSurface,
-          background: kDarkPrimaryBg,
           error: Colors.redAccent,
           onPrimary: kDarkTextPrimary,
           onSecondary: kDarkTextPrimary,
           onSurface: kDarkTextPrimary,
-          onBackground: kDarkTextPrimary,
           onError: kDarkTextPrimary,
         ),
         appBarTheme: const AppBarTheme(
@@ -662,8 +659,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
         ),
         textSelectionTheme: const TextSelectionThemeData(
           cursorColor: kAccentPurple,
-        ),
-        dialogBackgroundColor: kDarkElementBg,
+        ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
       ),
       child: Scaffold(
         key: _scaffoldKey,

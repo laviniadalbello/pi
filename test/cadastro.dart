@@ -15,7 +15,7 @@ void main() {
 
     setUp(() {
       mockHttpClient = MockHttpClient();
-      cadastroPage = CadastroPage(); 
+      cadastroPage = const CadastroPage(); 
     });
 
     testWidgets('Valida a tela de cadastro com dados válidos', (WidgetTester tester) async {

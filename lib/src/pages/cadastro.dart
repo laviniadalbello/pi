@@ -147,7 +147,7 @@ class _CadastroPageState extends State<CadastroPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AnimatedCheckbox(),
+                  const AnimatedCheckbox(),
                   const SizedBox(width: 20),
                   GestureDetector(
                     onTap: () {},
@@ -182,11 +182,11 @@ class _CadastroPageState extends State<CadastroPage> {
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
                   ).copyWith(
-                    backgroundColor: MaterialStateProperty.resolveWith(
+                    backgroundColor: WidgetStateProperty.resolveWith(
                       (states) => Colors.transparent,
                     ),
-                    elevation: MaterialStateProperty.all(0),
-                    foregroundColor: MaterialStateProperty.all(Colors.white),
+                    elevation: WidgetStateProperty.all(0),
+                    foregroundColor: WidgetStateProperty.all(Colors.white),
                   ),
                   child: Ink(
                     decoration: BoxDecoration(
@@ -393,6 +393,8 @@ Future<void> submitRegistration(
 }
 
 class AnimatedCheckbox extends StatefulWidget {
+  const AnimatedCheckbox({super.key});
+
   @override
   _AnimatedCheckboxState createState() => _AnimatedCheckboxState();
 }

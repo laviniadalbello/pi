@@ -50,7 +50,7 @@ class _AddTaskPageState extends State<AddTaskPage>
     'Projeto Gamma',
   ]; // ADICIONADO
   Color _selectedTaskColor = kAccentPurple;
-  List<String> _attachments = [];
+  final List<String> _attachments = [];
   String? _selectedBoard = 'Running';
 
   final List<Color> _availableTaskColors = [
@@ -106,8 +106,7 @@ class _AddTaskPageState extends State<AddTaskPage>
               onPrimary: kDarkTextPrimary,
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
-            ),
-            dialogBackgroundColor: kDarkElementBg,
+            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -151,8 +150,7 @@ class _AddTaskPageState extends State<AddTaskPage>
               onPrimary: kDarkTextPrimary,
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
-            ),
-            dialogBackgroundColor: kDarkElementBg,
+            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -190,7 +188,7 @@ class _AddTaskPageState extends State<AddTaskPage>
       print("Attachments: $_attachments");
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text(
             'Tarefa salva com sucesso!',
             style: TextStyle(color: kDarkTextPrimary),

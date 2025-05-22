@@ -294,7 +294,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     const Color.fromARGB(255, 243, 33, 208),
                   ], 0),
                   _animatedCircle(350, 130, 4, [
-                    Color.fromARGB(164, 180, 34, 238),
+                    const Color.fromARGB(164, 180, 34, 238),
                     Colors.deepPurpleAccent,
                   ], 1),
                   _animatedCircle(180, 150, 5, [
@@ -306,11 +306,11 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     const Color.fromARGB(255, 149, 226, 4),
                   ], 3),
                   _animatedCircle(370, 150, 8, [
-                    Color.fromARGB(173, 36, 17, 204),
+                    const Color.fromARGB(173, 36, 17, 204),
                     const Color.fromARGB(255, 218, 20, 20),
                   ], 4),
                   _animatedCircle(100, 120, 6, [
-                    Color.fromARGB(255, 222, 87, 240),
+                    const Color.fromARGB(255, 222, 87, 240),
                     const Color.fromARGB(255, 27, 112, 1),
                   ], 5),
                 ],
@@ -392,7 +392,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
       children: [
         Stack(
           children: [
-            CircleAvatar(
+            const CircleAvatar(
               radius: 50,
               backgroundColor: kDarkElementBg,
               child: Icon(Icons.person, color: kAccentPurple, size: 50),
@@ -435,7 +435,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
 
         Text(
           _userHandle,
-          style: TextStyle(color: kDarkTextSecondary, fontSize: 16),
+          style: const TextStyle(color: kDarkTextSecondary, fontSize: 16),
         ),
         const SizedBox(height: 8),
 
@@ -454,7 +454,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
             _showEditProfileDialog();
           },
           style: OutlinedButton.styleFrom(
-            side: BorderSide(color: kAccentPurple),
+            side: const BorderSide(color: kAccentPurple),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
@@ -493,7 +493,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                   const SizedBox(height: 4),
                   Text(
                     stat["label"],
-                    style: TextStyle(color: kDarkTextSecondary, fontSize: 14),
+                    style: const TextStyle(color: kDarkTextSecondary, fontSize: 14),
                   ),
                 ],
               );
@@ -506,10 +506,10 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Atividades Recentes',
               style: TextStyle(
                 color: kDarkTextPrimary,
@@ -546,7 +546,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 'Suas atividades recentes aparecerão aqui',
                 style: TextStyle(color: kDarkTextSecondary, fontSize: 14),
                 textAlign: TextAlign.center,
@@ -650,7 +650,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                   TextField(
                     controller: nameController,
                     style: const TextStyle(color: kDarkTextPrimary),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Nome',
                       labelStyle: TextStyle(color: kDarkTextSecondary),
                       enabledBorder: UnderlineInputBorder(
@@ -665,7 +665,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                   TextField(
                     controller: handleController,
                     style: const TextStyle(color: kDarkTextPrimary),
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Nome de usuário',
                       labelStyle: TextStyle(color: kDarkTextSecondary),
                       enabledBorder: UnderlineInputBorder(
@@ -681,7 +681,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     controller: bioController,
                     style: const TextStyle(color: kDarkTextPrimary),
                     maxLines: 3,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       labelText: 'Bio',
                       alignLabelWithHint: true,
                       labelStyle: TextStyle(color: kDarkTextSecondary),
@@ -699,7 +699,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
+                child: const Text(
                   'Cancelar',
                   style: TextStyle(color: kDarkTextSecondary),
                 ),
@@ -708,7 +708,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                 onPressed: () {
                   //  lógica para salvar as alterações
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text(
                         'Perfil atualizado com sucesso!',
                         style: TextStyle(color: kDarkTextPrimary),
@@ -719,7 +719,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: kAccentPurple),
-                child: Text(
+                child: const Text(
                   'Salvar',
                   style: TextStyle(color: kDarkTextPrimary),
                 ),
@@ -764,7 +764,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     Navigator.pop(context);
                     // Lógica para escolher da galeria
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'Foto de perfil atualizada!',
                           style: TextStyle(color: kDarkTextPrimary),
@@ -784,7 +784,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     Navigator.pop(context);
                     // Lógica para tirar foto, pode remoevr essa parte
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'Foto de perfil atualizada!',
                           style: TextStyle(color: kDarkTextPrimary),
@@ -804,7 +804,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     Navigator.pop(context);
                     // Lógica para remover foto
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'Foto de perfil removida!',
                           style: TextStyle(color: kDarkTextPrimary),
@@ -852,7 +852,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     Navigator.pop(context);
                     // Lógica para compartilhar perfil
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'Link do perfil copiado para a área de transferência!',
                           style: TextStyle(color: kDarkTextPrimary),
@@ -872,7 +872,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                     Navigator.pop(context);
                     // Lógica para exportar dados
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text(
                           'Dados exportados com sucesso!',
                           style: TextStyle(color: kDarkTextPrimary),
@@ -917,7 +917,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(
+                child: const Text(
                   'Cancelar',
                   style: TextStyle(color: kDarkTextSecondary),
                 ),
@@ -927,7 +927,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                   Navigator.pop(context);
                   // Lógica para fazer logout
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
+                    const SnackBar(
                       content: Text(
                         'Logout realizado com sucesso!',
                         style: TextStyle(color: kDarkTextPrimary),
@@ -939,7 +939,7 @@ class _PerfilvazioPageState extends State<PerfilvazioPage>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.redAccent,
                 ),
-                child: Text('Sair', style: TextStyle(color: kDarkTextPrimary)),
+                child: const Text('Sair', style: TextStyle(color: kDarkTextPrimary)),
               ),
             ],
           ),

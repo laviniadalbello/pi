@@ -558,7 +558,7 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
           onPressed: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CreateEventPage()),
+              MaterialPageRoute(builder: (context) => const CreateEventPage()),
             ).then((newEventAdded) {
               if (newEventAdded != null) {
                 _loadSampleEvents();
@@ -616,8 +616,7 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
                         onPrimary: kDarkTextPrimary,
                         surface: kDarkSurface,
                         onSurface: kDarkTextPrimary,
-                      ),
-                      dialogBackgroundColor: kDarkElementBg,
+                      ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
                     ),
                     child: child!,
                   );

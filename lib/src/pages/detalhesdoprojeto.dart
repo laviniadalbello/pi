@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
 
@@ -56,7 +55,7 @@ class TrelloTask {
 }
 
 class Detalhesdoprojeto extends StatefulWidget {
-  const Detalhesdoprojeto({Key? key}) : super(key: key);
+  const Detalhesdoprojeto({super.key});
 
   @override
   State<Detalhesdoprojeto> createState() => _DetalhesdoprojetoState();
@@ -166,12 +165,12 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       final cardIndex = cards.indexWhere((card) => card.id == cardId);
       if (cardIndex != -1) {
         cards[cardIndex].tasks.add(
-          TrelloTask(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            title: _newTaskController.text.trim(),
-            isDetailed: false,
-          ),
-        );
+              TrelloTask(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
+                title: _newTaskController.text.trim(),
+                isDetailed: false,
+              ),
+            );
       }
     });
     _newTaskController.clear();
@@ -227,8 +226,8 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       final cardIndex = cards.indexWhere((card) => card.id == cardId);
       if (cardIndex != -1) {
         final taskIndex = cards[cardIndex].tasks.indexWhere(
-          (task) => task.id == taskId,
-        );
+              (task) => task.id == taskId,
+            );
         if (taskIndex != -1) {
           cards[cardIndex].tasks[taskIndex].isCompleted =
               !cards[cardIndex].tasks[taskIndex].isCompleted;
@@ -253,8 +252,8 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       final cardIndex = cards.indexWhere((card) => card.id == cardId);
       if (cardIndex != -1) {
         final taskIndex = cards[cardIndex].tasks.indexWhere(
-          (task) => task.id == taskId,
-        );
+              (task) => task.id == taskId,
+            );
         if (taskIndex != -1) {
           cards[cardIndex].tasks[taskIndex].title =
               _editTaskTitleController.text.trim();
@@ -273,8 +272,8 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       final cardIndex = cards.indexWhere((card) => card.id == cardId);
       if (cardIndex != -1) {
         final taskIndex = cards[cardIndex].tasks.indexWhere(
-          (task) => task.id == taskId,
-        );
+              (task) => task.id == taskId,
+            );
         if (taskIndex != -1) {
           cards[cardIndex].tasks[taskIndex].title =
               _editTaskTitleController.text.trim();
@@ -319,8 +318,8 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       if (sourceCardIndex == -1) return;
 
       final taskIndex = cards[sourceCardIndex].tasks.indexWhere(
-        (task) => task.id == taskId,
-      );
+            (task) => task.id == taskId,
+          );
       if (taskIndex == -1) return;
 
       final task = cards[sourceCardIndex].tasks[taskIndex];
@@ -354,39 +353,38 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
   void _showAddTaskDialog(String cardId) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: kDarkElementBg,
-            title: const Text(
-              'Adicionar Tarefa',
-              style: TextStyle(color: kDarkTextPrimary),
-            ),
-            content: TextField(
-              controller: _newTaskController,
-              style: const TextStyle(color: kDarkTextPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Nome da tarefa',
-                hintStyle: TextStyle(color: kDarkTextSecondary),
-              ),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(color: kDarkTextSecondary),
-                ),
-              ),
-              TextButton(
-                onPressed: () => _addTask(cardId),
-                child: const Text(
-                  'Adicionar',
-                  style: TextStyle(color: kAccentPurple),
-                ),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: kDarkElementBg,
+        title: const Text(
+          'Adicionar Tarefa',
+          style: TextStyle(color: kDarkTextPrimary),
+        ),
+        content: TextField(
+          controller: _newTaskController,
+          style: const TextStyle(color: kDarkTextPrimary),
+          decoration: const InputDecoration(
+            hintText: 'Nome da tarefa',
+            hintStyle: TextStyle(color: kDarkTextSecondary),
           ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: kDarkTextSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => _addTask(cardId),
+            child: const Text(
+              'Adicionar',
+              style: TextStyle(color: kAccentPurple),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -394,78 +392,76 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
     _renameCardController.text = card.title;
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: kDarkElementBg,
-            title: const Text(
-              'Renomear Cartão',
-              style: TextStyle(color: kDarkTextPrimary),
-            ),
-            content: TextField(
-              controller: _renameCardController,
-              style: const TextStyle(color: kDarkTextPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Nome do cartão',
-                hintStyle: TextStyle(color: kDarkTextSecondary),
-              ),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(color: kDarkTextSecondary),
-                ),
-              ),
-              TextButton(
-                onPressed: () => _renameCard(card.id),
-                child: const Text(
-                  'Renomear',
-                  style: TextStyle(color: kAccentPurple),
-                ),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: kDarkElementBg,
+        title: const Text(
+          'Renomear Cartão',
+          style: TextStyle(color: kDarkTextPrimary),
+        ),
+        content: TextField(
+          controller: _renameCardController,
+          style: const TextStyle(color: kDarkTextPrimary),
+          decoration: const InputDecoration(
+            hintText: 'Nome do cartão',
+            hintStyle: TextStyle(color: kDarkTextSecondary),
           ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: kDarkTextSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => _renameCard(card.id),
+            child: const Text(
+              'Renomear',
+              style: TextStyle(color: kAccentPurple),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   void _showAddCardDialog() {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: kDarkElementBg,
-            title: const Text(
-              'Adicionar Cartão',
-              style: TextStyle(color: kDarkTextPrimary),
-            ),
-            content: TextField(
-              controller: _newCardController,
-              style: const TextStyle(color: kDarkTextPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Nome do cartão',
-                hintStyle: TextStyle(color: kDarkTextSecondary),
-              ),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(color: kDarkTextSecondary),
-                ),
-              ),
-              TextButton(
-                onPressed: _addCard,
-                child: const Text(
-                  'Adicionar',
-                  style: TextStyle(color: kAccentPurple),
-                ),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: kDarkElementBg,
+        title: const Text(
+          'Adicionar Cartão',
+          style: TextStyle(color: kDarkTextPrimary),
+        ),
+        content: TextField(
+          controller: _newCardController,
+          style: const TextStyle(color: kDarkTextPrimary),
+          decoration: const InputDecoration(
+            hintText: 'Nome do cartão',
+            hintStyle: TextStyle(color: kDarkTextSecondary),
           ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: kDarkTextSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: _addCard,
+            child: const Text(
+              'Adicionar',
+              style: TextStyle(color: kAccentPurple),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -473,39 +469,38 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
     _editTaskTitleController.text = task.title;
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: kDarkElementBg,
-            title: const Text(
-              'Editar Tarefa',
-              style: TextStyle(color: kDarkTextPrimary),
-            ),
-            content: TextField(
-              controller: _editTaskTitleController,
-              style: const TextStyle(color: kDarkTextPrimary),
-              decoration: const InputDecoration(
-                hintText: 'Nome da tarefa',
-                hintStyle: TextStyle(color: kDarkTextSecondary),
-              ),
-              autofocus: true,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Cancelar',
-                  style: TextStyle(color: kDarkTextSecondary),
-                ),
-              ),
-              TextButton(
-                onPressed: () => _editSimpleTask(cardId, task.id),
-                child: const Text(
-                  'Salvar',
-                  style: TextStyle(color: kAccentPurple),
-                ),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: kDarkElementBg,
+        title: const Text(
+          'Editar Tarefa',
+          style: TextStyle(color: kDarkTextPrimary),
+        ),
+        content: TextField(
+          controller: _editTaskTitleController,
+          style: const TextStyle(color: kDarkTextPrimary),
+          decoration: const InputDecoration(
+            hintText: 'Nome da tarefa',
+            hintStyle: TextStyle(color: kDarkTextSecondary),
           ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Cancelar',
+              style: TextStyle(color: kDarkTextSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () => _editSimpleTask(cardId, task.id),
+            child: const Text(
+              'Salvar',
+              style: TextStyle(color: kAccentPurple),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -532,10 +527,9 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       if (durationMinutes > 0) {
         final hours = durationMinutes ~/ 60;
         final minutes = durationMinutes % 60;
-        _durationController.text =
-            hours > 0
-                ? '$hours h ${minutes > 0 ? '$minutes min' : ''}'
-                : '$minutes min';
+        _durationController.text = hours > 0
+            ? '$hours h ${minutes > 0 ? '$minutes min' : ''}'
+            : '$minutes min';
       }
     }
 
@@ -569,9 +563,9 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                 // Cabeçalho do diálogo
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: kDarkSurface,
-                    borderRadius: const BorderRadius.vertical(
+                    borderRadius: BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
                   ),
@@ -700,8 +694,8 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                                     ),
                                     readOnly: true,
                                     onTap: () async {
-                                      final TimeOfDay?
-                                      picked = await showTimePicker(
+                                      final TimeOfDay? picked =
+                                          await showTimePicker(
                                         context: context,
                                         initialTime:
                                             task.startTime ?? TimeOfDay.now(),
@@ -710,11 +704,11 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                                             data: ThemeData.dark().copyWith(
                                               colorScheme:
                                                   const ColorScheme.dark(
-                                                    primary: kAccentPurple,
-                                                    onPrimary: kDarkTextPrimary,
-                                                    surface: kDarkSurface,
-                                                    onSurface: kDarkTextPrimary,
-                                                  ),
+                                                primary: kAccentPurple,
+                                                onPrimary: kDarkTextPrimary,
+                                                surface: kDarkSurface,
+                                                onSurface: kDarkTextPrimary,
+                                              ),
                                             ),
                                             child: child!,
                                           );
@@ -769,8 +763,8 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                                     ),
                                     readOnly: true,
                                     onTap: () async {
-                                      final TimeOfDay?
-                                      picked = await showTimePicker(
+                                      final TimeOfDay? picked =
+                                          await showTimePicker(
                                         context: context,
                                         initialTime:
                                             task.endTime ?? TimeOfDay.now(),
@@ -779,11 +773,11 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                                             data: ThemeData.dark().copyWith(
                                               colorScheme:
                                                   const ColorScheme.dark(
-                                                    primary: kAccentPurple,
-                                                    onPrimary: kDarkTextPrimary,
-                                                    surface: kDarkSurface,
-                                                    onSurface: kDarkTextPrimary,
-                                                  ),
+                                                primary: kAccentPurple,
+                                                onPrimary: kDarkTextPrimary,
+                                                surface: kDarkSurface,
+                                                onSurface: kDarkTextPrimary,
+                                              ),
                                             ),
                                             child: child!,
                                           );
@@ -863,13 +857,12 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                                 Icons.arrow_drop_down,
                                 color: kDarkTextSecondary,
                               ),
-                              items:
-                                  priorities.map((String priority) {
-                                    return DropdownMenuItem<String>(
-                                      value: priority,
-                                      child: Text(priority),
-                                    );
-                                  }).toList(),
+                              items: priorities.map((String priority) {
+                                return DropdownMenuItem<String>(
+                                  value: priority,
+                                  child: Text(priority),
+                                );
+                              }).toList(),
                               onChanged: (String? newValue) {
                                 setState(() {
                                   _selectedPriority = newValue;
@@ -911,13 +904,12 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                                 Icons.arrow_drop_down,
                                 color: kDarkTextSecondary,
                               ),
-                              items:
-                                  statuses.map((String status) {
-                                    return DropdownMenuItem<String>(
-                                      value: status,
-                                      child: Text(status),
-                                    );
-                                  }).toList(),
+                              items: statuses.map((String status) {
+                                return DropdownMenuItem<String>(
+                                  value: status,
+                                  child: Text(status),
+                                );
+                              }).toList(),
                               onChanged: (String? newValue) {
                                 setState(() {
                                   _selectedStatus = newValue;
@@ -941,29 +933,27 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            ..._selectedMembers
-                                .map(
-                                  (member) => Chip(
-                                    backgroundColor: kDarkSurface,
-                                    label: Text(
-                                      member,
-                                      style: const TextStyle(
-                                        color: kDarkTextPrimary,
-                                      ),
-                                    ),
-                                    deleteIcon: const Icon(
-                                      Icons.close,
-                                      size: 18,
-                                      color: kDarkTextSecondary,
-                                    ),
-                                    onDeleted: () {
-                                      setState(() {
-                                        _selectedMembers.remove(member);
-                                      });
-                                    },
+                            ..._selectedMembers.map(
+                              (member) => Chip(
+                                backgroundColor: kDarkSurface,
+                                label: Text(
+                                  member,
+                                  style: const TextStyle(
+                                    color: kDarkTextPrimary,
                                   ),
-                                )
-                                .toList(),
+                                ),
+                                deleteIcon: const Icon(
+                                  Icons.close,
+                                  size: 18,
+                                  color: kDarkTextSecondary,
+                                ),
+                                onDeleted: () {
+                                  setState(() {
+                                    _selectedMembers.remove(member);
+                                  });
+                                },
+                              ),
+                            ),
                             ActionChip(
                               backgroundColor: kDarkSurface,
                               label: const Icon(
@@ -1002,36 +992,34 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              ...task.attachments!
-                                  .map(
-                                    (attachment) => Chip(
-                                      backgroundColor: kDarkSurface,
-                                      avatar: const Icon(
-                                        Icons.attach_file,
-                                        size: 18,
-                                        color: kDarkTextSecondary,
-                                      ),
-                                      label: Text(
-                                        attachment,
-                                        style: const TextStyle(
-                                          color: kDarkTextPrimary,
-                                        ),
-                                      ),
-                                      deleteIcon: const Icon(
-                                        Icons.close,
-                                        size: 18,
-                                        color: kDarkTextSecondary,
-                                      ),
-                                      onDeleted: () {
-                                        setState(() {
-                                          _selectedAttachments.remove(
-                                            attachment,
-                                          );
-                                        });
-                                      },
+                              ...task.attachments!.map(
+                                (attachment) => Chip(
+                                  backgroundColor: kDarkSurface,
+                                  avatar: const Icon(
+                                    Icons.attach_file,
+                                    size: 18,
+                                    color: kDarkTextSecondary,
+                                  ),
+                                  label: Text(
+                                    attachment,
+                                    style: const TextStyle(
+                                      color: kDarkTextPrimary,
                                     ),
-                                  )
-                                  .toList(),
+                                  ),
+                                  deleteIcon: const Icon(
+                                    Icons.close,
+                                    size: 18,
+                                    color: kDarkTextSecondary,
+                                  ),
+                                  onDeleted: () {
+                                    setState(() {
+                                      _selectedAttachments.remove(
+                                        attachment,
+                                      );
+                                    });
+                                  },
+                                ),
+                              ),
                               ActionChip(
                                 backgroundColor: kDarkSurface,
                                 avatar: const Icon(
@@ -1111,95 +1099,93 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
   void _showTaskDetailsDialog(String cardId, TrelloTask task) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: kDarkElementBg,
-            title: Text(
-              task.title,
-              style: const TextStyle(color: kDarkTextPrimary),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (task.dueDate != null) ...[
-                  const Text(
-                    'Data de Entrega:',
-                    style: TextStyle(
-                      color: kDarkTextSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year}',
-                    style: const TextStyle(color: kDarkTextPrimary),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                if (task.members.isNotEmpty) ...[
-                  const Text(
-                    'Membros:',
-                    style: TextStyle(
-                      color: kDarkTextSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Wrap(
-                    spacing: 8,
-                    children:
-                        task.members
-                            .map(
-                              (member) => Chip(
-                                backgroundColor: kDarkSurface,
-                                label: Text(
-                                  member,
-                                  style: const TextStyle(
-                                    color: kDarkTextPrimary,
-                                  ),
-                                ),
-                                avatar: CircleAvatar(
-                                  backgroundColor: kAccentPurple,
-                                  child: Text(
-                                    member[0].toUpperCase(),
-                                    style: const TextStyle(
-                                      color: kDarkTextPrimary,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ],
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Fechar',
-                  style: TextStyle(color: kDarkTextSecondary),
+      builder: (context) => AlertDialog(
+        backgroundColor: kDarkElementBg,
+        title: Text(
+          task.title,
+          style: const TextStyle(color: kDarkTextPrimary),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (task.dueDate != null) ...[
+              const Text(
+                'Data de Entrega:',
+                style: TextStyle(
+                  color: kDarkTextSecondary,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  if (task.isDetailed) {
-                    _showDetailedEditTaskDialog(cardId, task);
-                  } else {
-                    _showSimpleEditTaskDialog(cardId, task);
-                  }
-                },
-                child: const Text(
-                  'Editar',
-                  style: TextStyle(color: kAccentPurple),
+              const SizedBox(height: 4),
+              Text(
+                '${task.dueDate!.day}/${task.dueDate!.month}/${task.dueDate!.year}',
+                style: const TextStyle(color: kDarkTextPrimary),
+              ),
+              const SizedBox(height: 12),
+            ],
+            if (task.members.isNotEmpty) ...[
+              const Text(
+                'Membros:',
+                style: TextStyle(
+                  color: kDarkTextSecondary,
+                  fontWeight: FontWeight.bold,
                 ),
+              ),
+              const SizedBox(height: 4),
+              Wrap(
+                spacing: 8,
+                children: task.members
+                    .map(
+                      (member) => Chip(
+                        backgroundColor: kDarkSurface,
+                        label: Text(
+                          member,
+                          style: const TextStyle(
+                            color: kDarkTextPrimary,
+                          ),
+                        ),
+                        avatar: CircleAvatar(
+                          backgroundColor: kAccentPurple,
+                          child: Text(
+                            member[0].toUpperCase(),
+                            style: const TextStyle(
+                              color: kDarkTextPrimary,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Fechar',
+              style: TextStyle(color: kDarkTextSecondary),
+            ),
           ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (task.isDetailed) {
+                _showDetailedEditTaskDialog(cardId, task);
+              } else {
+                _showSimpleEditTaskDialog(cardId, task);
+              }
+            },
+            child: const Text(
+              'Editar',
+              style: TextStyle(color: kAccentPurple),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1210,61 +1196,60 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder:
-          (context) => SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.add, color: kDarkTextSecondary),
-                  title: const Text(
-                    'Adicionar Tarefa',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showAddTaskDialog(card.id);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(
-                    Icons.add_task,
-                    color: kDarkTextSecondary,
-                  ),
-                  title: const Text(
-                    'Adicionar Tarefa Detalhada',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _navigateToAddTaskPage(card.id);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.edit, color: kDarkTextSecondary),
-                  title: const Text(
-                    'Renomear Cartão',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _showRenameCardDialog(card);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.redAccent),
-                  title: const Text(
-                    'Excluir Cartão',
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
-                  onTap: () {
-                    Navigator.pop(context);
-                    _deleteCard(card.id);
-                  },
-                ),
-              ],
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.add, color: kDarkTextSecondary),
+              title: const Text(
+                'Adicionar Tarefa',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showAddTaskDialog(card.id);
+              },
             ),
-          ),
+            ListTile(
+              leading: const Icon(
+                Icons.add_task,
+                color: kDarkTextSecondary,
+              ),
+              title: const Text(
+                'Adicionar Tarefa Detalhada',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToAddTaskPage(card.id);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit, color: kDarkTextSecondary),
+              title: const Text(
+                'Renomear Cartão',
+                style: TextStyle(color: kDarkTextPrimary),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showRenameCardDialog(card);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.redAccent),
+              title: const Text(
+                'Excluir Cartão',
+                style: TextStyle(color: Colors.redAccent),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _deleteCard(card.id);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1273,26 +1258,25 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
     String cardId,
     TrelloTask task,
   ) {
-    final List<Widget> moveOptions =
-        cards
-            .where((card) => card.id != cardId)
-            .map(
-              (card) => ListTile(
-                leading: const Icon(
-                  Icons.arrow_forward,
-                  color: kDarkTextSecondary,
-                ),
-                title: Text(
-                  'Mover para ${card.title}',
-                  style: const TextStyle(color: kDarkTextPrimary),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _moveTaskToCard(cardId, task.id, card.id);
-                },
-              ),
-            )
-            .toList();
+    final List<Widget> moveOptions = cards
+        .where((card) => card.id != cardId)
+        .map(
+          (card) => ListTile(
+            leading: const Icon(
+              Icons.arrow_forward,
+              color: kDarkTextSecondary,
+            ),
+            title: Text(
+              'Mover para ${card.title}',
+              style: const TextStyle(color: kDarkTextPrimary),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              _moveTaskToCard(cardId, task.id, card.id);
+            },
+          ),
+        )
+        .toList();
 
     showModalBottomSheet(
       context: context,
@@ -1300,120 +1284,119 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder:
-          (context) => SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ListTile(
-                    leading: const Icon(
-                      Icons.visibility,
-                      color: kDarkTextSecondary,
-                    ),
-                    title: const Text(
-                      'Abrir Cartão',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _showTaskDetailsDialog(cardId, task);
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.edit, color: kDarkTextSecondary),
-                    title: const Text(
-                      'Editar Tarefa',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      // Abrir o diálogo de edição apropriado com base no tipo de tarefa
-                      if (task.isDetailed) {
-                        _showDetailedEditTaskDialog(cardId, task);
-                      } else {
-                        _showSimpleEditTaskDialog(cardId, task);
-                      }
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.person_add,
-                      color: kDarkTextSecondary,
-                    ),
-                    title: const Text(
-                      'Alterar Membros',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      // Implementação simplificada - apenas mostra um snackbar
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Funcionalidade de alterar membros simulada',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(
-                      Icons.calendar_today,
-                      color: kDarkTextSecondary,
-                    ),
-                    title: const Text(
-                      'Editar Data',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      // Implementação simplificada - apenas mostra um snackbar
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Funcionalidade de editar data simulada',
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  if (moveOptions.isNotEmpty) ...[
-                    const Divider(color: kDarkBorder),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          'Mover para',
-                          style: TextStyle(
-                            color: kDarkTextSecondary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    ...moveOptions,
-                  ],
-                  const Divider(color: kDarkBorder),
-                  ListTile(
-                    leading: const Icon(Icons.delete, color: Colors.redAccent),
-                    title: const Text(
-                      'Excluir Tarefa',
-                      style: TextStyle(color: Colors.redAccent),
-                    ),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _deleteTask(cardId, task.id);
-                    },
-                  ),
-                ],
+      builder: (context) => SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(
+                  Icons.visibility,
+                  color: kDarkTextSecondary,
+                ),
+                title: const Text(
+                  'Abrir Cartão',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showTaskDetailsDialog(cardId, task);
+                },
               ),
-            ),
+              ListTile(
+                leading: const Icon(Icons.edit, color: kDarkTextSecondary),
+                title: const Text(
+                  'Editar Tarefa',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Abrir o diálogo de edição apropriado com base no tipo de tarefa
+                  if (task.isDetailed) {
+                    _showDetailedEditTaskDialog(cardId, task);
+                  } else {
+                    _showSimpleEditTaskDialog(cardId, task);
+                  }
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.person_add,
+                  color: kDarkTextSecondary,
+                ),
+                title: const Text(
+                  'Alterar Membros',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Implementação simplificada - apenas mostra um snackbar
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Funcionalidade de alterar membros simulada',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.calendar_today,
+                  color: kDarkTextSecondary,
+                ),
+                title: const Text(
+                  'Editar Data',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  // Implementação simplificada - apenas mostra um snackbar
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Funcionalidade de editar data simulada',
+                      ),
+                    ),
+                  );
+                },
+              ),
+              if (moveOptions.isNotEmpty) ...[
+                const Divider(color: kDarkBorder),
+                const Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Mover para',
+                      style: TextStyle(
+                        color: kDarkTextSecondary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                ...moveOptions,
+              ],
+              const Divider(color: kDarkBorder),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.redAccent),
+                title: const Text(
+                  'Excluir Tarefa',
+                  style: TextStyle(color: Colors.redAccent),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _deleteTask(cardId, task.id);
+                },
+              ),
+            ],
           ),
+        ),
+      ),
     );
   }
 
@@ -1427,12 +1410,10 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
           primary: kAccentPurple,
           secondary: kAccentSecondary,
           surface: kDarkSurface,
-          background: kDarkPrimaryBg,
           error: Colors.redAccent,
           onPrimary: kDarkTextPrimary,
           onSecondary: kDarkTextPrimary,
           onSurface: kDarkTextPrimary,
-          onBackground: kDarkTextPrimary,
           onError: kDarkTextPrimary,
         ),
       ),
@@ -1456,60 +1437,59 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
             ),
           ],
         ),
-
         floatingActionButton: FloatingActionButton(
           backgroundColor: kAccentPurple,
-          child: const Icon(Icons.add, color: kDarkTextPrimary),
           onPressed: _showAddCardDialog,
+          child: const Icon(Icons.add, color: kDarkTextPrimary),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
         body: Stack(
           children: [
             cards.isEmpty
                 ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.view_kanban,
-                        size: 64,
-                        color: kDarkTextSecondary,
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Nenhum cartão criado',
-                        style: TextStyle(color: kDarkTextPrimary, fontSize: 18),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Toque no botão + para adicionar um cartão',
-                        style: TextStyle(color: kDarkTextSecondary),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: _showAddCardDialog,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kAccentPurple,
-                          foregroundColor: kDarkTextPrimary,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.view_kanban,
+                          size: 64,
+                          color: kDarkTextSecondary,
                         ),
-                        child: const Text('Adicionar Cartão'),
-                      ),
-                    ],
-                  ),
-                )
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Nenhum cartão criado',
+                          style:
+                              TextStyle(color: kDarkTextPrimary, fontSize: 18),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Toque no botão + para adicionar um cartão',
+                          style: TextStyle(color: kDarkTextSecondary),
+                        ),
+                        const SizedBox(height: 24),
+                        ElevatedButton(
+                          onPressed: _showAddCardDialog,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kAccentPurple,
+                            foregroundColor: kDarkTextPrimary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: const Text('Adicionar Cartão'),
+                        ),
+                      ],
+                    ),
+                  )
                 : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: cards.length,
-                  itemBuilder: (context, index) {
-                    final card = cards[index];
-                    return _buildCardWidget(card);
-                  },
-                ),
-
+                    padding: const EdgeInsets.all(16),
+                    itemCount: cards.length,
+                    itemBuilder: (context, index) {
+                      final card = cards[index];
+                      return _buildCardWidget(card);
+                    },
+                  ),
             Positioned(
               bottom: -26,
               right: -60,
@@ -1547,7 +1527,7 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                   top: Radius.circular(11),
                 ),
                 border: Border(
-                  bottom: BorderSide(color: kDarkBorder),
+                  bottom: const BorderSide(color: kDarkBorder),
                   left: BorderSide(color: card.color, width: 4),
                 ),
               ),
@@ -1585,7 +1565,6 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                     fontSize: 14,
                   ),
                 ),
-
                 IconButton(
                   icon: const Icon(Icons.more_vert, color: kDarkTextSecondary),
                   onPressed: () => _showCardOptionsMenu(context, card),
@@ -1689,13 +1668,14 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
       ),
 
       child: DragTarget<Map<String, String>>(
-        onWillAccept: (data) {
+        onWillAcceptWithDetails: (details) {
           // Aceita apenas se for de outro cartão
-          return data != null && data['cardId'] != cardId;
+          return details.data['cardId'] != cardId;
         },
-        onAccept: (data) {
+        onAcceptWithDetails: (details) {
           // Move a tarefa para este cartão
-          _moveTaskToCard(data['cardId']!, data['taskId']!, cardId);
+          _moveTaskToCard(
+              details.data['cardId']!, details.data['taskId']!, cardId);
         },
         builder: (context, candidateData, rejectedData) {
           return InkWell(
@@ -1718,26 +1698,23 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                       height: 24,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            task.isCompleted
-                                ? kAccentSecondary
-                                : Colors.transparent,
+                        color: task.isCompleted
+                            ? kAccentSecondary
+                            : Colors.transparent,
                         border: Border.all(
-                          color:
-                              task.isCompleted
-                                  ? kAccentSecondary
-                                  : kDarkTextSecondary,
+                          color: task.isCompleted
+                              ? kAccentSecondary
+                              : kDarkTextSecondary,
                           width: 2,
                         ),
                       ),
-                      child:
-                          task.isCompleted
-                              ? const Icon(
-                                Icons.check,
-                                size: 16,
-                                color: kDarkTextPrimary,
-                              )
-                              : null,
+                      child: task.isCompleted
+                          ? const Icon(
+                              Icons.check,
+                              size: 16,
+                              color: kDarkTextPrimary,
+                            )
+                          : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1747,10 +1724,9 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                       task.title,
                       style: TextStyle(
                         color: kDarkTextPrimary,
-                        decoration:
-                            task.isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
+                        decoration: task.isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                   ),

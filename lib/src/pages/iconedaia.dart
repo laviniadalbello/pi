@@ -48,10 +48,10 @@ class CloseableAiCard extends StatefulWidget {
   final bool enableScroll; // Novo parâmetro para habilitar scroll
 
   const CloseableAiCard({
-    Key? key,
+    super.key,
     this.scaleFactor = 1.0,
     this.enableScroll = true, // Habilitado por padrão
-  }) : super(key: key);
+  });
 
   @override
   _CloseableAiCardState createState() => _CloseableAiCardState();
@@ -172,14 +172,14 @@ class AiInputCard extends StatefulWidget {
   final List<Map<String, String>> messages;
 
   const AiInputCard({
-    Key? key,
+    super.key,
     required this.isChecked,
     required this.onToggleChecked,
     required this.isHovering,
     required this.scrollController,
     required this.enableScroll,
     required this.messages,
-  }) : super(key: key);
+  });
 
   @override
   _AiInputCardState createState() => _AiInputCardState();
@@ -187,8 +187,8 @@ class AiInputCard extends StatefulWidget {
 
 class _AiInputCardState extends State<AiInputCard>
     with TickerProviderStateMixin {
-  Offset _mousePosition = Offset.zero;
-  Offset _relativeMousePosition = Offset.zero;
+  final Offset _mousePosition = Offset.zero;
+  final Offset _relativeMousePosition = Offset.zero;
   final GlobalKey _cardContentKey = GlobalKey();
 
   late AnimationController _eyeAnimationController;
@@ -224,7 +224,7 @@ class _AiInputCardState extends State<AiInputCard>
   }
 
   Future<String> _processMessageWithML(String message) async {
-    return "📌 ML Kit respondeu: ${message}";
+    return "📌 ML Kit respondeu: $message";
   }
 
   @override
@@ -288,8 +288,9 @@ class _AiInputCardState extends State<AiInputCard>
   Offset _calculateEyeOffset() {
     if (!widget.isHovering ||
         widget.isChecked ||
-        _cardContentKey.currentContext == null)
+        _cardContentKey.currentContext == null) {
       return Offset.zero;
+    }
     final RenderBox cardBox =
         _cardContentKey.currentContext!.findRenderObject() as RenderBox;
     final Size cardSize = cardBox.size;
@@ -363,7 +364,7 @@ class _AiInputCardState extends State<AiInputCard>
                               BoxShadow(
                                 color: kAccentPurple.withOpacity(0.25),
                                 blurRadius: 40,
-                                offset: Offset(0, 10),
+                                offset: const Offset(0, 10),
                               ),
                             ]
                             : [],
@@ -505,7 +506,7 @@ class _AiInputCardState extends State<AiInputCard>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _buildSingleEye(),
-                      SizedBox(width: 2 * 16.0),
+                      const SizedBox(width: 2 * 16.0),
                       _buildSingleEye(),
                     ],
                   ),
@@ -519,7 +520,7 @@ class _AiInputCardState extends State<AiInputCard>
                   happyEyeSvg,
                   width: 6 * 16.0,
                   height: 6 * 16.0,
-                  colorFilter: ColorFilter.mode(
+                  colorFilter: const ColorFilter.mode(
                     kDarkTextPrimary,
                     BlendMode.srcIn,
                   ),
@@ -574,7 +575,7 @@ class _AiInputCardState extends State<AiInputCard>
                     color: Colors.white,
                     size: iconSize,
                   ),
-                  SizedBox(width: 8),
+                  const SizedBox(width: 8),
                   Text(
                     "Assistente IA",
                     style: TextStyle(
@@ -597,7 +598,7 @@ class _AiInputCardState extends State<AiInputCard>
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => ChatScreen(title: "meu chat"),
+                          builder: (context) => const ChatScreen(title: "meu chat"),
                         ),
                       );
                     },
@@ -616,7 +617,7 @@ class _AiInputCardState extends State<AiInputCard>
             ],
           ),
 
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
 
           // Área de mensagens com scroll
           Expanded(
@@ -630,9 +631,9 @@ class _AiInputCardState extends State<AiInputCard>
           ),
 
           // Campo de entrada
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
@@ -661,7 +662,7 @@ class _AiInputCardState extends State<AiInputCard>
                     submitSvg,
                     width: iconSize,
                     height: iconSize,
-                    colorFilter: ColorFilter.mode(
+                    colorFilter: const ColorFilter.mode(
                       Colors.white,
                       BlendMode.srcIn,
                     ),
@@ -691,7 +692,7 @@ class _AiInputCardState extends State<AiInputCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (isAi) ...[
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.white24,
                       child: Icon(
@@ -723,7 +724,7 @@ class _AiInputCardState extends State<AiInputCard>
                   ),
                   if (!isAi) ...[
                     const SizedBox(width: 8),
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.white24,
                       child: Icon(

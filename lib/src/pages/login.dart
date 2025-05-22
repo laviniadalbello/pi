@@ -3,7 +3,6 @@ import 'cadastro.dart';
 import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
-import 'dart:convert';
 
 
 class LoginPage extends StatefulWidget {
@@ -179,7 +178,7 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   }
                 },
-                child: Text(
+                child: const Text(
                   "Forgot Password ?",
                   style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
@@ -255,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             const SizedBox(height: 20),
-            Row(
+            const Row(
               children: [
                 Expanded(
                   child: Divider(
