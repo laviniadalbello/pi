@@ -138,9 +138,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _circleController.dispose(); // ERRO: Será null se não inicializado
-    _slideController.dispose(); // ERRO: Será null se não inicializado
-    _geminiService.dispose();
+    _circleController.dispose(); 
+    _slideController.dispose(); 
+    _geminiService.close();
     super.dispose();
   }
 
