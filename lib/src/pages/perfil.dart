@@ -69,13 +69,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _geminiService = GeminiService(
-        apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA'); // INICIALIZADO AQUI
-
-    if (FirebaseAuth.instance.currentUser == null) {
-      print('Usuário não está logado');
-      return; // <--- Este 'return' é o ponto de consideração
-    }
+    _geminiService =
+        GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA');
 
     _circleController = AnimationController(
       duration: const Duration(seconds: 6),
@@ -91,28 +86,31 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    _loadUserData();
+    _loadUserData(); // A verificação de usuário está agora dentro deste método
   }
 
   Future<void> _loadUserData() async {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        print('Buscando dados do usuário ${user.uid}');
+        print('UID do usuário logado: ${user.uid}');
+        print('Email do usuário: ${user.email}');
+
         final doc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
 
-        print('Dados encontrados: ${doc.data()}');
-
+        print('Documento encontrado: ${doc.exists}');
         if (doc.exists) {
+          print('Dados do documento: ${doc.data()}');
           setState(() {
-            _userName = doc['name'] ?? 'Usuário';
+            _userName = doc['name']?.toString() ?? 'Usuário';
             _userHandle = '@${user.email?.split('@').first ?? 'usuario'}';
-            _userBio = doc['bio'] ?? 'Bio padrão';
+            _userBio = doc['bio']?.toString() ?? 'Designer & Developer';
           });
         } else {
+          print('Documento não existe, criando novo...');
           await FirebaseFirestore.instance
               .collection('users')
               .doc(user.uid)
@@ -121,19 +119,29 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             'email': user.email,
             'profileComplete': false,
             'createdAt': FieldValue.serverTimestamp(),
-            'bio': 'Bio padrão',
+            'bio': 'Designer & Developer',
           });
-
+          // Recarrega os dados após criar
           await _loadUserData();
         }
       }
     } catch (e) {
-      print('Erro ao carregar dados do usuário: $e');
+      print('Erro ao carregar dados: $e');
       setState(() {
-        _userName = 'Usuário';
-        _userHandle = '@usuario';
-        _userBio = 'Bio não disponível';
+        _userName = 'Erro ao carregar';
+        _userHandle = '@erro';
       });
+    }
+  }
+
+  void testFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      print('Teste Firestore - Documento: ${doc.data()}');
     }
   }
 
@@ -345,8 +353,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    print('UID do usuário logado: ${user?.uid}');
-    print('Email do usuário: ${user?.email}');
+    print('Build - UID atual: ${user?.uid}');
+    print('Build - Nome atual: $_userName');
 
     return Scaffold(
       key: _scaffoldKey,
@@ -452,10 +460,10 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             if (_isCardVisible) _buildSlidingMenu(),
             // Adicione isso no final do Stack (antes do fechamento ']')
             Positioned(
-              bottom: -26, // Posição ajustável
-              right: -60, // Posição ajustável
+              bottom: -26,
+              right: -60,
               child: CloseableAiCard(
-                geminiService: _geminiService, // <--- CORREÇÃO AQUI
+                geminiService: _geminiService,
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
@@ -927,7 +935,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
                       .collection('users')
                       .doc(user.uid)
                       .update({
-                    'nome': nameController.text, // Salva como 'nome'
+                    'name': nameController.text, // Campo 'name'
                     'bio': bioController.text,
                     'profileComplete': true,
                   });
@@ -940,7 +948,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Perfil atualizado com sucesso!'),
+                      content: Text('Perfil atualizado!'),
                       backgroundColor: kAccentSecondary,
                     ),
                   );
@@ -948,7 +956,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
               } catch (e) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Erro ao atualizar perfil: $e'),
+                    content: Text('Erro: $e'),
                     backgroundColor: Colors.red,
                   ),
                 );

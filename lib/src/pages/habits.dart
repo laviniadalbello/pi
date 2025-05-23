@@ -4,6 +4,8 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'dart:math';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -72,9 +74,12 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
   late AnimationController _notificationsController;
   late Animation<Offset> _notificationsAnimation;
 
+  String _userName = "Carregando...";
+
   @override
   void initState() {
     super.initState();
+    _loadUserData(); // Adicione esta linha
     _pageController = PageController(viewportFraction: 0.7);
     initializeDateFormatting('pt_BR', null).then((_) => setState(() {}));
 
@@ -114,6 +119,8 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     ).animate(
       CurvedAnimation(parent: _notificationsController, curve: Curves.easeOut),
     );
+
+    _loadUserData();
   }
 
   @override
@@ -134,6 +141,29 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     }
 
     Navigator.of(context).pushNamed(routeName);
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists) {
+          setState(() {
+            _userName = doc['name'] ?? 'Usuário';
+          });
+        }
+      }
+    } catch (e) {
+      print('Erro ao carregar dados do usuário: $e');
+      setState(() {
+        _userName = 'Usuário';
+      });
+    }
   }
 
   @override
@@ -330,7 +360,8 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                                       },
                                       background: Container(
                                         alignment: Alignment.centerRight,
-                                        padding: const EdgeInsets.only(right: 20.0),
+                                        padding:
+                                            const EdgeInsets.only(right: 20.0),
                                         decoration: BoxDecoration(
                                           color: Colors.red,
                                           borderRadius: BorderRadius.circular(
@@ -351,13 +382,12 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                                           screenWidth * 0.03,
                                         ),
                                         decoration: BoxDecoration(
-                                          color:
-                                              notification['read']
-                                                  ? Colors.white.withOpacity(
-                                                    0.05,
-                                                  )
-                                                  : Colors.blueAccent
-                                                      .withOpacity(0.2),
+                                          color: notification['read']
+                                              ? Colors.white.withOpacity(
+                                                  0.05,
+                                                )
+                                              : Colors.blueAccent
+                                                  .withOpacity(0.2),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
@@ -410,8 +440,8 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                                                 TextButton(
                                                   onPressed: () {
                                                     setState(() {
-                                                      _notifications[index]['read'] =
-                                                          true;
+                                                      _notifications[index]
+                                                          ['read'] = true;
                                                     });
                                                   },
                                                   child: Text(
@@ -773,31 +803,66 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
               textAlign: TextAlign.start,
             ),
           ),
-
-          _animatedCircleResponsive(context, 0.05, 0.01, 0.015, [
-            Colors.lightBlueAccent,
-            const Color.fromARGB(255, 243, 33, 208),
-          ], 0),
-          _animatedCircleResponsive(context, 0.85, 0.02, 0.01, [
-            const Color.fromARGB(164, 180, 34, 238),
-            Colors.deepPurpleAccent,
-          ], 1),
-          _animatedCircleResponsive(context, 0.45, 0.045, 0.012, [
-            Colors.amberAccent,
-            Colors.orange,
-          ], 2),
-          _animatedCircleResponsive(context, 0.1, 0.08, 0.012, [
-            Colors.pinkAccent,
-            const Color.fromARGB(255, 149, 226, 4),
-          ], 3),
-          _animatedCircleResponsive(context, 0.9, 0.09, 0.02, [
-            const Color.fromARGB(173, 36, 17, 204),
-            const Color.fromARGB(255, 218, 20, 20),
-          ], 4),
-          _animatedCircleResponsive(context, 0.25, 0.03, 0.015, [
-            const Color.fromARGB(255, 222, 87, 240),
-            const Color.fromARGB(255, 27, 112, 1),
-          ], 5),
+          _animatedCircleResponsive(
+              context,
+              0.05,
+              0.01,
+              0.015,
+              [
+                Colors.lightBlueAccent,
+                const Color.fromARGB(255, 243, 33, 208),
+              ],
+              0),
+          _animatedCircleResponsive(
+              context,
+              0.85,
+              0.02,
+              0.01,
+              [
+                const Color.fromARGB(164, 180, 34, 238),
+                Colors.deepPurpleAccent,
+              ],
+              1),
+          _animatedCircleResponsive(
+              context,
+              0.45,
+              0.045,
+              0.012,
+              [
+                Colors.amberAccent,
+                Colors.orange,
+              ],
+              2),
+          _animatedCircleResponsive(
+              context,
+              0.1,
+              0.08,
+              0.012,
+              [
+                Colors.pinkAccent,
+                const Color.fromARGB(255, 149, 226, 4),
+              ],
+              3),
+          _animatedCircleResponsive(
+              context,
+              0.9,
+              0.09,
+              0.02,
+              [
+                const Color.fromARGB(173, 36, 17, 204),
+                const Color.fromARGB(255, 218, 20, 20),
+              ],
+              4),
+          _animatedCircleResponsive(
+              context,
+              0.25,
+              0.03,
+              0.015,
+              [
+                const Color.fromARGB(255, 222, 87, 240),
+                const Color.fromARGB(255, 27, 112, 1),
+              ],
+              5),
         ],
       ),
     );
@@ -892,8 +957,8 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                     index == 0
                         ? "Front-End\nDevelopment"
                         : index == 1
-                        ? "Back-End\nDevelopment"
-                        : "Mobile App\nDesign",
+                            ? "Back-End\nDevelopment"
+                            : "Mobile App\nDesign",
                     DateFormat(
                       'dd/MM/yyyy',
                     ).format(DateTime.now().add(Duration(days: index * 3))),
@@ -973,22 +1038,22 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                     // Lógica para excluir o card
                     ScaffoldMessenger.of(
                       context,
-                    ).showSnackBar(const SnackBar(content: Text('Card excluído')));
+                    ).showSnackBar(
+                        const SnackBar(content: Text('Card excluído')));
                   }
                 },
-                itemBuilder:
-                    (BuildContext context) => [
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          'Excluir',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: titleFontSize,
-                          ),
-                        ),
+                itemBuilder: (BuildContext context) => [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text(
+                      'Excluir',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: titleFontSize,
                       ),
-                    ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1068,16 +1133,15 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: const Color(0xFF1E1E1E),
           borderRadius: BorderRadius.circular(18),
-          boxShadow:
-              _isHovered
-                  ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                  : [],
+          boxShadow: _isHovered
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
         ),
         child: Row(
           children: [
@@ -1143,6 +1207,11 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
   }
 
   Widget _buildDrawer() {
+    // Chama _loadUserData() quando o drawer é construído para garantir dados atualizados
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
+
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final avatarSize = screenWidth * 0.12;
@@ -1172,14 +1241,23 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                   ),
                 ),
                 SizedBox(width: screenWidth * 0.03),
-                Text(
-                  "Nome do Usuário",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: titleFontSize,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                _userName == "Carregando..."
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        _userName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ],
             ),
             SizedBox(height: screenHeight * 0.04),
