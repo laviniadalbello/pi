@@ -20,23 +20,27 @@ import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
 import 'package:planify/services/gemini_service.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final geminiService = GeminiService();
-  runApp(MyApp(geminiService: geminiService));
+  final firebaseAuthInstance = FirebaseAuth.instance;
+  runApp(MyApp(geminiService: geminiService, firebaseAuth: firebaseAuthInstance,));
 }
 
 class MyApp extends StatelessWidget {
   final GeminiService geminiService;
-  const MyApp({super.key, required this.geminiService});
+  final FirebaseAuth firebaseAuth;
+  const MyApp({
+    super.key,
+    required this.geminiService,
+    required this.firebaseAuth,
+  });
 
   @override
   Widget build(BuildContext context) {
-
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
@@ -45,18 +49,22 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/cadastro': (context) => const CadastroPage(),
         '/settings': (context) => const SettingsPage(),
-        '/planner': (context) => const PlannerDiarioPage(),
+        '/planner': (context) => PlannerDiarioPage(
+          geminiService: geminiService
+        ),
         '/perfil': (context) => const PerfilPage(),
         '/adicionartarefa': (context) => const AddTaskPage(),
         '/criarevento': (context) => const CreateEventPage(),
         '/criarprojeto': (context) => const CreateProjectScreen(),
         '/criartime': (context) => const CreateTeamPage(),
-        '/detalhestarefa': (context) => DetailsTaskPage(geminiService: geminiService),
-        '/detalheseventos': (context) => Detalhesdoevento(geminiService: geminiService),
-        '/detalhesprojeto': (context) => const Detalhesdoprojeto(),
-        '/habitos': (context) => const HabitsPage(),
+        '/detalhestarefa': (context) =>
+            DetailsTaskPage(geminiService: geminiService),
+        '/detalheseventos': (context) =>
+            Detalhesdoevento(geminiService: geminiService),
+        '/detalhesprojeto': (context) =>
+            Detalhesdoprojeto(geminiService: geminiService),
+        '/habitos': (context) => HabitsPage(geminiService: geminiService),
         '/iconia': (context) {
-          final geminiService = GeminiService();
           return CloseableAiCard(geminiService: geminiService);
         },
         '/perfilvazio': (context) => const PerfilvazioPage(),

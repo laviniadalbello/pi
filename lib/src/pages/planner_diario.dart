@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'dart:math';
 import 'package:flutter/widgets.dart' as Widgets;
 import 'iconedaia.dart';
+import '../../services/gemini_service.dart';
+
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -103,7 +105,13 @@ class TimelineItem {
 }
 
 class PlannerDiarioPage extends StatefulWidget {
-  const PlannerDiarioPage({super.key});
+  final GeminiService geminiService;
+
+  const PlannerDiarioPage({
+    super.key,
+    required this.geminiService, // <<-- Modifique o construtor
+
+  });
 
   @override
   State<PlannerDiarioPage> createState() => _PlannerDiarioPageState();
@@ -111,7 +119,7 @@ class PlannerDiarioPage extends StatefulWidget {
 
 class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     with TickerProviderStateMixin {
-    final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime _selectedDate = DateTime.now();
   int _selectedDateIndexHorizontal = 2;
   bool _isCardVisible = false;
@@ -142,7 +150,8 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     _slideController.dispose();
     super.dispose();
   }
- void _navigateToRoute(String routeName) {
+
+  void _navigateToRoute(String routeName) {
     // Fecha o drawer se estiver aberto
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
@@ -150,6 +159,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
 
     Navigator.of(context).pushNamed(routeName);
   }
+
   List<EventModel> _getMockEvents(DateTime date) {
     if (date.day == DateTime.now().day) {
       return [
@@ -247,10 +257,9 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
         items.add(
           TimelineItem(
             id: task.id,
-            type:
-                task.projectName != null
-                    ? TimelineItemType.projectTask
-                    : TimelineItemType.task,
+            type: task.projectName != null
+                ? TimelineItemType.projectTask
+                : TimelineItemType.task,
             title: task.name,
             startTime: task.time!,
             duration: task.duration,
@@ -266,14 +275,13 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
       items =
           items.where((item) => item.type == TimelineItemType.event).toList();
     } else if (_currentFilter == "Tarefas") {
-      items =
-          items
-              .where(
-                (item) =>
-                    item.type == TimelineItemType.task ||
-                    item.type == TimelineItemType.projectTask,
-              )
-              .toList();
+      items = items
+          .where(
+            (item) =>
+                item.type == TimelineItemType.task ||
+                item.type == TimelineItemType.projectTask,
+          )
+          .toList();
     }
 
     items.sort((a, b) {
@@ -325,7 +333,8 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
               onPrimary: kDarkTextPrimary,
               surface: kDarkSurface,
               onSurface: kDarkTextPrimary,
-            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+            ),
+            dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -410,8 +419,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     final now = DateTime.now();
     final currentHour = now.hour;
     final currentMinute = now.minute;
-    final isToday =
-        _selectedDate.year == now.year &&
+    final isToday = _selectedDate.year == now.year &&
         _selectedDate.month == now.month &&
         _selectedDate.day == now.day;
 
@@ -482,8 +490,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                 Padding(
                   padding: EdgeInsets.only(
                     top: _getResponsiveSize(context, screenHeight * 0.02),
-                    bottom:
-                        _getResponsiveSize(context, screenHeight * 0.1) +
+                    bottom: _getResponsiveSize(context, screenHeight * 0.1) +
                         safeAreaBottom,
                     right: _getResponsiveSize(context, screenWidth * 0.04),
                     left: _getResponsiveSize(context, screenWidth * 0.02),
@@ -513,8 +520,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                             currentHour >= startHour &&
                             currentHour <= endHour)
                           Positioned(
-                            top:
-                                (currentHour -
+                            top: (currentHour -
                                     startHour +
                                     (currentMinute / 60.0)) *
                                 hourHeight,
@@ -546,8 +552,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                           ),
 
                         ...timelineItems.map((item) {
-                          final itemTop =
-                              (item.startTime.hour -
+                          final itemTop = (item.startTime.hour -
                                   startHour +
                                   (item.startTime.minute / 60.0)) *
                               hourHeight;
@@ -555,8 +560,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                               (item.duration.inMinutes / 60.0) * hourHeight;
                           return Positioned(
                             top: itemTop,
-                            left:
-                                leftPaddingForTimeline +
+                            left: leftPaddingForTimeline +
                                 _getResponsiveSize(context, screenWidth * 0.02),
                             right: 0,
                             height: max(
@@ -577,13 +581,14 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
           if (_isCardVisible) _buildDimOverlay(),
           if (_isCardVisible) _buildSlidingMenu(),
           Positioned(
-  bottom: 56, // Posição ajustável
-  right: -60,  // Posição ajustável
-  child: CloseableAiCard(
-    scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
-    enableScroll: true,
-  ),
-),
+            bottom: 56, // Posição ajustável
+            right: -60, // Posição ajustável
+            child: CloseableAiCard(
+              scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
+              enableScroll: true,
+              geminiService: widget.geminiService, 
+            ),
+          ),
         ],
       ),
       floatingActionButton: _buildFloatingActionButton(context),
@@ -684,7 +689,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     );
   }
 
-    Widget _buildBottomBar() {
+  Widget _buildBottomBar() {
     return BottomAppBar(
       color: kDarkSurface,
       shape: const CircularNotchedRectangle(),
@@ -735,10 +740,9 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    final double itemWidth =
-        screenWidth < 360
-            ? _getResponsiveSize(context, screenWidth * 0.13)
-            : _getResponsiveSize(context, screenWidth * 0.14);
+    final double itemWidth = screenWidth < 360
+        ? _getResponsiveSize(context, screenWidth * 0.13)
+        : _getResponsiveSize(context, screenWidth * 0.14);
 
     final List<Map<String, dynamic>> dates = List.generate(5, (index) {
       final date = DateTime.now().add(Duration(days: index - 2));
@@ -766,8 +770,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
             final dateInfo = dates[index];
             final date = dateInfo['date'] as DateTime;
             final isSelected = _selectedDateIndexHorizontal == index;
-            final isToday =
-                date.day == DateTime.now().day &&
+            final isToday = date.day == DateTime.now().day &&
                 date.month == DateTime.now().month &&
                 date.year == DateTime.now().year;
 
@@ -806,30 +809,27 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                       height: _getResponsiveSize(context, screenWidth * 0.08),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            isToday && !isSelected
-                                ? kAccentPurple.withOpacity(0.2)
-                                : Colors.transparent,
+                        color: isToday && !isSelected
+                            ? kAccentPurple.withOpacity(0.2)
+                            : Colors.transparent,
                       ),
                       child: Center(
                         child: Text(
                           dateInfo['day'] as String,
                           style: TextStyle(
-                            color:
-                                isSelected
-                                    ? kDarkTextPrimary
-                                    : (isToday
-                                        ? kAccentPurple
-                                        : kDarkTextSecondary),
+                            color: isSelected
+                                ? kDarkTextPrimary
+                                : (isToday
+                                    ? kAccentPurple
+                                    : kDarkTextSecondary),
                             fontSize: _getResponsiveSize(
                               context,
                               screenWidth * 0.04,
                               isFont: true,
                             ),
-                            fontWeight:
-                                isToday || isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
+                            fontWeight: isToday || isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -882,9 +882,8 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
             itemCount: tasks.length,
-            separatorBuilder:
-                (context, index) =>
-                    const Divider(height: 1, color: kDarkBorder),
+            separatorBuilder: (context, index) =>
+                const Divider(height: 1, color: kDarkBorder),
             itemBuilder: (context, index) {
               final task = tasks[index];
               return ListTile(
@@ -895,23 +894,21 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                     height: _getResponsiveSize(context, 24.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color:
-                          task.isCompleted
-                              ? (task.taskColor ?? kAccentSecondary)
-                              : Colors.transparent,
+                      color: task.isCompleted
+                          ? (task.taskColor ?? kAccentSecondary)
+                          : Colors.transparent,
                       border: Border.all(
                         color: task.taskColor ?? kAccentSecondary,
                         width: 2,
                       ),
                     ),
-                    child:
-                        task.isCompleted
-                            ? Icon(
-                              Icons.check,
-                              size: _getResponsiveSize(context, 16.0),
-                              color: kDarkTextPrimary,
-                            )
-                            : null,
+                    child: task.isCompleted
+                        ? Icon(
+                            Icons.check,
+                            size: _getResponsiveSize(context, 16.0),
+                            color: kDarkTextPrimary,
+                          )
+                        : null,
                   ),
                 ),
                 title: Text(
@@ -927,20 +924,19 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                         task.isCompleted ? TextDecoration.lineThrough : null,
                   ),
                 ),
-                subtitle:
-                    task.projectName != null
-                        ? Text(
-                          task.projectName!,
-                          style: TextStyle(
-                            color: kDarkTextSecondary,
-                            fontSize: _getResponsiveSize(
-                              context,
-                              screenWidth * 0.03,
-                              isFont: true,
-                            ),
+                subtitle: task.projectName != null
+                    ? Text(
+                        task.projectName!,
+                        style: TextStyle(
+                          color: kDarkTextSecondary,
+                          fontSize: _getResponsiveSize(
+                            context,
+                            screenWidth * 0.03,
+                            isFont: true,
                           ),
-                        )
-                        : null,
+                        ),
+                      )
+                    : null,
                 trailing: IconButton(
                   icon: Icon(
                     Icons.more_vert,
@@ -1003,14 +999,13 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                         item.isCompleted ? item.itemColor : Colors.transparent,
                     border: Border.all(color: item.itemColor, width: 2),
                   ),
-                  child:
-                      item.isCompleted
-                          ? Icon(
-                            Icons.check,
-                            size: _getResponsiveSize(context, 16.0),
-                            color: kDarkTextPrimary,
-                          )
-                          : null,
+                  child: item.isCompleted
+                      ? Icon(
+                          Icons.check,
+                          size: _getResponsiveSize(context, 16.0),
+                          color: kDarkTextPrimary,
+                        )
+                      : null,
                 ),
               ),
               SizedBox(width: _getResponsiveSize(context, 12.0)),
@@ -1030,10 +1025,9 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                           isFont: true,
                         ),
                         fontWeight: FontWeight.bold,
-                        decoration:
-                            item.isCompleted
-                                ? TextDecoration.lineThrough
-                                : null,
+                        decoration: item.isCompleted
+                            ? TextDecoration.lineThrough
+                            : null,
                       ),
                     ),
                     if (item.subtitle != null)
@@ -1113,7 +1107,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     );
   }
 
- Widget _buildSlidingMenu() {
+  Widget _buildSlidingMenu() {
     return Positioned(
       bottom: 25,
       left: 30,
@@ -1198,7 +1192,6 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     );
   }
 
-
   Widget _menuItem(IconData icon, String label) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
@@ -1238,10 +1231,9 @@ class TimelinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint =
-        Paint()
-          ..color = kDarkBorder
-          ..strokeWidth = 1.0;
+    final paint = Paint()
+      ..color = kDarkBorder
+      ..strokeWidth = 1.0;
 
     final paintText = TextPainter(
       textAlign: TextAlign.right,
@@ -1253,10 +1245,9 @@ class TimelinePainter extends CustomPainter {
 
       canvas.drawLine(Offset(leftPadding, y), Offset(size.width, y), paint);
 
-      final String hourText =
-          hour < 12
-              ? '$hour AM'
-              : hour == 12
+      final String hourText = hour < 12
+          ? '$hour AM'
+          : hour == 12
               ? '12 PM'
               : '${hour - 12} PM';
 

@@ -5,6 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'chatdaia.dart'; // Importe chatdaia.dart se você for redirecionar para a tela de chat completa
 import 'package:planify/services/gemini_service.dart'; // Importe seu GeminiService
 import 'dart:convert'; // Para jsonDecode se necessário
+import 'package:firebase_auth/firebase_auth.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -49,6 +50,7 @@ class CloseableAiCard extends StatefulWidget {
   final double scaleFactor;
   final bool enableScroll; // Novo parâmetro para habilitar scroll
   final GeminiService geminiService; // <--- Adicione aqui
+  
 
   const CloseableAiCard({
     super.key,

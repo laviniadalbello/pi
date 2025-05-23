@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
-import 'package:planify/services/gemini_service.dart'; // <--- ADICIONE ESTA LINHA
+import 'package:planify/services/gemini_service.dart';
+ // <--- ADICIONE ESTA LINHA
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
+import 'package:planify/services/gemini_service.dart'; 
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -55,7 +56,8 @@ class TrelloTask {
 }
 
 class Detalhesdoprojeto extends StatefulWidget {
-  const Detalhesdoprojeto({super.key});
+  final GeminiService geminiService;
+  const Detalhesdoprojeto({super.key, required this.geminiService});
 
   @override
   State<Detalhesdoprojeto> createState() => _DetalhesdoprojetoState();
@@ -1497,6 +1499,7 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
+                geminiService: widget.geminiService,
               ),
             ),
           ],
@@ -1758,11 +1761,4 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
   }
 }
 
-void main() {
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Detalhesdoprojeto(),
-    ),
-  );
-}
+

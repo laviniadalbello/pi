@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'dart:math';
 import 'iconedaia.dart';
+import 'package:planify/services/gemini_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -14,7 +15,8 @@ const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
 
 class HabitsPage extends StatefulWidget {
-  const HabitsPage({super.key});
+  final GeminiService geminiService;
+  const HabitsPage({super.key, required this.geminiService});
 
   @override
   State<HabitsPage> createState() => _HabitsPageState();
@@ -228,6 +230,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                   bottom: 42,
                   right: -60,
                   child: CloseableAiCard(
+                    geminiService: widget.geminiService,
                     scaleFactor: screenWidth < 360 ? 0.35 : 0.4,
                     enableScroll: true,
                   ),
@@ -453,6 +456,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
         child: Padding(
           padding: EdgeInsets.only(right: screenWidth * 0.02),
           child: CloseableAiCard(
+            geminiService: widget.geminiService,
             scaleFactor: screenWidth < 360 ? 0.3 : 0.35,
             enableScroll: true,
           ),
