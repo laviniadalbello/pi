@@ -349,6 +349,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  generative_ai_dart:
+    dependency: "direct main"
+    description:
+      name: generative_ai_dart
+      sha256: eae0efe21d0bd5e03c2a0de7e337d06f71d0e908081d6ec67874c74211bdc83b
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.2"
   glob:
     dependency: transitive
     description:
@@ -453,6 +461,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.20.2"
+  json_annotation:
+    dependency: transitive
+    description:
+      name: json_annotation
+      sha256: "1ce844379ca14835a50d2f019a3099f419082cfdd231cd86a142af94dd5c6bb1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.9.0"
   leak_tracker:
     dependency: transitive
     description:
@@ -521,10 +537,10 @@ packages:
     dependency: transitive
     description:
       name: mime
-      sha256: "41a20518f0cb1256669420fdba0cd90d21561e560ac240f26ef8322e45bb7ed6"
+      sha256: "801fd0b26f14a4a58ccb09d5892c3fbdeff209594300a542492cf13fba9d247a"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.0"
+    version: "1.0.6"
   mockito:
     dependency: "direct main"
     description:

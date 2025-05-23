@@ -74,7 +74,7 @@ class _AddTaskPageState extends State<AddTaskPage>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    _geminiService = GeminiService(); // <--- INICIALIZE O GEMINISERVICE AQUI
+    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ'); // <--- INICIALIZE O GEMINISERVICE AQUI
   }
 
   @override

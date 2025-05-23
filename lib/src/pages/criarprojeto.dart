@@ -50,7 +50,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   @override
   void initState() {
     super.initState();
-    _geminiService = GeminiService();
+    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ');
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,

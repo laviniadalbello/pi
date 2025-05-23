@@ -1,15 +1,17 @@
+// lib/services/gemini_service.dart
+
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:convert'; // Para jsonEncode e jsonDecode
 
 class GeminiService {
   late final GenerativeModel _model;
   late final ChatSession _chat;
+  final String _apiKey; // A chave será armazenada aqui
 
-  GeminiService() {
-    const String apiKey = String.fromEnvironment("GEMINI_API_KEY");
-    if (apiKey.isEmpty) {
-      throw Exception(
-          'GEMINI_API_KEY não configurada. Por favor, adicione-a como uma variável de ambiente.');
+  // Construtor agora espera a apiKey
+  GeminiService({required String apiKey}) : _apiKey = apiKey {
+    if (_apiKey.isEmpty) {
+      throw Exception('A chave da API Gemini não pode ser vazia ao ser passada diretamente.');
     }
 
     final tools = [
@@ -106,16 +108,35 @@ class GeminiService {
     ];
 
     _model = GenerativeModel(
-      model: 'gemini-pro',
-      apiKey: apiKey,
+      model: 'gemini-pro', // Verifique este nome após executar listAvailableModels()
+      apiKey: _apiKey, // Usa a chave passada no construtor
       tools: tools,
     );
 
-    // PASSE O HISTÓRICO INICIAL AQUI
     _chat = _model.startChat(history: [
       Content.text(
           'Você é um assistente de IA focado em ajudar o usuário a gerenciar suas tarefas e projetos. Use as ferramentas disponíveis para criar, listar, atualizar e deletar tarefas.'),
     ]);
+  }
+
+  // MÉTODO CORRIGIDO PARA LISTAR MODELOS
+  Future<void> listAvailableModels() async {
+    try {
+      // Crie uma nova instância de GenerativeModel com o modelo vazio para listar.
+      // Esta instância não será usada para gerar conteúdo, apenas para listar modelos.
+      final tempModelForListing = GenerativeModel(apiKey: _apiKey, model: '');
+      final models = await tempModelForListing.listModels();
+      print('Modelos disponíveis:');
+      for (var model in models) {
+        print('  - Nome: ${model.name}');
+        print('    Versões suportadas: ${model.version}');
+        print('    Métodos de geração suportados: ${model.supportedGenerationMethods}');
+        print('    Descrição: ${model.description}');
+        print('---');
+      }
+    } catch (e) {
+      print('Erro ao listar modelos: $e');
+    }
   }
 
   Future<String> getGeminiResponse(String message) async {
@@ -136,7 +157,6 @@ class GeminiService {
           }
         }
       }
-
       return response.text ?? "Não entendi sua solicitação.";
     } catch (e) {
       print("Erro ao se comunicar com a API do Gemini: $e");
@@ -145,7 +165,6 @@ class GeminiService {
   }
 
   void clearChatHistory() {
-    // Ao limpar o histórico, reinicie o chat com a mensagem inicial
     _chat = _model.startChat(history: [
       Content.text(
           'Você é um assistente de IA focado em ajudar o usuário a gerenciar suas tarefas e projetos. Use as ferramentas disponíveis para criar, listar, atualizar e deletar tarefas.'),
@@ -153,7 +172,6 @@ class GeminiService {
   }
 
   void close() {
-    // Atualmente, não há um método de 'close' explícito para o Gemini SDK
-    // como no ML Kit, mas é bom ter para consistência.
+    // Não há um método de 'close' explícito no SDK Generative AI.
   }
 }

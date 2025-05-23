@@ -69,7 +69,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _geminiService = GeminiService(); // INICIALIZADO AQUI
+    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ'); // INICIALIZADO AQUI
 
     if (FirebaseAuth.instance.currentUser == null) {
       print('Usuário não está logado');

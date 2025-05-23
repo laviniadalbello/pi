@@ -56,7 +56,7 @@ class _SettingsPageState extends State<SettingsPage>
     _animationController.forward();
 
     // Inicialize o GeminiService aqui
-    _geminiService = GeminiService();
+    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ');
   }
 
   @override

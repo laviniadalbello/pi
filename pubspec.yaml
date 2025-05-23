@@ -33,6 +33,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   google_generative_ai: ^0.4.7
   flutter_dotenv: ^5.2.1
+  generative_ai_dart: ^0.1.2
 
 dev_dependencies:
   flutter_test:
