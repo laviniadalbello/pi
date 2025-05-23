@@ -1,11 +1,10 @@
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
-import 'iconedaia.dart';
+import 'package:planify/src/pages/iconedaia.dart'; // Importação corrigida para o caminho do pacote
+import 'package:planify/services/gemini_service.dart';
 
-enum TaskFilter { all, completed, inProgress }
-
+// --- Cores da UI ---
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
 const Color kDarkElementBg = Color(0xFF202A44);
@@ -14,6 +13,10 @@ const Color kDarkTextPrimary = Color(0xFFFFFFFF);
 const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
 
+// --- Enum para filtros de tarefa ---
+enum TaskFilter { all, completed, inProgress }
+
+// --- Classe Modelo Task ---
 class Task {
   final String id;
   final String title;
@@ -74,24 +77,26 @@ class Task {
   }
 }
 
-void main() => runApp(const DetailsTaskPage());
+// --- REMOVIDO: void main() => runApp(const DetailsTaskPage());
+// A função main() deve estar apenas no arquivo main.dart
 
+// --- StatelessWidget: DetailsTaskPage (Responsável por receber o GeminiService) ---
 class DetailsTaskPage extends StatelessWidget {
-  const DetailsTaskPage({super.key});
+  final GeminiService geminiService; // Agora exige o GeminiService
+
+  const DetailsTaskPage({super.key, required this.geminiService}); // Construtor modificado
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Minhas tarefas',
-      themeMode: ThemeMode.dark,
-      debugShowCheckedModeBanner: false,
-      home: TodayTaskPage(),
-    );
+    return TodayTaskPage(geminiService: geminiService); // Passa o serviço para TodayTaskPage
   }
 }
 
+// --- StatefulWidget: TodayTaskPage (Contém a lógica da UI e estado) ---
 class TodayTaskPage extends StatefulWidget {
-  const TodayTaskPage({super.key});
+  final GeminiService geminiService; // Recebe o GeminiService
+
+  const TodayTaskPage({Key? key, required this.geminiService}) : super(key: key);
 
   @override
   State<TodayTaskPage> createState() => _TodayTaskPageState();
@@ -99,6 +104,7 @@ class TodayTaskPage extends StatefulWidget {
 
 class _TodayTaskPageState extends State<TodayTaskPage>
     with TickerProviderStateMixin {
+  late final GeminiService _geminiService; // Usará o serviço recebido
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isCardVisible = false;
 
@@ -113,6 +119,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
   @override
   void initState() {
     super.initState();
+    _geminiService = widget.geminiService; // Inicializa com o serviço recebido
     _circleController = AnimationController(
       duration: const Duration(seconds: 6),
       vsync: this,
@@ -127,9 +134,9 @@ class _TodayTaskPageState extends State<TodayTaskPage>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
+    // --- Dados de Exemplo para Tarefas ---
     _tasksByDateIndex = {
       0: [
-        // Tasks for dates[0] - '19 Sat'
         Task(
           id: '1',
           title: 'Preparação para o fim de semana',
@@ -158,7 +165,6 @@ class _TodayTaskPageState extends State<TodayTaskPage>
         ),
       ],
       1: [
-        // Tasks for dates[1] - '20 Sun' (example from image)
         Task(
           id: '3',
           title: 'Comprar um pacote de café',
@@ -222,7 +228,6 @@ class _TodayTaskPageState extends State<TodayTaskPage>
         ),
       ],
       2: [
-        // Tasks for dates[2] - '21 Mon'
         Task(
           id: '9',
           title: 'Reunião da manhã',
@@ -247,13 +252,12 @@ class _TodayTaskPageState extends State<TodayTaskPage>
       ],
       3: [], // No tasks for dates[3] - '22 Tue'
       4: [
-        // Tasks for dates[4] - '23 Wed'
         Task(
           id: '11',
           title: 'Rever o Design',
           time: '14:00 - 16:00',
           durationLabel: '2 horas',
-          description: 'Rever o ultimo  UI/UX designs.',
+          description: 'Rever o ultimo UI/UX designs.',
           members: ['Eve', 'Frank'],
           priority: 'Média',
           taskColor: Colors.teal[300],
@@ -267,17 +271,18 @@ class _TodayTaskPageState extends State<TodayTaskPage>
   void dispose() {
     _circleController.dispose();
     _slideController.dispose();
+    _geminiService.close(); // Chame close no serviço Gemini
     super.dispose();
   }
 
   void _navigateToRoute(String routeName) {
-    // Fecha o drawer se estiver aberto
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
-
     Navigator.of(context).pushNamed(routeName);
   }
+
+  // --- Widgets de Construção da UI ---
 
   Widget _buildFloatingActionButton() {
     return Transform.translate(
@@ -349,7 +354,6 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                   },
                   child: _menuItem(Icons.add_circle_outline, 'Criar Projeto'),
                 ),
-
                 const SizedBox(height: 12),
                 InkWell(
                   onTap: () {
@@ -439,7 +443,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
             ),
             InkWell(
               onTap: () {
-                _navigateToRoute('/profile');
+                _navigateToRoute('/perfil'); // Corrigido de '/profile' para '/perfil'
               },
               child: _bottomBarIcon(Icons.person_outline),
             ),
@@ -491,7 +495,31 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                 Navigator.of(context).pop();
               },
             ),
-            actions: const [],
+            actions: [
+              // Adicione um botão para o filtro de tarefas
+              PopupMenuButton<TaskFilter>(
+                onSelected: (TaskFilter result) {
+                  setState(() {
+                    _currentFilter = result;
+                  });
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<TaskFilter>>[
+                  const PopupMenuItem<TaskFilter>(
+                    value: TaskFilter.all,
+                    child: Text('Todas as Tarefas', style: TextStyle(color: kDarkTextPrimary)),
+                  ),
+                  const PopupMenuItem<TaskFilter>(
+                    value: TaskFilter.completed,
+                    child: Text('Tarefas Concluídas', style: TextStyle(color: kDarkTextPrimary)),
+                  ),
+                  const PopupMenuItem<TaskFilter>(
+                    value: TaskFilter.inProgress,
+                    child: Text('Tarefas em Andamento', style: TextStyle(color: kDarkTextPrimary)),
+                  ),
+                ],
+                icon: const Icon(Icons.filter_list, color: kDarkTextPrimary),
+              ),
+            ],
           ),
         ),
       ),
@@ -541,10 +569,9 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                     color: kDarkTextPrimary,
                   ),
                 ),
-
-                const Text(
-                  '15 task today',
-                  style: TextStyle(color: kDarkTextSecondary),
+                Text(
+                  '${(_tasksByDateIndex[_selectedDateIndex]?.length ?? 0)} task today',
+                  style: const TextStyle(color: kDarkTextSecondary),
                 ),
                 const SizedBox(height: 28),
                 _buildDateSelector(dates),
@@ -553,7 +580,6 @@ class _TodayTaskPageState extends State<TodayTaskPage>
               ],
             ),
           ),
-
           if (_isCardVisible)
             Positioned.fill(
               child: GestureDetector(
@@ -571,6 +597,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
             bottom: 48,
             right: -60,
             child: CloseableAiCard(
+              geminiService: _geminiService,
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
             ),
@@ -621,6 +648,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
     );
   }
 
+  // Widget _iconCircle (não usado no código fornecido, mas mantido caso precise)
   Widget _iconCircle(IconData icon) {
     return Container(
       margin: const EdgeInsets.only(right: 12),
@@ -703,18 +731,8 @@ class _TodayTaskPageState extends State<TodayTaskPage>
               ),
             )
           else
-            const SizedBox(width: 5 + 8),
+            const SizedBox(width: 5 + 8), // Espaço para alinhar se não houver barra de cor
 
-          Container(
-            width: 60,
-            padding: const EdgeInsets.only(top: 4.0),
-            child: Text(
-              task.durationLabel,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: kDarkTextSecondary, fontSize: 12),
-            ),
-          ),
-          const SizedBox(width: 8),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -752,9 +770,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                             : Icons.radio_button_unchecked_outlined,
                         key: ValueKey<bool>(task.isCompleted),
                         color:
-                            task.isCompleted
-                                ? kAccentPurple
-                                : kDarkTextSecondary,
+                            task.isCompleted ? kAccentPurple : kDarkTextSecondary,
                         size: 24,
                       ),
                     ),
@@ -774,9 +790,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                                 task.isCompleted
                                     ? TextDecoration.lineThrough
                                     : TextDecoration.none,
-                            decorationColor: kDarkTextSecondary.withOpacity(
-                              0.7,
-                            ),
+                            decorationColor: kDarkTextSecondary.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -790,7 +804,6 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                       ],
                     ),
                   ),
-
                   IconButton(
                     icon: const Icon(
                       Icons.visibility_outlined,
@@ -798,7 +811,6 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                       size: 20,
                     ),
                     onPressed: () {
-                      // Placeholder for view action
                       print("View task: ${task.id}");
                       _showTaskDetailsPopup(
                         context,
@@ -815,7 +827,6 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                       size: 20,
                     ),
                     onPressed: () {
-                      // Placeholder for edit action
                       print("Edit task: ${task.id}");
                       _showTaskDetailsPopup(context, task, true);
                     },
@@ -859,38 +870,56 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                   "Título:",
                   isEditMode
                       ? TextField(
-                        controller: titleController,
-                        style: const TextStyle(color: kDarkTextPrimary),
-                        decoration: const InputDecoration(
-                          hintStyle: TextStyle(color: kDarkTextSecondary),
-                        ),
-                      )
-                      : task.title,
+                          controller: titleController,
+                          style: const TextStyle(color: kDarkTextPrimary),
+                          decoration: const InputDecoration(
+                            hintStyle: TextStyle(color: kDarkTextSecondary),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: kDarkBorder),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: kAccentPurple),
+                            ),
+                          ),
+                        )
+                      : Text(task.title, style: const TextStyle(color: kDarkTextPrimary, fontSize: 16)),
                 ),
                 _buildDetailRow(
                   "Descrição:",
                   isEditMode
                       ? TextField(
-                        controller: descriptionController,
-                        style: const TextStyle(color: kDarkTextPrimary),
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          hintStyle: TextStyle(color: kDarkTextSecondary),
-                        ),
-                      )
-                      : task.description,
+                          controller: descriptionController,
+                          style: const TextStyle(color: kDarkTextPrimary),
+                          maxLines: 3,
+                          decoration: const InputDecoration(
+                            hintStyle: TextStyle(color: kDarkTextSecondary),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: kDarkBorder),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: kAccentPurple),
+                            ),
+                          ),
+                        )
+                      : Text(task.description ?? 'N/A', style: const TextStyle(color: kDarkTextPrimary, fontSize: 16)),
                 ),
                 _buildDetailRow(
                   "Horário:",
                   isEditMode
                       ? TextField(
-                        controller: timeController,
-                        style: const TextStyle(color: kDarkTextPrimary),
-                        decoration: const InputDecoration(
-                          hintStyle: TextStyle(color: kDarkTextSecondary),
-                        ),
-                      )
-                      : task.time,
+                          controller: timeController,
+                          style: const TextStyle(color: kDarkTextPrimary),
+                          decoration: const InputDecoration(
+                            hintStyle: TextStyle(color: kDarkTextSecondary),
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: kDarkBorder),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: kAccentPurple),
+                            ),
+                          ),
+                        )
+                      : Text(task.time, style: const TextStyle(color: kDarkTextPrimary, fontSize: 16)),
                 ),
                 _buildDetailRow("Duração:", task.durationLabel),
                 _buildDetailRow(
@@ -929,10 +958,29 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                   style: TextStyle(color: kAccentPurple),
                 ),
                 onPressed: () {
-                  // logica de salvar aqui
+                  // Lógica de salvar aqui
+                  // Você precisará de uma forma de atualizar a lista de tarefas
+                  // no estado de _TodayTaskPageState. Isso pode ser feito passando
+                  // uma função de callback ou usando um gerenciador de estado.
+                  // Por simplicidade, aqui apenas imprimimos os valores.
 
                   print("Salvar alterações para: ${task.id}");
                   print("Novo título: ${titleController.text}");
+                  print("Nova descrição: ${descriptionController.text}");
+                  print("Novo horário: ${timeController.text}");
+
+                  // Exemplo de como você PODE querer atualizar o estado:
+                  // setState(() {
+                  //   final tasks = _tasksByDateIndex[_selectedDateIndex]!;
+                  //   final taskIndex = tasks.indexWhere((t) => t.id == task.id);
+                  //   if (taskIndex != -1) {
+                  //     tasks[taskIndex] = tasks[taskIndex].copyWith(
+                  //       title: titleController.text,
+                  //       description: descriptionController.text,
+                  //       time: timeController.text,
+                  //     );
+                  //   }
+                  // });
 
                   Navigator.of(dialogContext).pop();
                 },
@@ -960,7 +1008,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
           ),
           const SizedBox(height: 4),
           if (value is Widget)
-            value
+            value // Permite passar um TextField diretamente
           else if (isChip && value is String)
             Chip(
               label: Text(
@@ -980,6 +1028,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
     );
   }
 
+  // --- Método corrigido para filtrar e exibir tarefas ---
   Widget _buildTaskArea() {
     final allTasksForSelectedDate = _tasksByDateIndex[_selectedDateIndex] ?? [];
     List<Task> tasksForSelectedDate;
@@ -993,139 +1042,27 @@ class _TodayTaskPageState extends State<TodayTaskPage>
         tasksForSelectedDate =
             allTasksForSelectedDate.where((task) => !task.isCompleted).toList();
         break;
-      case TaskFilter.all:
-      default:
+      case TaskFilter.all: // Caso para "Todas as Tarefas"
+      default: // Garante um fallback caso _currentFilter não seja nenhum dos acima
         tasksForSelectedDate = allTasksForSelectedDate;
         break;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Minhas tarefas do dia",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: kDarkTextPrimary,
-                ),
-              ),
-              PopupMenuButton<TaskFilter>(
-                icon: const Icon(Icons.more_vert, color: kDarkTextSecondary),
-                onSelected: (TaskFilter result) {
-                  setState(() {
-                    _currentFilter = result;
-                  });
-                },
-                itemBuilder:
-                    (BuildContext context) => <PopupMenuEntry<TaskFilter>>[
-                      const PopupMenuItem<TaskFilter>(
-                        value: TaskFilter.all,
-                        child: Text('Todas'),
-                      ),
-                      const PopupMenuItem<TaskFilter>(
-                        value: TaskFilter.completed,
-                        child: Text('Concluídas'),
-                      ),
-                      const PopupMenuItem<TaskFilter>(
-                        value: TaskFilter.inProgress,
-                        child: Text('Em Andamento'),
-                      ),
-                    ],
-                color: kDarkElementBg,
-              ),
-            ],
-          ),
+    if (tasksForSelectedDate.isEmpty) {
+      return const Center(
+        child: Text(
+          'Nenhuma tarefa encontrada para esta data e filtro.',
+          style: TextStyle(color: kDarkTextSecondary, fontSize: 16),
         ),
-        if (tasksForSelectedDate.isEmpty)
-          Expanded(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Text(
-                  _currentFilter == TaskFilter.all
-                      ? "Nenhuma tarefa para este dia."
-                      : "Nenhuma tarefa encontrada com este filtro.",
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: kDarkTextSecondary,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          )
-        else
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 80),
-              itemCount: tasksForSelectedDate.length,
-              itemBuilder: (context, index) {
-                return _buildTaskCard(tasksForSelectedDate[index]);
-              },
-            ),
-          ),
-      ],
-    );
-  }
+      );
+    }
 
-  Widget _buildFloatingCard() {
-    return Material(
-      color: Colors.transparent,
-      elevation: 8,
-      borderRadius: BorderRadius.circular(24),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-        decoration: BoxDecoration(
-          color: kDarkElementBg,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _menuItem(Icons.edit_outlined, 'Create Task'),
-            const SizedBox(height: 12),
-            _menuItem(Icons.add_circle_outline, 'Create Project'),
-            const SizedBox(height: 12),
-            _menuItem(Icons.group_outlined, 'Create Team'),
-            const SizedBox(height: 12),
-            _menuItem(Icons.schedule_outlined, 'Create Event'),
-            const SizedBox(height: 16),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isCardVisible = false;
-                  _slideController.reverse();
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: const BoxDecoration(
-                  color: kAccentPurple,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.close,
-                  size: 20,
-                  color: kDarkTextPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return ListView.builder(
+      itemCount: tasksForSelectedDate.length,
+      itemBuilder: (context, index) {
+        final task = tasksForSelectedDate[index];
+        return _buildTaskCard(task);
+      },
     );
   }
 }
