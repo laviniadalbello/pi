@@ -20,23 +20,19 @@ import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
 import 'package:planify/services/gemini_service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   final geminiService = GeminiService();
-  final firebaseAuthInstance = FirebaseAuth.instance;
-  runApp(MyApp(geminiService: geminiService, firebaseAuth: firebaseAuthInstance,));
+  runApp(MyApp(geminiService: geminiService));
 }
 
 class MyApp extends StatelessWidget {
   final GeminiService geminiService;
-  final FirebaseAuth firebaseAuth;
   const MyApp({
     super.key,
     required this.geminiService,
-    required this.firebaseAuth,
   });
 
   @override
