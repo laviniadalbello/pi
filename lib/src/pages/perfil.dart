@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:planify/services/gemini_service.dart'; // Importação do GeminiService
 import 'configuracoes.dart';
-import 'iconedaia.dart';
+import 'iconedaia.dart'; // Importação do CloseableAiCard
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -27,6 +28,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   late AnimationController _circleController;
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
+
+  late GeminiService _geminiService; 
 
   bool _isCardVisible = false;
 
@@ -66,10 +69,11 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _geminiService = GeminiService(); // INICIALIZADO AQUI
 
     if (FirebaseAuth.instance.currentUser == null) {
       print('Usuário não está logado');
-      return;
+      return; // <--- Este 'return' é o ponto de consideração
     }
 
     _circleController = AnimationController(
@@ -86,7 +90,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    _loadUserData(); 
+    _loadUserData();
   }
 
   Future<void> _loadUserData() async {
@@ -99,11 +103,11 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             .doc(user.uid)
             .get();
 
-        print('Dados encontrados: ${doc.data()}'); 
+        print('Dados encontrados: ${doc.data()}');
 
         if (doc.exists) {
           setState(() {
-            _userName = doc['name'] ?? 'Usuário'; 
+            _userName = doc['name'] ?? 'Usuário';
             _userHandle = '@${user.email?.split('@').first ?? 'usuario'}';
             _userBio = doc['bio'] ?? 'Bio padrão';
           });
@@ -112,7 +116,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
               .collection('users')
               .doc(user.uid)
               .set({
-            'name': user.displayName ?? 'Novo Usuário', 
+            'name': user.displayName ?? 'Novo Usuário',
             'email': user.email,
             'profileComplete': false,
             'createdAt': FieldValue.serverTimestamp(),
@@ -134,8 +138,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _circleController.dispose();
-    _slideController.dispose();
+    _circleController.dispose(); // ERRO: Será null se não inicializado
+    _slideController.dispose(); // ERRO: Será null se não inicializado
+    _geminiService.dispose();
     super.dispose();
   }
 
@@ -449,6 +454,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
               bottom: -26, // Posição ajustável
               right: -60, // Posição ajustável
               child: CloseableAiCard(
+                geminiService: _geminiService, // <--- CORREÇÃO AQUI
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
@@ -457,6 +463,44 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _animatedCircle(
+      double top, double right, double speed, List<Color> colors, int index) {
+    return AnimatedBuilder(
+      animation: _circleController,
+      builder: (context, child) {
+        return Positioned(
+          top:
+              top + sin(_circleController.value * 2 * pi + index * pi / 3) * 10,
+          right: right +
+              cos(_circleController.value * 2 * pi + index * pi / 3) * 10,
+          child: Transform.scale(
+            scale: 1 +
+                sin(_circleController.value * 2 * pi + index * pi / 2) * 0.1,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: colors,
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors[0].withOpacity(0.4),
+                    blurRadius: 20,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -732,7 +776,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const SettingsApp()),
+              MaterialPageRoute(
+                  builder: (context) =>
+                      const SettingsApp()), // A SettingsApp agora tem seu próprio GeminiService
             );
           },
         ),
@@ -766,6 +812,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         child: Padding(
           padding: EdgeInsets.only(right: screenWidth * 0.02),
           child: CloseableAiCard(
+            geminiService: _geminiService, // <--- CORREÇÃO AQUI
             scaleFactor: screenWidth < 360 ? 0.3 : 0.35,
             enableScroll: true,
           ),
@@ -1048,130 +1095,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
                 );
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.download, color: kAccentPurple),
-              title: const Text(
-                'Exportar dados',
-                style: TextStyle(color: kDarkTextPrimary),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // Lógica para exportar dados
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Dados exportados com sucesso!',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                    backgroundColor: kAccentSecondary,
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text(
-                'Sair',
-                style: TextStyle(color: kDarkTextPrimary),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                // Lógica para sair
-                _showLogoutConfirmationDialog();
-              },
-            ),
           ],
         ),
       ),
-    );
-  }
-
-  void _showLogoutConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: kDarkElementBg,
-        title: const Text(
-          'Sair',
-          style: TextStyle(color: kDarkTextPrimary),
-        ),
-        content: const Text(
-          'Tem certeza que deseja sair?',
-          style: TextStyle(color: kDarkTextSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'Cancelar',
-              style: TextStyle(color: kDarkTextSecondary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Lógica para fazer logout
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Logout realizado com sucesso!',
-                    style: TextStyle(color: kDarkTextPrimary),
-                  ),
-                  backgroundColor: Colors.redAccent,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-            ),
-            child:
-                const Text('Sair', style: TextStyle(color: kDarkTextPrimary)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _animatedCircle(
-    double x,
-    double y,
-    double size,
-    List<Color> colors,
-    int index,
-  ) {
-    return AnimatedBuilder(
-      animation: _circleController,
-      builder: (context, child) {
-        final t = (_circleController.value + (index * 0.1)) % 1.0;
-        final offset = 20 * sin(t * 2 * pi);
-
-        final colorTween = ColorTween(begin: colors[0], end: colors[1]);
-        final animatedColor = colorTween.transform(t) ?? colors[0];
-
-        final pulse = 0.5 + 0.5 * sin(t * 2 * pi);
-        final scale = 1.0 + 0.05 * pulse;
-        final opacity = 0.8 + 0.2 * pulse;
-
-        return Positioned(
-          top: y + offset,
-          left: x,
-          child: Opacity(
-            opacity: opacity.clamp(0.0, 1.0),
-            child: Transform.scale(
-              scale: scale,
-              child: _decorativeCircle(size, animatedColor),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _decorativeCircle(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

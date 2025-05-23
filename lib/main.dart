@@ -7,7 +7,8 @@ import 'package:planify/src/pages/criartime.dart';
 import 'package:planify/src/pages/detalhesdastarefas.dart';
 import 'package:planify/src/pages/detalhesdoevento.dart';
 import 'package:planify/src/pages/detalhesdoprojeto.dart';
-import 'package:planify/src/pages/iconedaia.dart';
+import 'package:planify/src/pages/iconedaia.dart'; // Importação do CloseableAiCard
+import 'package:planify/services/gemini_service.dart'; // Importação do GeminiService
 import './src/pages/inicial.dart';
 import './src/pages/login.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -18,10 +19,6 @@ import './src/pages/planner_diario.dart';
 import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
-
-
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +31,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
@@ -52,16 +51,12 @@ class MyApp extends StatelessWidget {
         '/detalheseventos': (context) => const Detalhesdoevento(),
         '/detalhesprojeto': (context) => const Detalhesdoprojeto(),
         '/habitos': (context) => const HabitsPage(),
-        '/iconia': (context) => const CloseableAiCard(),
+        '/iconia': (context) {
+          final geminiService = GeminiService();
+          return CloseableAiCard(geminiService: geminiService);
+        },
         '/perfilvazio': (context) => const PerfilvazioPage(),
-   
-    
-
-
-
       },
-
-
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
@@ -70,9 +65,7 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('pt', 'BR'), // Português (Brasil)
         Locale('en', ''), // Inglês (como fallback ou outro idioma suportado)
-
       ],
-    
     );
   }
 }

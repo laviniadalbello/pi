@@ -52,13 +52,13 @@ class CloseableAiCard extends StatefulWidget {
 
   const CloseableAiCard({
     super.key,
-    this.scaleFactor = 1.0,
-    this.enableScroll = true, // Habilitado por padrão
-    required this.geminiService, // <--- Torne-o obrigatório
-  }) : super(key: key);
+    required this.geminiService, // <--- E aqui
+    this.scaleFactor = 0.4,
+    this.enableScroll = false,
+  });
 
   @override
-  _CloseableAiCardState createState() => _CloseableAiCardState();
+  State<CloseableAiCard> createState() => _CloseableAiCardState();
 }
 
 class _CloseableAiCardState extends State<CloseableAiCard> {
@@ -70,14 +70,16 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
   final ScrollController _scrollController = ScrollController();
 
   // Lista de mensagens que será preenchida dinamicamente
-  final List<Map<String, String>> _messages = []; // <--- Comece vazia ou com uma mensagem inicial do AI
+  final List<Map<String, String>> _messages =
+      []; // <--- Comece vazia ou com uma mensagem inicial do AI
 
   @override
   void initState() {
     super.initState();
     // Adicionar uma mensagem inicial do AI ao iniciar, se a lista estiver vazia
     if (_messages.isEmpty) {
-      _messages.add({'sender': 'ai', 'text': 'Olá! Como posso ajudar você hoje?'});
+      _messages
+          .add({'sender': 'ai', 'text': 'Olá! Como posso ajudar você hoje?'});
     }
   }
 
@@ -143,8 +145,10 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
                 scrollController: _scrollController,
                 enableScroll: widget.enableScroll,
                 messages: _messages,
-                geminiService: widget.geminiService, // <--- Passe o GeminiService
-                onSendMessage: (message) { // <--- Adicione o callback para enviar mensagem
+                geminiService:
+                    widget.geminiService, // <--- Passe o GeminiService
+                onSendMessage: (message) {
+                  // <--- Adicione o callback para enviar mensagem
                   _handleSendMessage(message);
                 },
               ),
@@ -174,7 +178,8 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
     });
 
     try {
-      final aiRawResponse = await widget.geminiService.getGeminiResponse(message);
+      final aiRawResponse =
+          await widget.geminiService.getGeminiResponse(message);
 
       // Verifique se a resposta é uma chamada de função (JSON) ou texto
       if (aiRawResponse.startsWith('{') && aiRawResponse.endsWith('}')) {
@@ -193,7 +198,6 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
         // as funções do Firestore (create_task, list_tasks, etc.) baseadas em `action['action']`
         // e `action['parameters']`. Esta lógica está provavelmente em `chatdaia.dart` e precisaria ser reutilizada.
         // Ou, uma vez que a caixa é clicada, ela leva para a tela completa do ChatScreen, onde essa lógica já existe.
-
       } else {
         setState(() {
           _messages.add({'sender': 'ai', 'text': aiRawResponse});
@@ -201,7 +205,10 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
       }
     } catch (e) {
       setState(() {
-        _messages.add({'sender': 'ai', 'text': 'Ocorreu um erro ao processar sua solicitação.'});
+        _messages.add({
+          'sender': 'ai',
+          'text': 'Ocorreu um erro ao processar sua solicitação.'
+        });
       });
       print('Erro ao obter resposta do Gemini no AiInputCard: $e');
     }
@@ -239,7 +246,7 @@ class AiInputCard extends StatefulWidget {
     required this.messages,
     required this.geminiService, // <--- Torne-o obrigatório
     required this.onSendMessage, // <--- Torne-o obrigatório
-  }) : super(key: key);
+  });
 
   @override
   _AiInputCardState createState() => _AiInputCardState();
@@ -382,10 +389,9 @@ class _AiInputCardState extends State<AiInputCard>
             AnimatedContainer(
               duration: _transitionDuration,
               width: _initialCardWidth,
-              height:
-                  widget.isHovering && !widget.isChecked
-                      ? _initialCardHeight
-                      : 11 * 16.0,
+              height: widget.isHovering && !widget.isChecked
+                  ? _initialCardHeight
+                  : 11 * 16.0,
               decoration: BoxDecoration(
                 color: kDarkSurface.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(3.2 * 16.0),
@@ -414,16 +420,15 @@ class _AiInputCardState extends State<AiInputCard>
                     borderRadius: BorderRadius.circular(
                       widget.isChecked ? _checkedBorderRadius : _borderRadius,
                     ),
-                    boxShadow:
-                        widget.isHovering && !widget.isChecked
-                            ? [
-                                BoxShadow(
-                                  color: kAccentPurple.withOpacity(0.25),
-                                  blurRadius: 40,
-                                  offset: Offset(0, 10),
-                                ),
-                              ]
-                            : [],
+                    boxShadow: widget.isHovering && !widget.isChecked
+                        ? [
+                            BoxShadow(
+                              color: kAccentPurple.withOpacity(0.25),
+                              blurRadius: 40,
+                              offset: Offset(0, 10),
+                            ),
+                          ]
+                        : [],
                   ),
                   transform: _calculateTransform(
                     _relativeMousePosition,
@@ -460,15 +465,13 @@ class _AiInputCardState extends State<AiInputCard>
         children: [
           AnimatedBuilder(
             animation: _ballRotationController,
-            builder:
-                (context, child) => Transform.rotate(
-                  angle:
-                      _ballRotationController.value *
-                      2 *
-                      math.pi *
-                      (widget.isHovering ? 0 : 1),
-                  child: child,
-                ),
+            builder: (context, child) => Transform.rotate(
+              angle: _ballRotationController.value *
+                  2 *
+                  math.pi *
+                  (widget.isHovering ? 0 : 1),
+              child: child,
+            ),
             child: Stack(
               children: [
                 Positioned(
@@ -654,7 +657,10 @@ class _AiInputCardState extends State<AiInputCard>
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => ChatScreen(title: "meu chat", geminiService: widget.geminiService), // <--- Passe o GeminiService aqui
+                          builder: (context) => ChatScreen(
+                              title: "meu chat",
+                              geminiService: widget
+                                  .geminiService), // <--- Passe o GeminiService aqui
                         ),
                       );
                     },
@@ -677,13 +683,12 @@ class _AiInputCardState extends State<AiInputCard>
 
           // Área de mensagens com scroll
           Expanded(
-            child:
-                widget.enableScroll
-                    ? SingleChildScrollView(
-                        controller: widget.scrollController,
-                        child: _buildChatMessages(messageFontSize),
-                      )
-                    : _buildChatMessages(messageFontSize),
+            child: widget.enableScroll
+                ? SingleChildScrollView(
+                    controller: widget.scrollController,
+                    child: _buildChatMessages(messageFontSize),
+                  )
+                : _buildChatMessages(messageFontSize),
           ),
 
           // Campo de entrada
@@ -736,64 +741,62 @@ class _AiInputCardState extends State<AiInputCard>
   Widget _buildChatMessages(double fontSize) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children:
-          widget.messages.map((message) {
-            final isAi = message['sender'] == 'ai';
+      children: widget.messages.map((message) {
+        final isAi = message['sender'] == 'ai';
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Row(
-                mainAxisAlignment:
-                    isAi ? MainAxisAlignment.start : MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (isAi) ...[
-                    const CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.white24,
-                      child: Icon(
-                        Icons.smart_toy_outlined,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  Flexible(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color:
-                            isAi
-                                ? Colors.white.withOpacity(0.1)
-                                : Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        message['text'] ?? '',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: fontSize,
-                        ),
-                      ),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            mainAxisAlignment:
+                isAi ? MainAxisAlignment.start : MainAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (isAi) ...[
+                const CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.white24,
+                  child: Icon(
+                    Icons.smart_toy_outlined,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isAi
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    message['text'] ?? '',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: fontSize,
                     ),
                   ),
-                  if (!isAi) ...[
-                    const SizedBox(width: 8),
-                    const CircleAvatar(
-                      radius: 16,
-                      backgroundColor: Colors.white24,
-                      child: Icon(
-                        Icons.person_outline,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
-                  ],
-                ],
+                ),
               ),
-            );
-          }).toList(),
+              if (!isAi) ...[
+                const SizedBox(width: 8),
+                const CircleAvatar(
+                  radius: 16,
+                  backgroundColor: Colors.white24,
+                  child: Icon(
+                    Icons.person_outline,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 }

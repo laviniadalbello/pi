@@ -1,6 +1,5 @@
-
 import 'package:flutter/material.dart';
-import 'iconedaia.dart';
+import 'iconedaia.dart'; // Certifique-se de que este caminho está correto para CloseableAiCard
 import 'package:planify/services/gemini_service.dart';
 
 void main() => runApp(const SettingsApp());
@@ -39,6 +38,8 @@ class _SettingsPageState extends State<SettingsPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
+  late GeminiService _geminiService; // Declare a instância do GeminiService
+
   @override
   void initState() {
     super.initState();
@@ -53,11 +54,15 @@ class _SettingsPageState extends State<SettingsPage>
     );
 
     _animationController.forward();
+
+    // Inicialize o GeminiService aqui
+    _geminiService = GeminiService();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _geminiService.close(); // Chame o método close do GeminiService se ele tiver um
     super.dispose();
   }
 
@@ -366,6 +371,7 @@ class _SettingsPageState extends State<SettingsPage>
             bottom: 42,
             right: -60,
             child: CloseableAiCard(
+              geminiService: _geminiService, // <--- Adicione esta linha
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
             ),
@@ -376,13 +382,13 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildAnimatedSwitchTile(
-    String title,
-    String subtitle,
-    IconData icon,
-    bool value,
-    ValueChanged<bool> onChanged, {
-    int delay = 0,
-  }) {
+      String title,
+      String subtitle,
+      IconData icon,
+      bool value,
+      ValueChanged<bool> onChanged, {
+        int delay = 0,
+      }) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 500 + delay),
@@ -457,12 +463,12 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildAnimatedNavTile(
-    String title,
-    String subtitle,
-    IconData icon,
-    VoidCallback onTap, {
-    int delay = 0,
-  }) {
+      String title,
+      String subtitle,
+      IconData icon,
+      VoidCallback onTap, {
+        int delay = 0,
+      }) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 500 + delay),
