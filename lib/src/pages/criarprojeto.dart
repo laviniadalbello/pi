@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
+import 'package:planify/services/gemini_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -19,6 +20,7 @@ class CreateProjectScreen extends StatefulWidget {
 
 class _CreateProjectScreenState extends State<CreateProjectScreen>
     with TickerProviderStateMixin {
+      late GeminiService _geminiService;
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _projectNameController = TextEditingController();
@@ -48,6 +50,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   @override
   void initState() {
     super.initState();
+    _geminiService = GeminiService();
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -770,6 +773,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               bottom: 12,
               right: -60,
               child: CloseableAiCard(
+                geminiService: _geminiService,
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
