@@ -2,6 +2,7 @@ import 'detalhesdoevento.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'iconedaia.dart';
+import 'package:planify/services/gemini_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -55,6 +56,7 @@ class _CreateEventPageState extends State<CreateEventPage>
   bool _isFabMenuActive = false;
   late AnimationController _fabMenuSlideController;
   late Animation<Offset> _fabMenuSlideAnimation;
+  late GeminiService _geminiService;
 
   @override
   void initState() {
@@ -69,6 +71,8 @@ class _CreateEventPageState extends State<CreateEventPage>
     ).animate(
       CurvedAnimation(parent: _fabMenuSlideController, curve: Curves.easeOut),
     );
+
+    _geminiService = GeminiService();
 
     if (widget.eventToEdit != null) {
       final event = widget.eventToEdit!;
@@ -119,6 +123,7 @@ class _CreateEventPageState extends State<CreateEventPage>
     _eventNotesController.dispose();
     _participantEmailController.dispose();
     _fabMenuSlideController.dispose();
+    _geminiService.close();
     super.dispose();
   }
 
@@ -264,7 +269,8 @@ class _CreateEventPageState extends State<CreateEventPage>
               dialBackgroundColor: kDarkSurface,
               entryModeIconColor: kAccentPurple,
               helpTextStyle: TextStyle(color: kDarkTextSecondary),
-            ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+            ),
+            dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
           ),
           child: child!,
         );
@@ -374,29 +380,25 @@ class _CreateEventPageState extends State<CreateEventPage>
       }
 
       Event eventData = Event(
-        id:
-            widget.eventToEdit?.id ??
+        id: widget.eventToEdit?.id ??
             DateTime.now().millisecondsSinceEpoch.toString(),
         name: _eventNameController.text,
-        description:
-            _eventDescriptionController.text.isNotEmpty
-                ? _eventDescriptionController.text
-                : null,
+        description: _eventDescriptionController.text.isNotEmpty
+            ? _eventDescriptionController.text
+            : null,
         startDate: startDate,
         startTime: tempStartTime,
         endDate: endDate,
         endTime: tempEndTime,
-        location:
-            _eventLocationController.text.isNotEmpty
-                ? _eventLocationController.text
-                : null,
+        location: _eventLocationController.text.isNotEmpty
+            ? _eventLocationController.text
+            : null,
         eventColor: _selectedEventColor,
         participants: _participants,
         attachments: _attachments,
-        notes:
-            _eventNotesController.text.isNotEmpty
-                ? _eventNotesController.text
-                : null,
+        notes: _eventNotesController.text.isNotEmpty
+            ? _eventNotesController.text
+            : null,
         status: widget.eventToEdit?.status ?? EventStatus.upcoming,
       );
 
@@ -451,17 +453,15 @@ class _CreateEventPageState extends State<CreateEventPage>
           horizontal: 16.0,
           vertical: 14.0,
         ),
-        suffixIcon:
-            suffixIcon != null
-                ? Icon(suffixIcon, color: kDarkTextSecondary)
-                : null,
+        suffixIcon: suffixIcon != null
+            ? Icon(suffixIcon, color: kDarkTextSecondary)
+            : null,
       ),
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
       keyboardType: keyboardType,
-      validator:
-          validator ??
+      validator: validator ??
           (value) {
             if (!isOptional && (value == null || value.isEmpty)) {
               return 'Por favor, preencha este campo.';
@@ -653,17 +653,16 @@ class _CreateEventPageState extends State<CreateEventPage>
             radius: 25,
             backgroundColor: kDarkElementBg,
             backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
-            child:
-                imageUrl == null
-                    ? Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: const TextStyle(
-                        color: kDarkTextPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    )
-                    : null,
+            child: imageUrl == null
+                ? Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : '?',
+                    style: const TextStyle(
+                      color: kDarkTextPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(height: 4),
           Text(
@@ -731,29 +730,26 @@ class _CreateEventPageState extends State<CreateEventPage>
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
-                border:
-                    isSelected
-                        ? Border.all(color: kDarkTextPrimary, width: 2.5)
-                        : Border.all(color: color.withOpacity(0.5), width: 1),
-                boxShadow:
-                    isSelected
-                        ? [
-                          BoxShadow(
-                            color: color.withOpacity(0.5),
-                            blurRadius: 5,
-                            spreadRadius: 1,
-                          ),
-                        ]
-                        : [],
+                border: isSelected
+                    ? Border.all(color: kDarkTextPrimary, width: 2.5)
+                    : Border.all(color: color.withOpacity(0.5), width: 1),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: color.withOpacity(0.5),
+                          blurRadius: 5,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : [],
               ),
-              child:
-                  isSelected
-                      ? const Icon(
-                        Icons.check,
-                        color: kDarkTextPrimary,
-                        size: 20,
-                      )
-                      : null,
+              child: isSelected
+                  ? const Icon(
+                      Icons.check,
+                      color: kDarkTextPrimary,
+                      size: 20,
+                    )
+                  : null,
             ),
           );
         },
@@ -889,11 +885,10 @@ class _CreateEventPageState extends State<CreateEventPage>
                           _eventStartDateController,
                           'Data de Início',
                           readOnly: true,
-                          onTap:
-                              () => _selectDate(
-                                _eventStartDateController,
-                                initialDate: widget.eventToEdit?.startDate,
-                              ),
+                          onTap: () => _selectDate(
+                            _eventStartDateController,
+                            initialDate: widget.eventToEdit?.startDate,
+                          ),
                           suffixIcon: Icons.calendar_today,
                         ),
                       ),
@@ -903,11 +898,10 @@ class _CreateEventPageState extends State<CreateEventPage>
                           _eventStartTimeController,
                           'Hora de Início',
                           readOnly: true,
-                          onTap:
-                              () => _selectTime(
-                                _eventStartTimeController,
-                                initialTime: _initialStartTime,
-                              ),
+                          onTap: () => _selectTime(
+                            _eventStartTimeController,
+                            initialTime: _initialStartTime,
+                          ),
                           suffixIcon: Icons.access_time,
                         ),
                       ),
@@ -921,25 +915,23 @@ class _CreateEventPageState extends State<CreateEventPage>
                           _eventEndDateController,
                           'Data de Término (Opcional)',
                           readOnly: true,
-                          onTap:
-                              () => _selectDate(
-                                _eventEndDateController,
-                                initialDate:
-                                    widget.eventToEdit?.endDate ??
-                                    (_eventStartDateController.text.isNotEmpty
-                                        ? (() {
-                                          try {
-                                            return DateFormat(
-                                              'dd/MM/yyyy',
-                                            ).parse(
-                                              _eventStartDateController.text,
-                                            );
-                                          } catch (e) {
-                                            return DateTime.now();
-                                          }
-                                        })()
-                                        : DateTime.now()),
-                              ),
+                          onTap: () => _selectDate(
+                            _eventEndDateController,
+                            initialDate: widget.eventToEdit?.endDate ??
+                                (_eventStartDateController.text.isNotEmpty
+                                    ? (() {
+                                        try {
+                                          return DateFormat(
+                                            'dd/MM/yyyy',
+                                          ).parse(
+                                            _eventStartDateController.text,
+                                          );
+                                        } catch (e) {
+                                          return DateTime.now();
+                                        }
+                                      })()
+                                    : DateTime.now()),
+                          ),
                           suffixIcon: Icons.calendar_today,
                           isOptional: true,
                         ),
@@ -950,11 +942,10 @@ class _CreateEventPageState extends State<CreateEventPage>
                           _eventEndTimeController,
                           'Hora de Término (Opcional)',
                           readOnly: true,
-                          onTap:
-                              () => _selectTime(
-                                _eventEndTimeController,
-                                initialTime: _initialEndTime,
-                              ),
+                          onTap: () => _selectTime(
+                            _eventEndTimeController,
+                            initialTime: _initialEndTime,
+                          ),
                           suffixIcon: Icons.access_time,
                           isOptional: true,
                         ),
@@ -1008,6 +999,7 @@ class _CreateEventPageState extends State<CreateEventPage>
               bottom: 42,
               right: -60,
               child: CloseableAiCard(
+                geminiService: _geminiService,
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
