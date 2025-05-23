@@ -8,7 +8,7 @@
 
 // void main() {
 //   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-//     final geminiService = GeminiService();
+//     final geminiService = GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA');
 
 //     await tester.pumpWidget(
 //       MyApp(

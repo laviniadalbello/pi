@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
- // <--- ADICIONE ESTA LINHA
+// <--- ADICIONE ESTA LINHA
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -74,7 +74,9 @@ class _AddTaskPageState extends State<AddTaskPage>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ'); // <--- INICIALIZE O GEMINISERVICE AQUI
+    _geminiService = GeminiService(
+        apiKey:
+            'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA'); // <--- INICIALIZE O GEMINISERVICE AQUI
   }
 
   @override
@@ -232,11 +234,9 @@ class _AddTaskPageState extends State<AddTaskPage>
                       _buildTextField(
                         _taskNameController,
                         'Ex: Design do App Mobile',
-                        validator:
-                            (val) =>
-                                val == null || val.isEmpty
-                                    ? "Nome da tarefa é obrigatório"
-                                    : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? "Nome da tarefa é obrigatório"
+                            : null,
                       ),
                       const SizedBox(height: 30),
                       _buildLabel("Adicionar atividade em um projeto:"),
@@ -251,11 +251,9 @@ class _AddTaskPageState extends State<AddTaskPage>
                         readOnly: true,
                         onTap: _selectDate,
                         suffixIcon: Icons.calendar_today,
-                        validator:
-                            (val) =>
-                                val == null || val.isEmpty
-                                    ? "Data é obrigatória"
-                                    : null,
+                        validator: (val) => val == null || val.isEmpty
+                            ? "Data é obrigatória"
+                            : null,
                       ),
                       const SizedBox(height: 34),
                       Row(
@@ -270,14 +268,12 @@ class _AddTaskPageState extends State<AddTaskPage>
                                   _startTimeController,
                                   'Ex: 9:30 am',
                                   readOnly: true,
-                                  onTap:
-                                      () => _selectTime(_startTimeController),
+                                  onTap: () =>
+                                      _selectTime(_startTimeController),
                                   suffixIcon: Icons.access_time,
-                                  validator:
-                                      (val) =>
-                                          val == null || val.isEmpty
-                                              ? "Hora de início é obrigatória"
-                                              : null,
+                                  validator: (val) => val == null || val.isEmpty
+                                      ? "Hora de início é obrigatória"
+                                      : null,
                                 ),
                               ],
                             ),
@@ -295,11 +291,9 @@ class _AddTaskPageState extends State<AddTaskPage>
                                   readOnly: true,
                                   onTap: () => _selectTime(_endTimeController),
                                   suffixIcon: Icons.access_time,
-                                  validator:
-                                      (val) =>
-                                          val == null || val.isEmpty
-                                              ? "Hora de término é obrigatória"
-                                              : null,
+                                  validator: (val) => val == null || val.isEmpty
+                                      ? "Hora de término é obrigatória"
+                                      : null,
                                 ),
                               ],
                             ),
@@ -419,10 +413,9 @@ class _AddTaskPageState extends State<AddTaskPage>
           horizontal: 16,
           vertical: 14,
         ),
-        suffixIcon:
-            suffixIcon != null
-                ? Icon(suffixIcon, color: kDarkTextSecondary)
-                : null,
+        suffixIcon: suffixIcon != null
+            ? Icon(suffixIcon, color: kDarkTextSecondary)
+            : null,
       ),
       validator: validator,
     );
@@ -453,10 +446,9 @@ class _AddTaskPageState extends State<AddTaskPage>
           vertical: 14,
         ),
       ),
-      items:
-          _availableProjects.map((String value) {
-            return DropdownMenuItem<String>(value: value, child: Text(value));
-          }).toList(),
+      items: _availableProjects.map((String value) {
+        return DropdownMenuItem<String>(value: value, child: Text(value));
+      }).toList(),
       onChanged: (String? newValue) {
         setState(() {
           _selectedProject = newValue!;
@@ -492,10 +484,9 @@ class _AddTaskPageState extends State<AddTaskPage>
           vertical: 14,
         ),
       ),
-      items:
-          ['Baixa', 'Média', 'Alta'].map((String value) {
-            return DropdownMenuItem<String>(value: value, child: Text(value));
-          }).toList(),
+      items: ['Baixa', 'Média', 'Alta'].map((String value) {
+        return DropdownMenuItem<String>(value: value, child: Text(value));
+      }).toList(),
       onChanged: (String? newValue) {
         setState(() {
           _selectedPriority = newValue!;
@@ -508,26 +499,25 @@ class _AddTaskPageState extends State<AddTaskPage>
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children:
-            _availableTaskColors.map((color) {
-              bool isSelected = _selectedTaskColor == color;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedTaskColor = color),
-                child: Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: isSelected ? kDarkTextPrimary : Colors.transparent,
-                      width: 2.5,
-                    ),
-                  ),
+        children: _availableTaskColors.map((color) {
+          bool isSelected = _selectedTaskColor == color;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedTaskColor = color),
+            child: Container(
+              margin: const EdgeInsets.only(right: 10),
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? kDarkTextPrimary : Colors.transparent,
+                  width: 2.5,
                 ),
-              );
-            }).toList(),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -559,24 +549,23 @@ class _AddTaskPageState extends State<AddTaskPage>
         Wrap(
           spacing: 8.0,
           runSpacing: 4.0,
-          children:
-              _attachments.asMap().entries.map((entry) {
-                int idx = entry.key;
-                String fileName = entry.value;
-                return Chip(
-                  backgroundColor: kDarkElementBg,
-                  label: Text(
-                    fileName,
-                    style: const TextStyle(color: kDarkTextSecondary),
-                  ),
-                  deleteIcon: const Icon(
-                    Icons.close,
-                    color: kDarkTextSecondary,
-                    size: 18,
-                  ),
-                  onDeleted: () => _removeAttachment(idx),
-                );
-              }).toList(),
+          children: _attachments.asMap().entries.map((entry) {
+            int idx = entry.key;
+            String fileName = entry.value;
+            return Chip(
+              backgroundColor: kDarkElementBg,
+              label: Text(
+                fileName,
+                style: const TextStyle(color: kDarkTextSecondary),
+              ),
+              deleteIcon: const Icon(
+                Icons.close,
+                color: kDarkTextSecondary,
+                size: 18,
+              ),
+              onDeleted: () => _removeAttachment(idx),
+            );
+          }).toList(),
         ),
       ],
     );
@@ -586,32 +575,30 @@ class _AddTaskPageState extends State<AddTaskPage>
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children:
-            ['Urgente', 'Em Andamento', 'Concluído'].map((board) {
-              bool isSelected = _selectedBoard == board;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedBoard = board),
-                child: Container(
-                  margin: const EdgeInsets.only(right: 10),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected ? kAccentPurple : kDarkElementBg,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    board,
-                    style: TextStyle(
-                      color: isSelected ? kDarkTextPrimary : kDarkTextSecondary,
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
+        children: ['Urgente', 'Em Andamento', 'Concluído'].map((board) {
+          bool isSelected = _selectedBoard == board;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedBoard = board),
+            child: Container(
+              margin: const EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                color: isSelected ? kAccentPurple : kDarkElementBg,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                board,
+                style: TextStyle(
+                  color: isSelected ? kDarkTextPrimary : kDarkTextSecondary,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
-              );
-            }).toList(),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

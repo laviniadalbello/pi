@@ -29,7 +29,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
 
-  late GeminiService _geminiService; 
+  late GeminiService _geminiService;
 
   bool _isCardVisible = false;
 
@@ -69,7 +69,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ'); // INICIALIZADO AQUI
+    _geminiService = GeminiService(
+        apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA'); // INICIALIZADO AQUI
 
     if (FirebaseAuth.instance.currentUser == null) {
       print('Usuário não está logado');
@@ -138,8 +139,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _circleController.dispose(); 
-    _slideController.dispose(); 
+    _circleController.dispose();
+    _slideController.dispose();
     _geminiService.close();
     super.dispose();
   }

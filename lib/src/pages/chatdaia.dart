@@ -102,142 +102,168 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
     _scrollToBottom();
 
-    String aiRawResponse =
-        await _geminiService.getGeminiResponse(newMessage.text);
-    String aiResponseText = aiRawResponse;
+    String aiRawResponse;
+    String aiResponseText = "Não foi possível obter uma resposta.";
 
-    Map<String, dynamic>? aiAction;
     try {
-      aiAction = json.decode(aiRawResponse);
-    } catch (e) {
-      debugPrint("Resposta do Gemini não é JSON válido: $e");
-    }
+      aiRawResponse = await _geminiService.getGeminiResponse(newMessage.text);
 
-    if (aiAction != null &&
-        aiAction.containsKey('action') &&
-        aiAction.containsKey('parameters')) {
-      final String action = aiAction['action'];
-      final Map<String, dynamic> parameters = aiAction['parameters'];
-
-      try {
-        switch (action) {
-          case 'create_task':
-            DateTime? dueDate;
-            if (parameters['dueDate'] != null) {
-              try {
-                dueDate = DateTime.parse(parameters['dueDate']);
-              } catch (e) {
-                debugPrint(
-                    "Erro ao parsear data de vencimento: ${parameters['dueDate']}");
-              }
-            }
-            await _firestoreTasksService.createUserTask(
-              title: parameters['title'],
-              dueDate: dueDate,
-              priority: parameters['priority'],
-            );
-            aiResponseText =
-                "Tarefa '${parameters['title']}' criada com sucesso no Firestore!";
-            break;
-
-          case 'list_tasks':
-            final List<Task> tasks = await _firestoreTasksService.listUserTasks(
-                filter: parameters['filter']);
-            if (tasks.isEmpty) {
-              aiResponseText =
-                  "Não encontrei nenhuma tarefa com este filtro no Firestore.";
-            } else {
-              aiResponseText =
-                  "Aqui estão as tarefas (${parameters['filter'] ?? 'todas'}):";
-              for (var i = 0; i < tasks.length; i++) {
-                aiResponseText +=
-                    "\n${i + 1}. ${tasks[i].title} (Vence: ${tasks[i].dueDate?.toIso8601String().substring(0, 10) ?? 'N/A'}, Pri: ${tasks[i].priority ?? 'N/A'}, Concluída: ${tasks[i].status == 'completed' ? 'Sim' : 'Não'})";
-              }
-            }
-            break;
-
-          case 'update_task':
-            String? taskIdToUpdate;
-            if (parameters['taskId'] != null) {
-              taskIdToUpdate = parameters['taskId'];
-            } else if (parameters['title'] != null) {
-              final Task? task = await _firestoreTasksService
-                  .findTaskByTitle(parameters['title']);
-              if (task != null) {
-                taskIdToUpdate = task.id;
-              }
-            }
-
-            if (taskIdToUpdate == null) {
-              aiResponseText =
-                  "Não consegui identificar a tarefa para atualizar. Por favor, forneça o ID ou o nome exato.";
-              break;
-            }
-
-            DateTime? newDueDate;
-            if (parameters['newDueDate'] != null) {
-              try {
-                newDueDate = DateTime.parse(parameters['newDueDate']);
-              } catch (e) {
-                debugPrint(
-                    "Erro ao parsear nova data de vencimento: ${parameters['newDueDate']}");
-              }
-            }
-
-            await _firestoreTasksService.updateUserTask(
-              taskId: taskIdToUpdate,
-              newTitle: parameters['newTitle'],
-              newDueDate: newDueDate,
-              newPriority: parameters['priority'], // Corrigido para priority
-              isCompleted: parameters['isCompleted'],
-            );
-            aiResponseText = "Tarefa atualizada com sucesso no Firestore!";
-            break;
-
-          case 'delete_task':
-            String? taskIdToDelete;
-            if (parameters['taskId'] != null) {
-              taskIdToDelete = parameters['taskId'];
-            } else if (parameters['title'] != null) {
-              final Task? task = await _firestoreTasksService
-                  .findTaskByTitle(parameters['title']);
-              if (task != null) {
-                taskIdToDelete = task.id;
-              }
-            }
-
-            if (taskIdToDelete == null) {
-              aiResponseText =
-                  "Não consegui identificar a tarefa para deletar. Por favor, forneça o ID ou o nome exato.";
-              break;
-            }
-
-            await _firestoreTasksService.deleteTask(taskId: taskIdToDelete);
-            aiResponseText = "Tarefa deletada com sucesso do Firestore!";
-            break;
-
-          case 'add_project_task':
-            final String? projectId = parameters['projectId'];
-            final String? taskTitle = parameters['title'];
-            if (projectId != null && taskTitle != null) {
-              await _firestoreTasksService.addProjectTask(
-                  projectId, taskTitle, 'test_user_id_gemini');
-              aiResponseText =
-                  "Tarefa '$taskTitle' adicionada ao projeto '$projectId' com sucesso.";
-            } else {
-              aiResponseText =
-                  "Para adicionar uma tarefa de projeto, preciso do ID do projeto e do título da tarefa.";
-            }
-            break;
-
-          default:
-            break;
+      Map<String, dynamic>? aiAction;
+      if (aiRawResponse.startsWith('{') && aiRawResponse.endsWith('}')) {
+        try {
+          aiAction = json.decode(aiRawResponse);
+        } on FormatException catch (e) {
+          // Captura especificamente o erro de formato JSON
+          debugPrint("Resposta do Gemini não é JSON válido: $e");
+          aiAction =
+              null;
+          aiResponseText = "Erro: A resposta da IA não está no formato esperado."; // Garante que não será tratado como ação se for inválido
+        } catch (e) {
+          // Outros erros de decodificação
+          debugPrint("Erro inesperado ao decodificar JSON: $e");
+          aiAction = null;
+          aiResponseText = "Erro: Problema ao interpretar a resposta da IA. Detalhes: $e";
         }
-      } catch (e) {
-        debugPrint("Erro ao executar ação do Firestore: $e");
-        aiResponseText =
-            "Ocorreu um erro ao tentar executar sua solicitação no banco de dados: $e";
       }
+
+      if (aiAction != null &&
+          aiAction.containsKey('action') &&
+          aiAction.containsKey('parameters')) {
+        final String action = aiAction['action'];
+        final Map<String, dynamic> parameters = aiAction['parameters'];
+
+        try {
+          switch (action) {
+            case 'create_task':
+              DateTime? dueDate;
+              if (parameters['dueDate'] != null) {
+                try {
+                  dueDate = DateTime.parse(parameters['dueDate']);
+                } catch (e) {
+                  debugPrint(
+                      "Erro ao parsear data de vencimento: ${parameters['dueDate']}");
+                }
+              }
+              await _firestoreTasksService.createUserTask(
+                title: parameters['title'],
+                dueDate: dueDate,
+                priority: parameters['priority'],
+              );
+              aiResponseText =
+                  "Tarefa '${parameters['title']}' criada com sucesso no Firestore!";
+              break;
+
+            case 'list_tasks':
+              final List<Task> tasks = await _firestoreTasksService
+                  .listUserTasks(filter: parameters['filter']);
+              if (tasks.isEmpty) {
+                aiResponseText =
+                    "Não encontrei nenhuma tarefa com este filtro no Firestore.";
+              } else {
+                aiResponseText =
+                    "Aqui estão as tarefas (${parameters['filter'] ?? 'todas'}):";
+                for (var i = 0; i < tasks.length; i++) {
+                  aiResponseText +=
+                      "\n${i + 1}. ${tasks[i].title} (Vence: ${tasks[i].dueDate?.toIso8601String().substring(0, 10) ?? 'N/A'}, Pri: ${tasks[i].priority ?? 'N/A'}, Concluída: ${tasks[i].status == 'completed' ? 'Sim' : 'Não'})";
+                }
+              }
+              break;
+
+            case 'update_task':
+              String? taskIdToUpdate;
+              if (parameters['taskId'] != null) {
+                taskIdToUpdate = parameters['taskId'];
+              } else if (parameters['title'] != null) {
+                final Task? task = await _firestoreTasksService
+                    .findTaskByTitle(parameters['title']);
+                if (task != null) {
+                  taskIdToUpdate = task.id;
+                }
+              }
+
+              if (taskIdToUpdate == null) {
+                aiResponseText =
+                    "Não consegui identificar a tarefa para atualizar. Por favor, forneça o ID ou o nome exato.";
+                break;
+              }
+
+              DateTime? newDueDate;
+              if (parameters['newDueDate'] != null) {
+                try {
+                  newDueDate = DateTime.parse(parameters['newDueDate']);
+                } catch (e) {
+                  debugPrint(
+                      "Erro ao parsear nova data de vencimento: ${parameters['newDueDate']}");
+                }
+              }
+
+              await _firestoreTasksService.updateUserTask(
+                taskId: taskIdToUpdate,
+                newTitle: parameters['newTitle'],
+                newDueDate: newDueDate,
+                newPriority: parameters['priority'],
+                isCompleted: parameters['isCompleted'],
+              );
+              aiResponseText = "Tarefa atualizada com sucesso no Firestore!";
+              break;
+
+            case 'delete_task':
+              String? taskIdToDelete;
+              if (parameters['taskId'] != null) {
+                taskIdToDelete = parameters['taskId'];
+              } else if (parameters['title'] != null) {
+                final Task? task = await _firestoreTasksService
+                    .findTaskByTitle(parameters['title']);
+                if (task != null) {
+                  taskIdToDelete = task.id;
+                }
+              }
+
+              if (taskIdToDelete == null) {
+                aiResponseText =
+                    "Não consegui identificar a tarefa para deletar. Por favor, forneça o ID ou o nome exato.";
+                break;
+              }
+
+              await _firestoreTasksService.deleteTask(taskId: taskIdToDelete);
+              aiResponseText = "Tarefa deletada com sucesso do Firestore!";
+              break;
+
+            case 'add_project_task':
+              final String? projectId = parameters['projectId'];
+              final String? taskTitle = parameters['title'];
+              if (projectId != null && taskTitle != null) {
+                await _firestoreTasksService.addProjectTask(
+                    projectId, taskTitle, 'test_user_id_gemini');
+                aiResponseText =
+                    "Tarefa '$taskTitle' adicionada ao projeto '$projectId' com sucesso.";
+              } else {
+                aiResponseText =
+                    "Para adicionar uma tarefa de projeto, preciso do ID do projeto e do título da tarefa.";
+              }
+              break;
+
+            default:
+              // Se a ação não for reconhecida, trate a resposta como texto simples.
+              aiResponseText =
+                  "Ação de função desconhecida: $action. Resposta crua: $aiRawResponse";
+              break;
+          }
+        } catch (e) {
+          debugPrint("Erro ao executar ação do Firestore: $e");
+          aiResponseText =
+              "Ocorreu um erro ao tentar executar sua solicitação no banco de dados: $e";
+        }
+      } else {
+        // Se não for uma FunctionCall (ou o JSON for inválido), trate como texto normal.
+        aiResponseText = aiRawResponse;
+      }
+      // --------------------------------------------------------------------
+    } catch (e) {
+      // Captura erros da chamada ao GeminiService (incluindo o "models/gemini-pro is not found")
+      debugPrint("Erro ao se comunicar com a API do Gemini: $e");
+      aiResponseText =
+          "Ocorreu um erro ao processar sua solicitação com a IA. Detalhes: $e";
     }
 
     Future.delayed(const Duration(seconds: 1), () {
@@ -557,7 +583,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   Text(
                     _formatTimestamp(
                         DateTime.fromMicrosecondsSinceEpoch(message.timestamp)),
-                    style: const TextStyle(color: kDarkTextSecondary, fontSize: 12),
+                    style: const TextStyle(
+                        color: kDarkTextSecondary, fontSize: 12),
                   ),
                 ],
               ),

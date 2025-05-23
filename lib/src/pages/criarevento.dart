@@ -72,7 +72,8 @@ class _CreateEventPageState extends State<CreateEventPage>
       CurvedAnimation(parent: _fabMenuSlideController, curve: Curves.easeOut),
     );
 
-    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ');
+    _geminiService =
+        GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA');
 
     if (widget.eventToEdit != null) {
       final event = widget.eventToEdit!;

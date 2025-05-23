@@ -56,13 +56,15 @@ class _SettingsPageState extends State<SettingsPage>
     _animationController.forward();
 
     // Inicialize o GeminiService aqui
-    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ');
+    _geminiService =
+        GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA');
   }
 
   @override
   void dispose() {
     _animationController.dispose();
-    _geminiService.close(); // Chame o método close do GeminiService se ele tiver um
+    _geminiService
+        .close(); // Chame o método close do GeminiService se ele tiver um
     super.dispose();
   }
 
@@ -382,13 +384,13 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildAnimatedSwitchTile(
-      String title,
-      String subtitle,
-      IconData icon,
-      bool value,
-      ValueChanged<bool> onChanged, {
-        int delay = 0,
-      }) {
+    String title,
+    String subtitle,
+    IconData icon,
+    bool value,
+    ValueChanged<bool> onChanged, {
+    int delay = 0,
+  }) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 500 + delay),
@@ -463,12 +465,12 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _buildAnimatedNavTile(
-      String title,
-      String subtitle,
-      IconData icon,
-      VoidCallback onTap, {
-        int delay = 0,
-      }) {
+    String title,
+    String subtitle,
+    IconData icon,
+    VoidCallback onTap, {
+    int delay = 0,
+  }) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 500 + delay),

@@ -27,11 +27,7 @@ void main() async {
   );
 
   // Instancia o GeminiService passando a chave da API diretamente
-  final geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ'); // <<-- SUBSTITUA PELA SUA CHAVE REAL AQUI
-
-  // Chamada de diagnóstico: Para verificar quais modelos estão disponíveis.
-  // Você pode remover esta linha após confirmar que o modelo 'gemini-pro' funciona.
-  await geminiService.listAvailableModels();
+  final geminiService = GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA'); // <<-- SUBSTITUA PELA SUA CHAVE REAL AQUI
 
   runApp(MyApp(geminiService: geminiService));
 }

@@ -20,7 +20,7 @@ class CreateProjectScreen extends StatefulWidget {
 
 class _CreateProjectScreenState extends State<CreateProjectScreen>
     with TickerProviderStateMixin {
-      late GeminiService _geminiService;
+  late GeminiService _geminiService;
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _projectNameController = TextEditingController();
@@ -50,7 +50,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   @override
   void initState() {
     super.initState();
-    _geminiService = GeminiService(apiKey: 'AIzaSyBh4Pf0G-YZJJqEL_UGFzWMCciG3-KH9vQ');
+    _geminiService =
+        GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA');
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -244,16 +245,14 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           horizontal: 16.0,
           vertical: 14.0,
         ),
-        suffixIcon:
-            suffixIcon != null
-                ? Icon(suffixIcon, color: kDarkTextSecondary)
-                : null,
+        suffixIcon: suffixIcon != null
+            ? Icon(suffixIcon, color: kDarkTextSecondary)
+            : null,
       ),
       maxLines: maxLines,
       readOnly: readOnly,
       onTap: onTap,
-      validator:
-          validator ??
+      validator: validator ??
           (value) {
             if (value == null || value.isEmpty) {
               return 'Por favor, preencha este campo.';
@@ -662,7 +661,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
         ),
         textSelectionTheme: const TextSelectionThemeData(
           cursorColor: kAccentPurple,
-        ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+        ),
+        dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
       ),
       child: Scaffold(
         key: _scaffoldKey,
@@ -697,11 +697,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                     _buildTextField(
                       _projectNameController,
                       'Nome do Projeto',
-                      validator:
-                          (val) =>
-                              val == null || val.isEmpty
-                                  ? "Nome do projeto é obrigatório"
-                                  : null,
+                      validator: (val) => val == null || val.isEmpty
+                          ? "Nome do projeto é obrigatório"
+                          : null,
                     ),
                     const SizedBox(height: 20),
                     _buildTextField(
@@ -727,11 +725,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                       onTap: _selectDueDate,
                       readOnly: true,
                       suffixIcon: Icons.calendar_today,
-                      validator:
-                          (val) =>
-                              val == null || val.isEmpty
-                                  ? "Data de entrega é obrigatória"
-                                  : null,
+                      validator: (val) => val == null || val.isEmpty
+                          ? "Data de entrega é obrigatória"
+                          : null,
                     ),
                     const SizedBox(height: 20),
                     const Text(
@@ -789,13 +785,12 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     final priorities = ['Baixa', 'Média', 'Alta', 'Urgente'];
     return DropdownButtonFormField<String>(
       value: _selectedPriority,
-      items:
-          priorities.map((String priority) {
-            return DropdownMenuItem<String>(
-              value: priority,
-              child: Text(priority),
-            );
-          }).toList(),
+      items: priorities.map((String priority) {
+        return DropdownMenuItem<String>(
+          value: priority,
+          child: Text(priority),
+        );
+      }).toList(),
       onChanged: (String? newValue) {
         if (mounted) {
           setState(() {
@@ -849,32 +844,29 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
-                border:
-                    isSelected
-                        ? Border.all(
-                          color: kDarkTextPrimary.withOpacity(0.8),
-                          width: 2.5,
-                        )
-                        : Border.all(color: Colors.transparent, width: 0),
-                boxShadow:
-                    isSelected
-                        ? [
-                          BoxShadow(
-                            color: color.withOpacity(0.5),
-                            blurRadius: 5,
-                            spreadRadius: 1,
-                          ),
-                        ]
-                        : [],
-              ),
-              child:
-                  isSelected
-                      ? Icon(
-                        Icons.check,
+                border: isSelected
+                    ? Border.all(
                         color: kDarkTextPrimary.withOpacity(0.8),
-                        size: 20,
+                        width: 2.5,
                       )
-                      : null,
+                    : Border.all(color: Colors.transparent, width: 0),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: color.withOpacity(0.5),
+                          blurRadius: 5,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : [],
+              ),
+              child: isSelected
+                  ? Icon(
+                      Icons.check,
+                      color: kDarkTextPrimary.withOpacity(0.8),
+                      size: 20,
+                    )
+                  : null,
             ),
           );
         },

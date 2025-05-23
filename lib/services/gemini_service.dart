@@ -11,7 +11,8 @@ class GeminiService {
   // Construtor agora espera a apiKey
   GeminiService({required String apiKey}) : _apiKey = apiKey {
     if (_apiKey.isEmpty) {
-      throw Exception('A chave da API Gemini não pode ser vazia ao ser passada diretamente.');
+      throw Exception(
+          'A chave da API Gemini não pode ser vazia ao ser passada diretamente.');
     }
 
     final tools = [
@@ -108,8 +109,9 @@ class GeminiService {
     ];
 
     _model = GenerativeModel(
-      model: 'gemini-pro', // Verifique este nome após executar listAvailableModels()
-      apiKey: _apiKey, // Usa a chave passada no construtor
+      model:
+          'gemini-2.0-flash', 
+      apiKey: _apiKey, 
       tools: tools,
     );
 
@@ -117,26 +119,6 @@ class GeminiService {
       Content.text(
           'Você é um assistente de IA focado em ajudar o usuário a gerenciar suas tarefas e projetos. Use as ferramentas disponíveis para criar, listar, atualizar e deletar tarefas.'),
     ]);
-  }
-
-  // MÉTODO CORRIGIDO PARA LISTAR MODELOS
-  Future<void> listAvailableModels() async {
-    try {
-      // Crie uma nova instância de GenerativeModel com o modelo vazio para listar.
-      // Esta instância não será usada para gerar conteúdo, apenas para listar modelos.
-      final tempModelForListing = GenerativeModel(apiKey: _apiKey, model: '');
-      final models = await tempModelForListing.listModels();
-      print('Modelos disponíveis:');
-      for (var model in models) {
-        print('  - Nome: ${model.name}');
-        print('    Versões suportadas: ${model.version}');
-        print('    Métodos de geração suportados: ${model.supportedGenerationMethods}');
-        print('    Descrição: ${model.description}');
-        print('---');
-      }
-    } catch (e) {
-      print('Erro ao listar modelos: $e');
-    }
   }
 
   Future<String> getGeminiResponse(String message) async {
