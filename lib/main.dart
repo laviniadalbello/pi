@@ -19,15 +19,19 @@ import './src/pages/planner_diario.dart';
 import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
+import 'package:planify/services/gemini_service.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  final geminiService = GeminiService();
+  runApp(MyApp(geminiService: geminiService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final GeminiService geminiService;
+  const MyApp({super.key, required this.geminiService});
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +51,7 @@ class MyApp extends StatelessWidget {
         '/criarevento': (context) => const CreateEventPage(),
         '/criarprojeto': (context) => const CreateProjectScreen(),
         '/criartime': (context) => const CreateTeamPage(),
-        '/detalhestarefa': (context) => const DetailsTaskPage(),
+        '/detalhestarefa': (context) => DetailsTaskPage(geminiService: geminiService),
         '/detalheseventos': (context) => const Detalhesdoevento(),
         '/detalhesprojeto': (context) => const Detalhesdoprojeto(),
         '/habitos': (context) => const HabitsPage(),
