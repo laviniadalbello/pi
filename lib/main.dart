@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
         '/criarprojeto': (context) => const CreateProjectScreen(),
         '/criartime': (context) => const CreateTeamPage(),
         '/detalhestarefa': (context) => DetailsTaskPage(geminiService: geminiService),
-        '/detalheseventos': (context) => const Detalhesdoevento(),
+        '/detalheseventos': (context) => Detalhesdoevento(geminiService: geminiService),
         '/detalhesprojeto': (context) => const Detalhesdoprojeto(),
         '/habitos': (context) => const HabitsPage(),
         '/iconia': (context) {
