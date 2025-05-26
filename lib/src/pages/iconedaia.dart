@@ -5,7 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'chatdaia.dart'; // Importe chatdaia.dart se você for redirecionar para a tela de chat completa
 import 'package:planify/services/gemini_service.dart'; // Importe seu GeminiService
 import 'dart:convert'; // Para jsonDecode se necessário
-import 'package:planify/services/firestore_service.dart'; // Importe seu FirestoreService
+import 'package:planify/services/firestore_service.dart';
+import 'package:planify/services/firestore_tasks_service.dart'; // Importe seu FirestoreService
 
 // Cores e SVGs existentes
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);

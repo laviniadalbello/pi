@@ -63,6 +63,7 @@ class _CreateEventPageState extends State<CreateEventPage>
   @override
   void initState() {
     super.initState();
+    _firestoreService = FirestoreTasksService(userId: 'userId');
     _fabMenuSlideController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,

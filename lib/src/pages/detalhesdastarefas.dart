@@ -121,6 +121,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
   @override
   void initState() {
     super.initState();
+    _firestoreService = FirestoreTasksService(userId: 'userId');
     _geminiService = widget.geminiService; // Inicializa com o serviço recebido
     _circleController = AnimationController(
       duration: const Duration(seconds: 6),

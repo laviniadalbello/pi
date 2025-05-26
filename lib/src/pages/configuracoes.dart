@@ -45,6 +45,8 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   void initState() {
     super.initState();
+    _firestoreService = FirestoreTasksService(userId: 'userId');
+    
 
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),

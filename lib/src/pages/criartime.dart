@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:planify/services/firestore_tasks_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -21,6 +22,7 @@ class CreateTeamPage extends StatefulWidget {
 
 class _CreateTeamPageState extends State<CreateTeamPage>
     with TickerProviderStateMixin {
+  late final FirestoreTasksService _firestoreService;
   final _scaffoldKey = GlobalKey<ScaffoldState>(); // Adicionado scaffoldKey
   bool _isCardVisible = false;
   String _selectedType = 'Private';
@@ -42,6 +44,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
   @override
   void initState() {
     super.initState();
+    _firestoreService = FirestoreTasksService(userId: 'userId');
     _circleController = AnimationController(
       duration: const Duration(seconds: 6),
       vsync: this,

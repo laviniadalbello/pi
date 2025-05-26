@@ -52,6 +52,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   @override
   void initState() {
     super.initState();
+    _firestoreService = FirestoreTasksService(userId: 'userId');
     _geminiService =
         GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA');
     _slideController = AnimationController(
