@@ -15,10 +15,4 @@ class FirestoreService {
     }
   }
 
-  // Adicione aqui outros métodos CRUD (Create, Read, Update, Delete) para tarefas,
-  // ou para quaisquer outras coleções que seu aplicativo precise gerenciar.
-  // Ex:
-  // Future<List<Map<String, dynamic>>> getTasks() async { ... }
-  // Future<void> updateTask(String taskId, Map<String, dynamic> newData) async { ... }
-  // Future<void> deleteTask(String taskId) async { ... }
 }
