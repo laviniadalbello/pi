@@ -368,7 +368,9 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (userCredential.user != null) {
-        Navigator.pushNamed(context, '/habitos');
+ 
+        Navigator.pushReplacementNamed(context, '/planner');
+        debugPrint('DEBUG: Login bem-sucedido. Navegando para /planner.');
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;

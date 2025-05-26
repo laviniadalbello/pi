@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'login.dart';
 import 'cadastro.dart';
-import 'habits.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class Inicial extends StatefulWidget {
@@ -14,6 +14,39 @@ class Inicial extends StatefulWidget {
 
 class _InicialState extends State<Inicial> {
   final bool _isButtonPressed = false;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserAuthentication(); // Chama o método para verificar autenticação
+  }
+
+  void _checkUserAuthentication() async {
+    // Adicionar um pequeno atraso para garantir que o Firebase esteja completamente inicializado
+    // antes de verificar o currentUser, especialmente em Cold Starts.
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Obtém o usuário atualmente logado
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      // Usuário não logado, permanece nesta tela (Inicial)
+      // ou redireciona explicitamente para a tela de Login se preferir que o login seja a primeira coisa
+      debugPrint('DEBUG: Inicial: Nenhum usuário logado. Exibindo tela de boas-vindas.');
+    } else {
+      // Usuário logado, redireciona para a tela principal (PlannerDiarioPage)
+      debugPrint('DEBUG: Inicial: Usuário logado: ${user.uid}. Redirecionando para /planner.');
+
+      // Usando pushReplacementNamed para que o usuário não possa voltar para a tela inicial
+      // com o botão "voltar" do Android.
+      // Certifique-se de que a rota '/planner' está configurada no seu main.dart
+      if (mounted) { // Verifica se o widget ainda está na árvore de widgets antes de navegar
+        Navigator.of(context).pushReplacementNamed('/planner');
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
