@@ -33,7 +33,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   late GeminiService _geminiService;
   late FirestoreTasksService _firestoreService;
 
-
   bool _isCardVisible = false;
 
   String _userName = "USER";
@@ -74,6 +73,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     super.initState();
     _geminiService =
         GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA');
+    _firestoreService = FirestoreTasksService(userId: 'userId');
 
     _circleController = AnimationController(
       duration: const Duration(seconds: 6),
