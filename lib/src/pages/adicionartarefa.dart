@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
-// <--- ADICIONE ESTA LINHA
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:planify/services/firestore_tasks_service.dart'; // <--- CORRIGIDO: Importe FirestoreTasksService
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -27,7 +28,9 @@ class _AddTaskPageState extends State<AddTaskPage>
   bool _isCardVisible = false;
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
-  late GeminiService _geminiService; // <--- DECLARE O GEMINISERVICE AQUI
+  late GeminiService _geminiService; // <--- CORRIGIDO: Declaração correta aqui
+  late FirestoreTasksService _firestoreService; // <--- CORRIGIDO: Tipo FirestoreTasksService
+  late String _currentUserId;
 
   final TextEditingController _taskNameController = TextEditingController(
     text: 'Mobile Application design',
@@ -43,13 +46,13 @@ class _AddTaskPageState extends State<AddTaskPage>
   );
 
   String? _selectedPriority = 'Média';
-  String? _selectedProject = 'Nenhum'; // ADICIONADO
+  String? _selectedProject = 'Nenhum';
   final List<String> _availableProjects = [
     'Nenhum',
     'Projeto Alpha',
     'Projeto Beta',
     'Projeto Gamma',
-  ]; // ADICIONADO
+  ];
   Color _selectedTaskColor = kAccentPurple;
   final List<String> _attachments = [];
   String? _selectedBoard = 'Running';
@@ -76,7 +79,14 @@ class _AddTaskPageState extends State<AddTaskPage>
 
     _geminiService = GeminiService(
         apiKey:
-            'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA'); // <--- INICIALIZE O GEMINISERVICE AQUI
+            'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA'); // <--- Inicialização correta
+
+    _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous_user';
+    if (_currentUserId == 'anonymous_user') {
+      print("AVISO: Usuário não logado em AddTaskPage! Usando ID anônimo.");
+    }
+    // <--- CORRIGIDO: Instanciando FirestoreTasksService com o userId
+    _firestoreService = FirestoreTasksService(userId: _currentUserId);
   }
 
   @override
@@ -86,7 +96,7 @@ class _AddTaskPageState extends State<AddTaskPage>
     _dateController.dispose();
     _startTimeController.dispose();
     _endTimeController.dispose();
-    _geminiService.close(); // <--- NÃO ESQUEÇA DE FECHAR O SERVIÇO
+    _geminiService.close();
     super.dispose();
   }
 
@@ -333,7 +343,8 @@ class _AddTaskPageState extends State<AddTaskPage>
             child: CloseableAiCard(
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
-              geminiService: _geminiService, // <--- ADICIONE ESTA LINHA AQUI!
+              geminiService: _geminiService,
+              firestoreService: _firestoreService,
             ),
           ),
         ],

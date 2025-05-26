@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'criarevento.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
+import 'package:planify/services/firestore_tasks_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -58,6 +59,7 @@ class Event {
 class Detalhesdoevento extends StatefulWidget {
   final GeminiService geminiService;
   const Detalhesdoevento({super.key, required this.geminiService});
+  
 
   @override
   State<Detalhesdoevento> createState() => _DetalhesdoeventoState();
@@ -68,9 +70,11 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
   EventFilter _currentFilter = EventFilter.all;
   List<Event> _allEvents = [];
   List<Event> _filteredEvents = [];
+  late final FirestoreTasksService _firestoreService;
 
   @override
   void initState() {
+    _firestoreService = FirestoreTasksService(userId: 'userId');
     super.initState();
     _loadSampleEvents();
     _filterEvents();
@@ -551,6 +555,7 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
               geminiService: widget.geminiService,
+              firestoreService: _firestoreService,
             ),
           ),
         ],

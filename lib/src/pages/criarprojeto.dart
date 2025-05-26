@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
+import 'package:planify/services/firestore_tasks_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -21,6 +22,7 @@ class CreateProjectScreen extends StatefulWidget {
 class _CreateProjectScreenState extends State<CreateProjectScreen>
     with TickerProviderStateMixin {
   late GeminiService _geminiService;
+  late FirestoreTasksService _firestoreService;
   final _formKey = GlobalKey<FormState>();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _projectNameController = TextEditingController();
@@ -770,6 +772,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               right: -60,
               child: CloseableAiCard(
                 geminiService: _geminiService,
+                firestoreService: _firestoreService,
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart'; 
+import 'package:planify/services/firestore_tasks_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -59,11 +60,13 @@ class Detalhesdoprojeto extends StatefulWidget {
   final GeminiService geminiService;
   const Detalhesdoprojeto({super.key, required this.geminiService});
 
+
   @override
   State<Detalhesdoprojeto> createState() => _DetalhesdoprojetoState();
 }
 
 class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
+  late FirestoreTasksService _firestoreService;
   List<TrelloCard> cards = [
     TrelloCard(
       id: '1',
@@ -146,6 +149,12 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
   String? _selectedStatus;
   List<String> _selectedMembers = [];
   List<String> _selectedAttachments = [];
+
+   @override
+  void initState() {
+    super.initState();
+    _firestoreService = FirestoreTasksService(userId: 'userId'); 
+  }
 
   @override
   void dispose() {
@@ -1500,6 +1509,7 @@ class _DetalhesdoprojetoState extends State<Detalhesdoprojeto> {
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
                 geminiService: widget.geminiService,
+                firestoreService: _firestoreService,
               ),
             ),
           ],

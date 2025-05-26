@@ -5,8 +5,9 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'chatdaia.dart'; // Importe chatdaia.dart se você for redirecionar para a tela de chat completa
 import 'package:planify/services/gemini_service.dart'; // Importe seu GeminiService
 import 'dart:convert'; // Para jsonDecode se necessário
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:planify/services/firestore_service.dart'; // Importe seu FirestoreService
 
+// Cores e SVGs existentes
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
 const Color kDarkElementBg = Color(0xFF202A44);
@@ -49,12 +50,13 @@ const String submitSvg = '''
 class CloseableAiCard extends StatefulWidget {
   final double scaleFactor;
   final bool enableScroll; // Novo parâmetro para habilitar scroll
-  final GeminiService geminiService; // <--- Adicione aqui
-  
+  final GeminiService geminiService;
+  final FirestoreService firestoreService; // <--- Adicione aqui
 
   const CloseableAiCard({
     super.key,
-    required this.geminiService, // <--- E aqui
+    required this.geminiService,
+    required this.firestoreService, // <--- E aqui
     this.scaleFactor = 0.4,
     this.enableScroll = false,
   });
@@ -147,12 +149,15 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
                 scrollController: _scrollController,
                 enableScroll: widget.enableScroll,
                 messages: _messages,
-                geminiService:
-                    widget.geminiService, // <--- Passe o GeminiService
+                geminiService: widget.geminiService,
+                firestoreService:
+                    widget.firestoreService, // <--- Passe o GeminiService
                 onSendMessage: (message) {
                   // <--- Adicione o callback para enviar mensagem
                   _handleSendMessage(message);
                 },
+                // Se a ChatScreen precisar do firestoreService, passe-o para lá também.
+                // Mas a lógica de criação ficará no _handleSendMessage aqui.
               ),
             ),
           ),
@@ -185,22 +190,58 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
 
       // Verifique se a resposta é uma chamada de função (JSON) ou texto
       if (aiRawResponse.startsWith('{') && aiRawResponse.endsWith('}')) {
-        // Isso é uma chamada de função, você pode querer processá-la aqui
-        // ou passá-la para a tela completa do ChatScreen.
-        // Por enquanto, vamos exibir um placeholder ou processar uma ação simples
         final Map<String, dynamic> action = json.decode(aiRawResponse);
-        String actionMessage = "Detectada ação: ${action['action']}";
-        if (action['parameters'] != null) {
-          actionMessage += " com parâmetros: ${action['parameters']}";
+        String actionType = action['action'];
+        Map<String, dynamic>? parameters = action['parameters'];
+
+        // --- LÓGICA DO FIRESTORE ADICIONADA AQUI ---
+        if (actionType == 'create_task' && parameters != null) {
+          try {
+            await widget.firestoreService.createTask(parameters);
+            setState(() {
+              _messages.add({
+                'sender': 'ai',
+                'text':
+                    '✅ Tarefa "${parameters['title'] ?? 'Sem Título'}" criada com sucesso no Firestore!'
+              });
+            });
+          } catch (e) {
+            setState(() {
+              _messages.add({
+                'sender': 'ai',
+                'text': '❌ Erro ao criar a tarefa: ${e.toString()}'
+              });
+            });
+            print('Erro ao criar tarefa no Firestore: $e');
+          }
+        } else if (actionType == 'list_tasks') {
+          // Exemplo: Se o Gemini pedir para listar tarefas
+          setState(() {
+            _messages.add({
+              'sender': 'ai',
+              'text': '📋 Processando sua solicitação para listar tarefas...'
+              // Aqui você chamaria widget.firestoreService.getTasks() e exibiria os resultados.
+            });
+          });
         }
-        setState(() {
-          _messages.add({'sender': 'ai', 'text': '🤖 ${actionMessage}'});
-        });
-        // IMPORTANTE: Aqui você precisaria implementar a lógica para realmente chamar
-        // as funções do Firestore (create_task, list_tasks, etc.) baseadas em `action['action']`
-        // e `action['parameters']`. Esta lógica está provavelmente em `chatdaia.dart` e precisaria ser reutilizada.
-        // Ou, uma vez que a caixa é clicada, ela leva para a tela completa do ChatScreen, onde essa lógica já existe.
+        // Adicione outros 'else if' para outras ações (update_task, delete_task, etc.)
+        else {
+          // Se for uma ação não reconhecida ou ainda não implementada diretamente aqui
+          String actionMessage = "Detectada ação: ${actionType}";
+          if (parameters != null) {
+            actionMessage += " com parâmetros: ${parameters}";
+          }
+          setState(() {
+            _messages.add({
+              'sender': 'ai',
+              'text':
+                  '🤖 ${actionMessage} (Lógica de execução ainda não implementada para esta ação)'
+            });
+          });
+        }
+        // --- FIM DA LÓGICA DO FIRESTORE ---
       } else {
+        // Resposta de texto normal do Gemini
         setState(() {
           _messages.add({'sender': 'ai', 'text': aiRawResponse});
         });
@@ -209,7 +250,7 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
       setState(() {
         _messages.add({
           'sender': 'ai',
-          'text': 'Ocorreu um erro ao processar sua solicitação.'
+          'text': 'Ocorreu um erro ao processar sua solicitação Gemini.'
         });
       });
       print('Erro ao obter resposta do Gemini no AiInputCard: $e');
@@ -235,8 +276,9 @@ class AiInputCard extends StatefulWidget {
   final ScrollController scrollController;
   final bool enableScroll;
   final List<Map<String, String>> messages;
-  final GeminiService geminiService; // <--- Adicione aqui
-  final ValueChanged<String> onSendMessage; // <--- Adicione aqui
+  final GeminiService geminiService;
+  final FirestoreService firestoreService;
+  final ValueChanged<String> onSendMessage;
 
   const AiInputCard({
     super.key,
@@ -246,8 +288,9 @@ class AiInputCard extends StatefulWidget {
     required this.scrollController,
     required this.enableScroll,
     required this.messages,
-    required this.geminiService, // <--- Torne-o obrigatório
-    required this.onSendMessage, // <--- Torne-o obrigatório
+    required this.geminiService,
+    required this.firestoreService,
+    required this.onSendMessage,
   });
 
   @override
@@ -286,11 +329,6 @@ class _AiInputCardState extends State<AiInputCard>
     widget.onSendMessage(message); // <--- Chame o callback para enviar mensagem
     _messageController.clear();
   }
-
-  // REMOVA ESTA FUNÇÃO COMPLETAMENTE, ela é a causa do problema
-  // Future<String> _processMessageWithML(String message) async {
-  //   return "📌 ML Kit respondeu: ${message}";
-  // }
 
   @override
   void initState() {
@@ -427,7 +465,7 @@ class _AiInputCardState extends State<AiInputCard>
                             BoxShadow(
                               color: kAccentPurple.withOpacity(0.25),
                               blurRadius: 40,
-                              offset: Offset(0, 10),
+                              offset: const Offset(0, 10),
                             ),
                           ]
                         : [],
@@ -661,8 +699,9 @@ class _AiInputCardState extends State<AiInputCard>
                         MaterialPageRoute(
                           builder: (context) => ChatScreen(
                               title: "meu chat",
-                              geminiService: widget
-                                  .geminiService), // <--- Passe o GeminiService aqui
+                              geminiService: widget.geminiService,
+                              firestoreService: widget
+                                  .firestoreService), // <--- Passe o FirestoreService aqui também
                         ),
                       );
                     },
@@ -802,3 +841,12 @@ class _AiInputCardState extends State<AiInputCard>
     );
   }
 }
+
+// A classe AiInputCard interna precisa ser uma classe separada e não ter a lógica de enviar mensagem
+// porque ela recebe a função de envio de mensagem de CloseableAiCard.
+// A lógica de envio de mensagem está agora em _CloseableAiCardState.
+// A classe AiInputCard (que era _AiInputCardState anteriormente) não precisa de um GeminiService nem de onSendMessage diretamente,
+// pois o CloseableAiCard é quem gerencia isso e passa as mensagens.
+// Mas para o Navigator.push no ChatScreen, ela precisa do GeminiService e FirestoreService.
+
+// REMOVIDO: A função _processMessageWithML foi removida.

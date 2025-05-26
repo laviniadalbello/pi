@@ -1,43 +1,40 @@
 // lib/services/firestore_tasks_service.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:planify/models/task.dart'; // Certifique-se que esta importação está correta
+import 'package:planify/models/task.dart';
+import 'package:planify/services/firestore_service.dart';
 
-class FirestoreTasksService {
+class FirestoreTasksService extends FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+  final String _userId; // Agora o userId é uma variável de instância
 
-  // Método para criar uma nova tarefa
+  // Construtor que aceita o userId
+  FirestoreTasksService({required String userId}) : _userId = userId;
+
   Future<void> createUserTask({
     required String title,
     String? description,
     DateTime? dueDate,
     String? priority,
   }) async {
-    // Substitua 'test_user_id' pelo ID do usuário logado REAL
-    // Isso é crucial para que cada usuário veja apenas suas tarefas.
-    const userId =
-        'test_user_id'; // <--- Substitua pelo ID do usuário autenticado!
-
     final newTask = Task(
-      id: '', // Firestore gerará o ID
+      id: '',
       title: title,
       description: description,
       dueDate: dueDate,
       priority: priority,
       status: 'pending',
       createdAt: DateTime.now(),
-      userId: userId,
+      userId: _userId, // Use o userId da instância
     );
 
     await _db.collection('tasks').add(newTask.toFirestore());
+    print("DEBUG: Tarefa '$title' criada para o usuário '$_userId'.");
   }
 
-  // Método para listar tarefas
   Future<List<Task>> listUserTasks({String? filter}) async {
-    // Substitua 'test_user_id' pelo ID do usuário logado REAL
-    const userId =
-        'test_user_id'; // <--- Substitua pelo ID do usuário autenticado!
-
-    Query query = _db.collection('tasks').where('userId', isEqualTo: userId);
+    Query query = _db
+        .collection('tasks')
+        .where('userId', isEqualTo: _userId); // Use o userId da instância
 
     if (filter != null) {
       if (filter == 'concluídas') {
@@ -59,35 +56,31 @@ class FirestoreTasksService {
         query = query.where('dueDate',
             isGreaterThanOrEqualTo: Timestamp.fromDate(startOfTomorrow));
       }
-      // Adicione outros filtros conforme necessário
     }
 
     final snapshot = await query.orderBy('createdAt', descending: true).get();
-    return snapshot.docs
-        .map((doc) => Task.fromFirestore(doc))
-        .toList(); // <-- CORREÇÃO AQUI
+    print(
+        "DEBUG: Listando tarefas para o usuário '$_userId'. Encontradas ${snapshot.docs.length}.");
+    return snapshot.docs.map((doc) => Task.fromFirestore(doc)).toList();
   }
 
-  // Método para encontrar tarefa por título (usado pelo Gemini se não houver ID)
   Future<Task?> findTaskByTitle(String title) async {
-    // Substitua 'test_user_id' pelo ID do usuário logado REAL
-    const userId =
-        'test_user_id'; // <--- Substitua pelo ID do usuário autenticado!
-
     final snapshot = await _db
         .collection('tasks')
-        .where('userId', isEqualTo: userId)
+        .where('userId', isEqualTo: _userId) // Use o userId da instância
         .where('title', isEqualTo: title)
         .limit(1) // Pega apenas o primeiro que encontrar
         .get();
 
     if (snapshot.docs.isNotEmpty) {
+      print("DEBUG: Tarefa '$title' encontrada para o usuário '$_userId'.");
       return Task.fromFirestore(snapshot.docs.first);
     }
+    print("DEBUG: Tarefa '$title' NÃO encontrada para o usuário '$_userId'.");
     return null;
   }
 
-  // Método para atualizar uma tarefa
+  // MÉTODO updateTask - ADICIONE ESTE!
   Future<void> updateUserTask({
     required String taskId,
     String? newTitle,
@@ -99,7 +92,8 @@ class FirestoreTasksService {
     if (newTitle != null) updates['title'] = newTitle;
     if (newDueDate != null) {
       updates['dueDate'] = Timestamp.fromDate(newDueDate);
-    } else if (newDueDate == null && updates.containsKey('newDueDate')) {
+    } else if (newDueDate == null && updates.containsKey('dueDate')) {
+      // Pequena correção aqui, a chave é 'dueDate'
       updates['dueDate'] =
           FieldValue.delete(); // Permite remover a data de vencimento
     }
@@ -110,23 +104,26 @@ class FirestoreTasksService {
 
     if (updates.isNotEmpty) {
       await _db.collection('tasks').doc(taskId).update(updates);
+      print(
+          "DEBUG: Tarefa com ID '$taskId' atualizada para o usuário '$_userId'.");
     }
   }
 
-  // Método para deletar uma tarefa
+  // MÉTODO deleteTask - ADICIONE ESTE!
   Future<void> deleteTask({required String taskId}) async {
     await _db.collection('tasks').doc(taskId).delete();
+    print("DEBUG: Tarefa com ID '$taskId' deletada para o usuário '$_userId'.");
   }
 
   // Método para adicionar uma tarefa a um projeto (exemplo, precisa de coleção 'projects')
+  @override // Removi o override se você não está sobrescrevendo de uma interface
   Future<void> addProjectTask(
       String projectId, String taskTitle, String userId) async {
-    // Isso é apenas um exemplo de como seria.
-    // Você precisaria de uma estrutura para projetos no seu Firestore.
-    // Por exemplo: collection('projects').doc(projectId).collection('project_tasks').add(...)
+    // Você pode usar o _userId da instância aqui, ou o userId passado se for o caso
+    // Para consistência, recomendo usar o _userId da instância para operações relacionadas ao usuário autenticado.
     print(
-        "Adicionando tarefa '$taskTitle' ao projeto '$projectId' para o usuário '$userId'");
-    // Aqui você faria a lógica de adicionar a tarefa ao projeto
-    // Por agora, apenas simulando a adição.
+        "DEBUG: Adicionando tarefa '$taskTitle' ao projeto '$projectId' para o usuário '$userId'.");
+    // Sua lógica de adicionar a tarefa ao projeto aqui.
+    // Exemplo: await _db.collection('projects').doc(projectId).collection('project_tasks').add({ 'title': taskTitle, 'userId': _userId });
   }
 }

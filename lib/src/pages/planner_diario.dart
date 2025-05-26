@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/widgets.dart' as Widgets;
 import 'iconedaia.dart';
 import '../../services/gemini_service.dart';
+import 'package:planify/services/firestore_tasks_service.dart';
 
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -129,6 +130,8 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
   final Map<String, bool> _completionStatus = {};
 
   String _currentFilter = "Todos"; // Opções: "Todos", "Eventos", "Tarefas"
+
+  final FirestoreTasksService _firestoreService = FirestoreTasksService(userId: 'userId');
 
   @override
   void initState() {
@@ -587,6 +590,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
               geminiService: widget.geminiService, 
+              firestoreService: _firestoreService,
             ),
           ),
         ],

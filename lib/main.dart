@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:planify/services/firestore_service.dart';
 import 'package:planify/src/pages/adicionartarefa.dart';
 import 'package:planify/src/pages/criarevento.dart';
 import 'package:planify/src/pages/criarprojeto.dart';
@@ -63,7 +64,7 @@ class MyApp extends StatelessWidget {
         '/detalhesprojeto': (context) => Detalhesdoprojeto(geminiService: geminiService),
         '/habitos': (context) => HabitsPage(geminiService: geminiService),
         '/iconia': (context) {
-          return CloseableAiCard(geminiService: geminiService);
+          return CloseableAiCard(geminiService: geminiService, firestoreService: FirestoreService(),);
         },
         '/perfilvazio': (context) => const PerfilvazioPage(),
       },

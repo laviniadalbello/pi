@@ -8,7 +8,9 @@ import 'dart:convert';
 import 'package:planify/models/task.dart'; // Certifique-se de que task.dart está em lib/models/
 import 'package:planify/services/gemini_service.dart'; // Certifique-se de que gemini_service.dart está em lib/services/
 import 'package:planify/services/firestore_tasks_service.dart'; // Certifique-se de que firestore_tasks_service.dart está em lib/services/
-import 'package:planify/models/message.dart'; // Certifique-se de que message.dart está em lib/models/
+import 'package:planify/models/message.dart';
+import 'package:planify/services/firestore_service.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Certifique-se de que message.dart está em lib/models/
 
 // Cores (mantidas do seu código original)
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -22,10 +24,16 @@ const Color kDarkBorder = Color(0xFF2D3748);
 
 class ChatScreen extends StatefulWidget {
   final String title;
-  final GeminiService geminiService; // <--- ESTA LINHA É CRÍTICA
+  final GeminiService geminiService;
+  final FirestoreService firestoreService;
+  // <--- ESTA LINHA É CRÍTICA
 
-  const ChatScreen({Key? key, required this.title, required this.geminiService})
-      : super(key: key);
+  const ChatScreen({
+    Key? key,
+    required this.title,
+    required this.geminiService,
+    required this.firestoreService,
+  }) : super(key: key);
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -35,6 +43,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   // DECLARAÇÃO DE VARIÁVEIS DE ESTADO
   late GeminiService _geminiService;
   late FirestoreTasksService _firestoreTasksService;
+  late String _currentUserId;
   final List<Message> _messages = [];
   bool _isAiTyping = false;
   final TextEditingController _textController = TextEditingController();
@@ -45,11 +54,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // Inicializa o GeminiService com a instância passada pelo widget pai
     _geminiService = widget.geminiService;
+    // Obtenha o ID do usuário autenticado
+    _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? 'anonymous_user';
+    if (_currentUserId == 'anonymous_user') {
+      // Trate o caso de usuário não logado, talvez redirecionar para tela de login
+      print(
+          "AVISO: Usuário não logado! Usando ID anônimo. As tarefas podem não ser persistidas corretamente.");
+    }
 
-    // Inicializa o FirestoreTasksService
-    _firestoreTasksService = FirestoreTasksService();
+    _firestoreTasksService = FirestoreTasksService(userId: _currentUserId);
 
     _addInitialMessages();
 
@@ -115,14 +129,15 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         } on FormatException catch (e) {
           // Captura especificamente o erro de formato JSON
           debugPrint("Resposta do Gemini não é JSON válido: $e");
-          aiAction =
-              null;
-          aiResponseText = "Erro: A resposta da IA não está no formato esperado."; // Garante que não será tratado como ação se for inválido
+          aiAction = null;
+          aiResponseText =
+              "Erro: A resposta da IA não está no formato esperado."; // Garante que não será tratado como ação se for inválido
         } catch (e) {
           // Outros erros de decodificação
           debugPrint("Erro inesperado ao decodificar JSON: $e");
           aiAction = null;
-          aiResponseText = "Erro: Problema ao interpretar a resposta da IA. Detalhes: $e";
+          aiResponseText =
+              "Erro: Problema ao interpretar a resposta da IA. Detalhes: $e";
         }
       }
 
@@ -146,6 +161,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               }
               await _firestoreTasksService.createUserTask(
                 title: parameters['title'],
+                description: parameters['description'],
                 dueDate: dueDate,
                 priority: parameters['priority'],
               );
@@ -188,7 +204,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               }
 
               DateTime? newDueDate;
-              if (parameters['newDueDate'] != null) {
+              if (parameters.containsKey('newDueDate') &&
+                  parameters['newDueDate'] != null) {
+                // Adicionado containsKey
                 try {
                   newDueDate = DateTime.parse(parameters['newDueDate']);
                 } catch (e) {
@@ -199,19 +217,29 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
               await _firestoreTasksService.updateUserTask(
                 taskId: taskIdToUpdate,
-                newTitle: parameters['newTitle'],
+                newTitle: parameters.containsKey('newTitle')
+                    ? parameters['newTitle']
+                    : null, // CORREÇÃO AQUI
                 newDueDate: newDueDate,
-                newPriority: parameters['priority'],
-                isCompleted: parameters['isCompleted'],
+                newPriority: parameters.containsKey('newPriority')
+                    ? parameters['newPriority']
+                    : null, // CORREÇÃO AQUI
+                isCompleted: parameters.containsKey('isCompleted')
+                    ? parameters['isCompleted']
+                    : null, // CORREÇÃO AQUI
               );
               aiResponseText = "Tarefa atualizada com sucesso no Firestore!";
               break;
 
             case 'delete_task':
               String? taskIdToDelete;
-              if (parameters['taskId'] != null) {
+              if (parameters.containsKey('taskId') &&
+                  parameters['taskId'] != null) {
+                // Adicionado containsKey
                 taskIdToDelete = parameters['taskId'];
-              } else if (parameters['title'] != null) {
+              } else if (parameters.containsKey('title') &&
+                  parameters['title'] != null) {
+                // Adicionado containsKey
                 final Task? task = await _firestoreTasksService
                     .findTaskByTitle(parameters['title']);
                 if (task != null) {

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'dart:math';
 import 'package:planify/src/pages/iconedaia.dart'; // Importação corrigida para o caminho do pacote
 import 'package:planify/services/gemini_service.dart';
+import 'package:planify/services/firestore_tasks_service.dart';
 
 // --- Cores da UI ---
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -104,7 +105,8 @@ class TodayTaskPage extends StatefulWidget {
 
 class _TodayTaskPageState extends State<TodayTaskPage>
     with TickerProviderStateMixin {
-  late final GeminiService _geminiService; // Usará o serviço recebido
+  late final GeminiService _geminiService;
+  late FirestoreTasksService _firestoreService; // Usará o serviço recebido
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isCardVisible = false;
 
@@ -598,6 +600,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
             right: -60,
             child: CloseableAiCard(
               geminiService: _geminiService,
+              firestoreService: _firestoreService,
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
             ),

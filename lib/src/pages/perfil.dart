@@ -5,6 +5,7 @@ import 'configuracoes.dart';
 import 'iconedaia.dart'; // Importação do CloseableAiCard
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:planify/services/firestore_tasks_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -30,6 +31,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   late Animation<Offset> _slideAnimation;
 
   late GeminiService _geminiService;
+  late FirestoreTasksService _firestoreService;
+
 
   bool _isCardVisible = false;
 
@@ -464,6 +467,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
               right: -60,
               child: CloseableAiCard(
                 geminiService: _geminiService,
+                firestoreService: _firestoreService,
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
@@ -821,7 +825,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         child: Padding(
           padding: EdgeInsets.only(right: screenWidth * 0.02),
           child: CloseableAiCard(
-            geminiService: _geminiService, // <--- CORREÇÃO AQUI
+            geminiService: _geminiService,
+            firestoreService: _firestoreService, // <--- CORREÇÃO AQUI
             scaleFactor: screenWidth < 360 ? 0.3 : 0.35,
             enableScroll: true,
           ),

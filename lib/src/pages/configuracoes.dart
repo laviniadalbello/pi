@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'iconedaia.dart'; // Certifique-se de que este caminho está correto para CloseableAiCard
 import 'package:planify/services/gemini_service.dart';
+import 'package:planify/services/firestore_tasks_service.dart';
 
 void main() => runApp(const SettingsApp());
 
@@ -38,7 +39,8 @@ class _SettingsPageState extends State<SettingsPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  late GeminiService _geminiService; // Declare a instância do GeminiService
+  late GeminiService _geminiService;
+  late FirestoreTasksService _firestoreService; // Declare a instância do GeminiService
 
   @override
   void initState() {
@@ -376,6 +378,7 @@ class _SettingsPageState extends State<SettingsPage>
               geminiService: _geminiService, // <--- Adicione esta linha
               scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
               enableScroll: true,
+              firestoreService: _firestoreService,
             ),
           ),
         ],
