@@ -6,7 +6,7 @@ import 'chatdaia.dart'; // Importe chatdaia.dart se você for redirecionar para 
 import 'package:planify/services/gemini_service.dart'; // Importe seu GeminiService
 import 'dart:convert'; // Para jsonDecode se necessário
 import 'package:planify/services/firestore_service.dart';
-import 'package:planify/services/firestore_tasks_service.dart'; // Importe seu FirestoreService
+// Importe seu FirestoreService
 
 // Cores e SVGs existentes
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -228,15 +228,15 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
         // Adicione outros 'else if' para outras ações (update_task, delete_task, etc.)
         else {
           // Se for uma ação não reconhecida ou ainda não implementada diretamente aqui
-          String actionMessage = "Detectada ação: ${actionType}";
+          String actionMessage = "Detectada ação: $actionType";
           if (parameters != null) {
-            actionMessage += " com parâmetros: ${parameters}";
+            actionMessage += " com parâmetros: $parameters";
           }
           setState(() {
             _messages.add({
               'sender': 'ai',
               'text':
-                  '🤖 ${actionMessage} (Lógica de execução ainda não implementada para esta ação)'
+                  '🤖 $actionMessage (Lógica de execução ainda não implementada para esta ação)'
             });
           });
         }

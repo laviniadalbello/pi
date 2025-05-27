@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'login.dart';
 import 'cadastro.dart';
-import 'habits.dart';
 
 
 class Inicial extends StatefulWidget {

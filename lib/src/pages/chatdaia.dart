@@ -29,11 +29,11 @@ class ChatScreen extends StatefulWidget {
   // <--- ESTA LINHA É CRÍTICA
 
   const ChatScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.geminiService,
     required this.firestoreService,
-  }) : super(key: key);
+  });
 
   @override
   _ChatScreenState createState() => _ChatScreenState();

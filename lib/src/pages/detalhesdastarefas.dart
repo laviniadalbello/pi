@@ -97,7 +97,7 @@ class DetailsTaskPage extends StatelessWidget {
 class TodayTaskPage extends StatefulWidget {
   final GeminiService geminiService; // Recebe o GeminiService
 
-  const TodayTaskPage({Key? key, required this.geminiService}) : super(key: key);
+  const TodayTaskPage({super.key, required this.geminiService});
 
   @override
   State<TodayTaskPage> createState() => _TodayTaskPageState();

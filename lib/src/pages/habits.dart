@@ -7,6 +7,7 @@ import 'package:planify/services/gemini_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:planify/services/firestore_tasks_service.dart';
+import 'package:flutter/services.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -33,11 +34,12 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
 
   bool _isDrawerOpen = false;
   bool _isCardVisible = false;
-  bool _isHovered = false;
+  final bool _isHovered = false;
   bool _isNotificationsVisible = false;
 
   // Adicione a instância do FirestoreTasksService aqui
-  final FirestoreTasksService _firestoreService = FirestoreTasksService(userId: 'userId');
+  final FirestoreTasksService _firestoreService =
+      FirestoreTasksService(userId: 'userId');
 
   final List<Map<String, dynamic>> _notifications = [
     {
@@ -389,11 +391,11 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                                         ),
                                         decoration: BoxDecoration(
                                           color: notification['read']
-                                                  ? Colors.white.withOpacity(
-                                                      0.05,
-                                                    )
-                                                  : Colors.blueAccent
-                                                      .withOpacity(0.2),
+                                              ? Colors.white.withOpacity(
+                                                  0.05,
+                                                )
+                                              : Colors.blueAccent
+                                                  .withOpacity(0.2),
                                           borderRadius: BorderRadius.circular(
                                             12,
                                           ),
@@ -447,8 +449,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                                                   onPressed: () {
                                                     setState(() {
                                                       _notifications[index]
-                                                              ['read'] =
-                                                          true;
+                                                          ['read'] = true;
                                                     });
                                                   },
                                                   child: Text(
@@ -1133,12 +1134,40 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
           _buildDrawerItem(
             icon: Icons.logout,
             title: 'Sair',
-            onTap: () async {
-              await FirebaseAuth.instance.signOut();
-              if (mounted) {
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/login', (Route<dynamic> route) => false);
-              }
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Sair do aplicativo'),
+                  content:
+                      const Text('Tem certeza que deseja sair da sua conta?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () =>
+                          Navigator.pop(context), // Fecha apenas o diálogo
+                      child: const Text('Cancelar'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        // Fecha o diálogo primeiro
+                        Navigator.pop(context);
+
+                        // Faz logout do Firebase
+                        await FirebaseAuth.instance.signOut();
+
+                        // Verifica se o widget ainda está montado
+                        if (mounted) {
+                          // Navega para a tela de login e limpa toda a pilha de navegação
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/login', (Route<dynamic> route) => false);
+                        }
+                      },
+                      child: const Text('Sair',
+                          style: TextStyle(color: Colors.red)),
+                    ),
+                  ],
+                ),
+              );
             },
           ),
         ],
