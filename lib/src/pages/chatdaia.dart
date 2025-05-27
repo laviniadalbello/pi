@@ -210,7 +210,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 priority: parameters['priority'],
               );
               aiResponseText =
-                  "Tarefa '${parameters['title']}' criada com sucesso no Firestore!";
+                  "Tarefa '${parameters['title']}' criada com sucesso !";
               break;
 
             case 'list_tasks':
@@ -218,7 +218,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   .listUserTasks(filter: parameters['filter']);
               if (tasks.isEmpty) {
                 aiResponseText =
-                    "Não encontrei nenhuma tarefa com este filtro no Firestore.";
+                    "Não encontrei nenhuma tarefa com este filtro.";
               } else {
                 aiResponseText =
                     "Aqui estão as tarefas (${parameters['filter'] ?? 'todas'}):";

@@ -4,7 +4,6 @@ import 'login.dart';
 import 'cadastro.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 class Inicial extends StatefulWidget {
   const Inicial({super.key});
 
@@ -14,7 +13,6 @@ class Inicial extends StatefulWidget {
 
 class _InicialState extends State<Inicial> {
   final bool _isButtonPressed = false;
-
 
   @override
   void initState() {
@@ -33,20 +31,22 @@ class _InicialState extends State<Inicial> {
     if (user == null) {
       // Usuário não logado, permanece nesta tela (Inicial)
       // ou redireciona explicitamente para a tela de Login se preferir que o login seja a primeira coisa
-      debugPrint('DEBUG: Inicial: Nenhum usuário logado. Exibindo tela de boas-vindas.');
+      debugPrint(
+          'DEBUG: Inicial: Nenhum usuário logado. Exibindo tela de boas-vindas.');
     } else {
       // Usuário logado, redireciona para a tela principal (PlannerDiarioPage)
-      debugPrint('DEBUG: Inicial: Usuário logado: ${user.uid}. Redirecionando para /planner.');
+      debugPrint(
+          'DEBUG: Inicial: Usuário logado: ${user.uid}. Redirecionando para /habitos.');
 
       // Usando pushReplacementNamed para que o usuário não possa voltar para a tela inicial
       // com o botão "voltar" do Android.
       // Certifique-se de que a rota '/planner' está configurada no seu main.dart
-      if (mounted) { // Verifica se o widget ainda está na árvore de widgets antes de navegar
-        Navigator.of(context).pushReplacementNamed('/planner');
+      if (mounted) {
+        // Verifica se o widget ainda está na árvore de widgets antes de navegar
+        Navigator.of(context).pushReplacementNamed('/habitos');
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +183,7 @@ class _InicialState extends State<Inicial> {
                           );
                         },
                         child: const Text(
-                          "SIGN UP", 
+                          "SIGN UP",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -231,6 +231,7 @@ class _InicialState extends State<Inicial> {
     );
   }
 }
+
 class AnimatedBlurredBackground extends StatefulWidget {
   const AnimatedBlurredBackground({super.key});
 
@@ -280,8 +281,8 @@ class BlurredGradientPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final Paint paint =
-        Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
+    final Paint paint = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
     // Cores do gradiente
     List<List<Color>> gradientColors = [
@@ -290,7 +291,6 @@ class BlurredGradientPainter extends CustomPainter {
       [const Color(0xFFF549D6), const Color(0xFFAB82E9)], // Rosa
     ];
 
-   
     List<Offset> positions = [
       Offset(
         size.width * (0.2 + 0.1 * sin(animationValue * pi * 2)),

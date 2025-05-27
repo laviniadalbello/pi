@@ -705,7 +705,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
           children: [
             InkWell(
               onTap: () {
-                _navigateToRoute('/');
+                _navigateToRoute('/habitos');
               },
               child: _bottomBarIcon(Icons.home_rounded),
             ),

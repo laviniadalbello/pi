@@ -85,11 +85,13 @@ class Task {
 class DetailsTaskPage extends StatelessWidget {
   final GeminiService geminiService; // Agora exige o GeminiService
 
-  const DetailsTaskPage({super.key, required this.geminiService}); // Construtor modificado
+  const DetailsTaskPage(
+      {super.key, required this.geminiService}); // Construtor modificado
 
   @override
   Widget build(BuildContext context) {
-    return TodayTaskPage(geminiService: geminiService); // Passa o serviço para TodayTaskPage
+    return TodayTaskPage(
+        geminiService: geminiService); // Passa o serviço para TodayTaskPage
   }
 }
 
@@ -97,7 +99,8 @@ class DetailsTaskPage extends StatelessWidget {
 class TodayTaskPage extends StatefulWidget {
   final GeminiService geminiService; // Recebe o GeminiService
 
-  const TodayTaskPage({Key? key, required this.geminiService}) : super(key: key);
+  const TodayTaskPage({Key? key, required this.geminiService})
+      : super(key: key);
 
   @override
   State<TodayTaskPage> createState() => _TodayTaskPageState();
@@ -427,7 +430,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
           children: [
             InkWell(
               onTap: () {
-                _navigateToRoute('/');
+                _navigateToRoute('/habitos');
               },
               child: _bottomBarIcon(Icons.home_rounded),
             ),
@@ -446,7 +449,8 @@ class _TodayTaskPageState extends State<TodayTaskPage>
             ),
             InkWell(
               onTap: () {
-                _navigateToRoute('/perfil'); // Corrigido de '/profile' para '/perfil'
+                _navigateToRoute(
+                    '/perfil'); // Corrigido de '/profile' para '/perfil'
               },
               child: _bottomBarIcon(Icons.person_outline),
             ),
@@ -506,18 +510,22 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                     _currentFilter = result;
                   });
                 },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<TaskFilter>>[
+                itemBuilder: (BuildContext context) =>
+                    <PopupMenuEntry<TaskFilter>>[
                   const PopupMenuItem<TaskFilter>(
                     value: TaskFilter.all,
-                    child: Text('Todas as Tarefas', style: TextStyle(color: kDarkTextPrimary)),
+                    child: Text('Todas as Tarefas',
+                        style: TextStyle(color: kDarkTextPrimary)),
                   ),
                   const PopupMenuItem<TaskFilter>(
                     value: TaskFilter.completed,
-                    child: Text('Tarefas Concluídas', style: TextStyle(color: kDarkTextPrimary)),
+                    child: Text('Tarefas Concluídas',
+                        style: TextStyle(color: kDarkTextPrimary)),
                   ),
                   const PopupMenuItem<TaskFilter>(
                     value: TaskFilter.inProgress,
-                    child: Text('Tarefas em Andamento', style: TextStyle(color: kDarkTextPrimary)),
+                    child: Text('Tarefas em Andamento',
+                        style: TextStyle(color: kDarkTextPrimary)),
                   ),
                 ],
                 icon: const Icon(Icons.filter_list, color: kDarkTextPrimary),
@@ -531,30 +539,60 @@ class _TodayTaskPageState extends State<TodayTaskPage>
           Positioned.fill(
             child: Stack(
               children: [
-                _animatedCircle(20, 50, 6, [
-                  Colors.lightBlueAccent,
-                  const Color.fromARGB(255, 243, 33, 208),
-                ], 0),
-                _animatedCircle(300, 60, 4, [
-                  const Color.fromARGB(164, 180, 34, 238),
-                  Colors.deepPurpleAccent,
-                ], 1),
-                _animatedCircle(180, 50, 5, [
-                  Colors.amberAccent,
-                  Colors.orange,
-                ], 2),
-                _animatedCircle(40, 45, 5, [
-                  Colors.pinkAccent,
-                  const Color.fromARGB(255, 149, 226, 4),
-                ], 3),
-                _animatedCircle(310, 50, 8, [
-                  const Color.fromARGB(173, 36, 17, 204),
-                  const Color.fromARGB(255, 218, 20, 20),
-                ], 4),
-                _animatedCircle(100, 30, 3, [
-                  const Color.fromARGB(255, 222, 87, 240),
-                  const Color.fromARGB(255, 27, 112, 1),
-                ], 5),
+                _animatedCircle(
+                    20,
+                    50,
+                    6,
+                    [
+                      Colors.lightBlueAccent,
+                      const Color.fromARGB(255, 243, 33, 208),
+                    ],
+                    0),
+                _animatedCircle(
+                    300,
+                    60,
+                    4,
+                    [
+                      const Color.fromARGB(164, 180, 34, 238),
+                      Colors.deepPurpleAccent,
+                    ],
+                    1),
+                _animatedCircle(
+                    180,
+                    50,
+                    5,
+                    [
+                      Colors.amberAccent,
+                      Colors.orange,
+                    ],
+                    2),
+                _animatedCircle(
+                    40,
+                    45,
+                    5,
+                    [
+                      Colors.pinkAccent,
+                      const Color.fromARGB(255, 149, 226, 4),
+                    ],
+                    3),
+                _animatedCircle(
+                    310,
+                    50,
+                    8,
+                    [
+                      const Color.fromARGB(173, 36, 17, 204),
+                      const Color.fromARGB(255, 218, 20, 20),
+                    ],
+                    4),
+                _animatedCircle(
+                    100,
+                    30,
+                    3,
+                    [
+                      const Color.fromARGB(255, 222, 87, 240),
+                      const Color.fromARGB(255, 27, 112, 1),
+                    ],
+                    5),
               ],
             ),
           ),
@@ -735,7 +773,8 @@ class _TodayTaskPageState extends State<TodayTaskPage>
               ),
             )
           else
-            const SizedBox(width: 5 + 8), // Espaço para alinhar se não houver barra de cor
+            const SizedBox(
+                width: 5 + 8), // Espaço para alinhar se não houver barra de cor
 
           Expanded(
             child: Container(
@@ -773,8 +812,9 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                             ? Icons.check_circle
                             : Icons.radio_button_unchecked_outlined,
                         key: ValueKey<bool>(task.isCompleted),
-                        color:
-                            task.isCompleted ? kAccentPurple : kDarkTextSecondary,
+                        color: task.isCompleted
+                            ? kAccentPurple
+                            : kDarkTextSecondary,
                         size: 24,
                       ),
                     ),
@@ -790,11 +830,11 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                             color: kDarkTextPrimary,
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
-                            decoration:
-                                task.isCompleted
-                                    ? TextDecoration.lineThrough
-                                    : TextDecoration.none,
-                            decorationColor: kDarkTextSecondary.withOpacity(0.7),
+                            decoration: task.isCompleted
+                                ? TextDecoration.lineThrough
+                                : TextDecoration.none,
+                            decorationColor:
+                                kDarkTextSecondary.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -886,7 +926,9 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                             ),
                           ),
                         )
-                      : Text(task.title, style: const TextStyle(color: kDarkTextPrimary, fontSize: 16)),
+                      : Text(task.title,
+                          style: const TextStyle(
+                              color: kDarkTextPrimary, fontSize: 16)),
                 ),
                 _buildDetailRow(
                   "Descrição:",
@@ -905,7 +947,9 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                             ),
                           ),
                         )
-                      : Text(task.description ?? 'N/A', style: const TextStyle(color: kDarkTextPrimary, fontSize: 16)),
+                      : Text(task.description ?? 'N/A',
+                          style: const TextStyle(
+                              color: kDarkTextPrimary, fontSize: 16)),
                 ),
                 _buildDetailRow(
                   "Horário:",
@@ -923,7 +967,9 @@ class _TodayTaskPageState extends State<TodayTaskPage>
                             ),
                           ),
                         )
-                      : Text(task.time, style: const TextStyle(color: kDarkTextPrimary, fontSize: 16)),
+                      : Text(task.time,
+                          style: const TextStyle(
+                              color: kDarkTextPrimary, fontSize: 16)),
                 ),
                 _buildDetailRow("Duração:", task.durationLabel),
                 _buildDetailRow(

@@ -318,7 +318,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           children: [
             InkWell(
               onTap: () {
-                _navigateToRoute('/');
+                _navigateToRoute('/habitos');
               },
               child: _bottomBarIcon(Icons.home_rounded),
             ),
