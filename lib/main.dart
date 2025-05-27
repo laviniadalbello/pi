@@ -20,6 +20,7 @@ import './src/pages/planner_diario.dart';
 import './src/pages/perfil.dart';
 import './src/pages/habits.dart';
 import './src/pages/perfilvazio.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -2,11 +2,11 @@ import 'dart:math' as math;
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'chatdaia.dart'; // Importe chatdaia.dart se você for redirecionar para a tela de chat completa
-import 'package:planify/services/gemini_service.dart'; // Importe seu GeminiService
-import 'dart:convert'; // Para jsonDecode se necessário
+import 'chatdaia.dart'; // Importe chatdaia.dart
+import 'package:planify/services/gemini_service.dart';
+import 'dart:convert';
 import 'package:planify/services/firestore_service.dart';
-// Importe seu FirestoreService
+import 'package:planify/services/firestore_tasks_service.dart';
 
 // Cores e SVGs existentes
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
@@ -50,14 +50,14 @@ const String submitSvg = '''
 
 class CloseableAiCard extends StatefulWidget {
   final double scaleFactor;
-  final bool enableScroll; // Novo parâmetro para habilitar scroll
+  final bool enableScroll;
   final GeminiService geminiService;
-  final FirestoreService firestoreService; // <--- Adicione aqui
+  final FirestoreService firestoreService;
 
   const CloseableAiCard({
     super.key,
     required this.geminiService,
-    required this.firestoreService, // <--- E aqui
+    required this.firestoreService,
     this.scaleFactor = 0.4,
     this.enableScroll = false,
   });
@@ -68,57 +68,39 @@ class CloseableAiCard extends StatefulWidget {
 
 class _CloseableAiCardState extends State<CloseableAiCard> {
   bool _isHovering = false;
-  bool _isChecked = false;
+  // bool _isChecked = false; // Não precisamos mais desse estado para expandir o chat aqui
   final GlobalKey _cardKey = GlobalKey();
 
-  // Controlador de scroll para a área de chat
-  final ScrollController _scrollController = ScrollController();
-
-  // Lista de mensagens que será preenchida dinamicamente
-  final List<Map<String, String>> _messages =
-      []; // <--- Comece vazia ou com uma mensagem inicial do AI
+  // Removemos os controladores de scroll e a lista de mensagens daqui,
+  // pois a lógica de chat se move para ChatScreen.
 
   @override
   void initState() {
     super.initState();
-    // Adicionar uma mensagem inicial do AI ao iniciar, se a lista estiver vazia
-    if (_messages.isEmpty) {
-      _messages
-          .add({'sender': 'ai', 'text': 'Olá! Como posso ajudar você hoje?'});
-    }
   }
 
-  void _handleTapOutside() {
-    if (_isChecked) {
-      setState(() {
-        _isChecked = false;
-      });
-    }
-  }
-
-  void _toggleChecked() {
-    setState(() {
-      _isChecked = !_isChecked;
-    });
-
-    // Quando expandir o card, rolar para o final das mensagens
-    if (_isChecked && widget.enableScroll) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.animateTo(
-            _scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-    }
-  }
+  // Não precisamos de _handleTapOutside nem _toggleChecked
+  // porque o clique agora navega.
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    // Removemos o dispose do _scrollController
     super.dispose();
+  }
+
+  // Novo método para navegar para a ChatScreen
+  void _navigateToChatScreen() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          title: "Assistente IA", // Título da tela de chat
+          geminiService: widget.geminiService,
+          firestoreService: widget.firestoreService,
+          // Não passamos uma mensagem inicial aqui,
+          // a ChatScreen vai lidar com isso sozinha.
+        ),
+      ),
+    );
   }
 
   @override
@@ -126,172 +108,53 @@ class _CloseableAiCardState extends State<CloseableAiCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          if (_isChecked)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: _handleTapOutside,
-                child: Container(color: Colors.transparent),
-              ),
-            ),
-          AnimatedSlide(
-            offset: _isChecked ? const Offset(-0.15, 0.0) : Offset.zero,
-            duration: const Duration(milliseconds: 600),
-            curve: Curves.easeInOut,
-            child: Transform.scale(
-              scale: _isChecked ? 1.0 : widget.scaleFactor,
+      child: GestureDetector(
+        onTap: _navigateToChatScreen, // <--- O clique agora navega para ChatScreen
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Não precisamos mais do AnimatedSlide, nem do Positioned.fill
+            // porque não há expansão dentro deste widget.
+            Transform.scale(
+              scale: widget.scaleFactor, // Mantém a escala inicial
               child: AiInputCard(
                 key: _cardKey,
-                isChecked: _isChecked,
-                onToggleChecked: _toggleChecked,
                 isHovering: _isHovering,
-                scrollController: _scrollController,
-                enableScroll: widget.enableScroll,
-                messages: _messages,
+                // Não precisamos mais de isChecked, onToggleChecked, scrollController, enableScroll, messages, onSendMessage aqui.
+                // Apenas os serviços para o caso do AiInputCard precisar passar para a próxima tela
                 geminiService: widget.geminiService,
-                firestoreService:
-                    widget.firestoreService, // <--- Passe o GeminiService
-                onSendMessage: (message) {
-                  // <--- Adicione o callback para enviar mensagem
-                  _handleSendMessage(message);
-                },
-                // Se a ChatScreen precisar do firestoreService, passe-o para lá também.
-                // Mas a lógica de criação ficará no _handleSendMessage aqui.
+                firestoreService: widget.firestoreService,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
-  }
-
-  Future<void> _handleSendMessage(String message) async {
-    if (message.isEmpty) return;
-
-    setState(() {
-      _messages.add({'sender': 'user', 'text': message});
-    });
-
-    // Rolar para o final das mensagens
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
-
-    try {
-      final aiRawResponse =
-          await widget.geminiService.getGeminiResponse(message);
-
-      // Verifique se a resposta é uma chamada de função (JSON) ou texto
-      if (aiRawResponse.startsWith('{') && aiRawResponse.endsWith('}')) {
-        final Map<String, dynamic> action = json.decode(aiRawResponse);
-        String actionType = action['action'];
-        Map<String, dynamic>? parameters = action['parameters'];
-
-        // --- LÓGICA DO FIRESTORE ADICIONADA AQUI ---
-        if (actionType == 'create_task' && parameters != null) {
-          try {
-            await widget.firestoreService.createTask(parameters);
-            setState(() {
-              _messages.add({
-                'sender': 'ai',
-                'text':
-                    '✅ Tarefa "${parameters['title'] ?? 'Sem Título'}" criada com sucesso no Firestore!'
-              });
-            });
-          } catch (e) {
-            setState(() {
-              _messages.add({
-                'sender': 'ai',
-                'text': '❌ Erro ao criar a tarefa: ${e.toString()}'
-              });
-            });
-            print('Erro ao criar tarefa no Firestore: $e');
-          }
-        } else if (actionType == 'list_tasks') {
-          // Exemplo: Se o Gemini pedir para listar tarefas
-          setState(() {
-            _messages.add({
-              'sender': 'ai',
-              'text': '📋 Processando sua solicitação para listar tarefas...'
-              // Aqui você chamaria widget.firestoreService.getTasks() e exibiria os resultados.
-            });
-          });
-        }
-        // Adicione outros 'else if' para outras ações (update_task, delete_task, etc.)
-        else {
-          // Se for uma ação não reconhecida ou ainda não implementada diretamente aqui
-          String actionMessage = "Detectada ação: $actionType";
-          if (parameters != null) {
-            actionMessage += " com parâmetros: $parameters";
-          }
-          setState(() {
-            _messages.add({
-              'sender': 'ai',
-              'text':
-                  '🤖 $actionMessage (Lógica de execução ainda não implementada para esta ação)'
-            });
-          });
-        }
-        // --- FIM DA LÓGICA DO FIRESTORE ---
-      } else {
-        // Resposta de texto normal do Gemini
-        setState(() {
-          _messages.add({'sender': 'ai', 'text': aiRawResponse});
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _messages.add({
-          'sender': 'ai',
-          'text': 'Ocorreu um erro ao processar sua solicitação Gemini.'
-        });
-      });
-      print('Erro ao obter resposta do Gemini no AiInputCard: $e');
-    }
-
-    // Rolar novamente para o final após a resposta do AI
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
   }
 }
 
 class AiInputCard extends StatefulWidget {
   final bool isHovering;
-  final bool isChecked;
-  final VoidCallback onToggleChecked;
-  final ScrollController scrollController;
-  final bool enableScroll;
-  final List<Map<String, String>> messages;
-  final GeminiService geminiService;
-  final FirestoreService firestoreService;
-  final ValueChanged<String> onSendMessage;
+  // final bool isChecked; // Removido
+  // final VoidCallback onToggleChecked; // Removido
+  // final ScrollController scrollController; // Removido
+  // final bool enableScroll; // Removido
+  // final List<Map<String, String>> messages; // Removido
+  final GeminiService geminiService; // Mantido para passar adiante, se necessário
+  final FirestoreService firestoreService; // Mantido para passar adiante, se necessário
+  // final ValueChanged<String> onSendMessage; // Removido
 
   const AiInputCard({
     super.key,
-    required this.isChecked,
-    required this.onToggleChecked,
+    // required this.isChecked, // Removido
+    // required this.onToggleChecked, // Removido
     required this.isHovering,
-    required this.scrollController,
-    required this.enableScroll,
-    required this.messages,
+    // required this.scrollController, // Removido
+    // required this.enableScroll, // Removido
+    // required this.messages, // Removido
     required this.geminiService,
     required this.firestoreService,
-    required this.onSendMessage,
+    // required this.onSendMessage, // Removido
   });
 
   @override
@@ -315,21 +178,15 @@ class _AiInputCardState extends State<AiInputCard>
   final Duration _cardTransitionDuration = const Duration(milliseconds: 600);
   final double _initialCardWidth = 12 * 16.0;
   final double _initialCardHeight = 12 * 16.0;
-  final double _checkedCardWidth = 360.0;
-  final double _checkedCardHeight = 480.0;
+  // final double _checkedCardWidth = 360.0; // Não usado
+  // final double _checkedCardHeight = 480.0; // Não usado
   final double _borderRadius = 3 * 16.0;
-  final double _checkedBorderRadius = 20.0;
+  // final double _checkedBorderRadius = 20.0; // Não usado
   final double _eyeMovementFactor = 0.05;
   final double _maxEyeOffset = 5.0;
-  final TextEditingController _messageController = TextEditingController();
+  // final TextEditingController _messageController = TextEditingController(); // Não usado
 
-  Future<void> _handleSendMessage() async {
-    final message = _messageController.text;
-    if (message.isEmpty) return;
-
-    widget.onSendMessage(message); // <--- Chame o callback para enviar mensagem
-    _messageController.clear();
-  }
+  // O método _handleSendMessage foi removido pois a lógica de chat não está mais aqui.
 
   @override
   void initState() {
@@ -368,12 +225,13 @@ class _AiInputCardState extends State<AiInputCard>
   void dispose() {
     _eyeAnimationController.dispose();
     _ballRotationController.dispose();
-    _messageController.dispose();
+    // _messageController.dispose(); // Removido
     super.dispose();
   }
 
   Matrix4 _calculateTransform(Offset position, Size containerSize) {
-    if (!widget.isHovering || widget.isChecked) {
+    // Apenas aplica a transformação de hover, já que não há mais isChecked para expandir
+    if (!widget.isHovering) {
       return Matrix4.identity()
         ..setEntry(3, 2, 0.001)
         ..translate(0.0, 0.0, 50.0);
@@ -390,9 +248,7 @@ class _AiInputCardState extends State<AiInputCard>
   }
 
   Offset _calculateEyeOffset() {
-    if (!widget.isHovering ||
-        widget.isChecked ||
-        _cardContentKey.currentContext == null) {
+    if (!widget.isHovering || _cardContentKey.currentContext == null) { // Removido isChecked
       return Offset.zero;
     }
     final RenderBox cardBox =
@@ -407,92 +263,86 @@ class _AiInputCardState extends State<AiInputCard>
     final double offsetY = (delta.dy * _eyeMovementFactor).clamp(
       -_maxEyeOffset,
       _maxEyeOffset,
-    );
+      );
     return Offset(offsetX, offsetY);
   }
 
   @override
   Widget build(BuildContext context) {
-    final double currentCardWidth =
-        widget.isChecked ? _checkedCardWidth : _initialCardWidth;
-    final double currentCardHeight =
-        widget.isChecked ? _checkedCardHeight : _initialCardHeight;
+    // Reduzimos as variáveis de largura/altura dinâmicas, pois o card não expande aqui
+    final double currentCardWidth = _initialCardWidth;
+    final double currentCardHeight = _initialCardHeight;
+    final double currentBorderRadius = _borderRadius; // Não precisamos de _checkedBorderRadius
 
-    return GestureDetector(
-      onTap: widget.onToggleChecked,
-      child: AnimatedContainer(
-        duration: _transitionDuration,
-        padding: EdgeInsets.all(widget.isHovering && !widget.isChecked ? 0 : 4),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Simulação do :after
-            AnimatedContainer(
-              duration: _transitionDuration,
-              width: _initialCardWidth,
-              height: widget.isHovering && !widget.isChecked
-                  ? _initialCardHeight
-                  : 11 * 16.0,
-              decoration: BoxDecoration(
-                color: kDarkSurface.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(3.2 * 16.0),
-              ),
-              transform: Matrix4.translationValues(
-                0,
-                widget.isHovering && !widget.isChecked
-                    ? 0
-                    : -(_initialCardHeight * 0.05),
-                0,
-              ),
-              transformAlignment: Alignment.center,
+    return AnimatedContainer(
+      duration: _transitionDuration,
+      padding: EdgeInsets.all(widget.isHovering ? 0 : 4), // Removido !widget.isChecked
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Simulação do :after
+          AnimatedContainer(
+            duration: _transitionDuration,
+            width: _initialCardWidth,
+            height: widget.isHovering
+                ? _initialCardHeight
+                : 11 * 16.0,
+            decoration: BoxDecoration(
+              color: kDarkSurface.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(3.2 * 16.0),
             ),
-            // Card Principal
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final Size actualSize = Size(
-                  constraints.maxWidth,
-                  constraints.maxHeight,
-                );
-                return AnimatedContainer(
-                  duration: _cardTransitionDuration,
-                  width: currentCardWidth,
-                  height: currentCardHeight,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      widget.isChecked ? _checkedBorderRadius : _borderRadius,
-                    ),
-                    boxShadow: widget.isHovering && !widget.isChecked
-                        ? [
-                            BoxShadow(
-                              color: kAccentPurple.withOpacity(0.25),
-                              blurRadius: 40,
-                              offset: const Offset(0, 10),
-                            ),
-                          ]
-                        : [],
-                  ),
-                  transform: _calculateTransform(
-                    _relativeMousePosition,
-                    actualSize,
-                  ),
-                  transformAlignment: Alignment.center,
-                  clipBehavior: Clip.antiAlias,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [_buildBackgroundBalls(), _buildCardContent()],
-                  ),
-                );
-              },
+            transform: Matrix4.translationValues(
+              0,
+              widget.isHovering
+                  ? 0
+                  : -(_initialCardHeight * 0.05),
+              0,
             ),
-          ],
-        ),
+            transformAlignment: Alignment.center,
+          ),
+          // Card Principal
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final Size actualSize = Size(
+                constraints.maxWidth,
+                constraints.maxHeight,
+              );
+              return AnimatedContainer(
+                duration: _cardTransitionDuration,
+                width: currentCardWidth,
+                height: currentCardHeight,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(currentBorderRadius),
+                  boxShadow: widget.isHovering
+                      ? [ // Removido !widget.isChecked
+                          BoxShadow(
+                            color: kAccentPurple.withOpacity(0.25),
+                            blurRadius: 40,
+                            offset: const Offset(0, 10),
+                          ),
+                        ]
+                      : [],
+                ),
+                transform: _calculateTransform(
+                  _relativeMousePosition,
+                  actualSize,
+                ),
+                transformAlignment: Alignment.center,
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [_buildBackgroundBalls(), _buildCardContent()],
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildBackgroundBalls() {
-    final double currentBorderRadius =
-        widget.isChecked ? _checkedBorderRadius : _borderRadius;
+    final double currentBorderRadius = _borderRadius; // Não precisamos de _checkedBorderRadius
 
     return AnimatedContainer(
       duration: _transitionDuration,
@@ -562,8 +412,7 @@ class _AiInputCardState extends State<AiInputCard>
   }
 
   Widget _buildCardContent() {
-    final double currentBorderRadius =
-        widget.isChecked ? _checkedBorderRadius : _borderRadius;
+    final double currentBorderRadius = _borderRadius; // Não precisamos de _checkedBorderRadius
     return ClipRRect(
       key: _cardContentKey,
       borderRadius: BorderRadius.circular(currentBorderRadius),
@@ -575,7 +424,8 @@ class _AiInputCardState extends State<AiInputCard>
             alignment: Alignment.center,
             children: [
               _buildEyes(),
-              if (widget.isChecked) _buildChatInterface() else Container(),
+              // REMOVIDO: A interface de chat expandido não é mais construída aqui.
+              // if (widget.isChecked) _buildChatInterface() else Container(),
             ],
           ),
         ),
@@ -587,9 +437,9 @@ class _AiInputCardState extends State<AiInputCard>
     final Offset eyeOffset = _calculateEyeOffset();
     return AnimatedOpacity(
       duration: _transitionDuration,
-      opacity: widget.isChecked ? 0.0 : 1.0,
+      opacity: 1.0, // Sempre visível, já que não há mais "isChecked" para ocultar
       child: IgnorePointer(
-        ignoring: widget.isChecked,
+        ignoring: false, // Não está ignorando
         child: Padding(
           padding: EdgeInsets.only(bottom: _initialCardHeight * 0.1),
           child: Stack(
@@ -649,205 +499,6 @@ class _AiInputCardState extends State<AiInputCard>
     );
   }
 
-  Widget _buildChatInterface() {
-    final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
-    // final screenHeight = screenSize.height; // Não usado
-
-    // Tamanhos responsivos
-    final messageFontSize = screenWidth * 0.035;
-    final inputFontSize = screenWidth * 0.035;
-    final iconSize = screenWidth * 0.05;
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cabeçalho
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.smart_toy_outlined,
-                    color: Colors.white,
-                    size: iconSize,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "Assistente IA",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: messageFontSize,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_forward,
-                      color: Colors.white,
-                      size: iconSize,
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen(
-                              title: "meu chat",
-                              geminiService: widget.geminiService,
-                              firestoreService: widget
-                                  .firestoreService), // <--- Passe o FirestoreService aqui também
-                        ),
-                      );
-                    },
-                  ),
-                  // Botão de fechar existente
-                  IconButton(
-                    icon: Icon(
-                      Icons.close,
-                      color: Colors.white,
-                      size: iconSize,
-                    ),
-                    onPressed: widget.onToggleChecked,
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Área de mensagens com scroll
-          Expanded(
-            child: widget.enableScroll
-                ? SingleChildScrollView(
-                    controller: widget.scrollController,
-                    child: _buildChatMessages(messageFontSize),
-                  )
-                : _buildChatMessages(messageFontSize),
-          ),
-
-          // Campo de entrada
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: inputFontSize,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: "Digite sua mensagem...",
-                      hintStyle: TextStyle(
-                        color: Colors.white70,
-                        fontSize: inputFontSize,
-                      ),
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: SvgPicture.string(
-                    submitSvg,
-                    width: iconSize,
-                    height: iconSize,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  onPressed: _handleSendMessage,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChatMessages(double fontSize) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: widget.messages.map((message) {
-        final isAi = message['sender'] == 'ai';
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(
-            mainAxisAlignment:
-                isAi ? MainAxisAlignment.start : MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (isAi) ...[
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.white24,
-                  child: Icon(
-                    Icons.smart_toy_outlined,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-                const SizedBox(width: 8),
-              ],
-              Flexible(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isAi
-                        ? Colors.white.withOpacity(0.1)
-                        : Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    message['text'] ?? '',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: fontSize,
-                    ),
-                  ),
-                ),
-              ),
-              if (!isAi) ...[
-                const SizedBox(width: 8),
-                const CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.white24,
-                  child: Icon(
-                    Icons.person_outline,
-                    color: Colors.white,
-                    size: 18,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      }).toList(),
-    );
-  }
+  // REMOVIDO: O método _buildChatInterface não existe mais aqui.
+  // REMOVIDO: O método _buildChatMessages não existe mais aqui.
 }
-
-// A classe AiInputCard interna precisa ser uma classe separada e não ter a lógica de enviar mensagem
-// porque ela recebe a função de envio de mensagem de CloseableAiCard.
-// A lógica de envio de mensagem está agora em _CloseableAiCardState.
-// A classe AiInputCard (que era _AiInputCardState anteriormente) não precisa de um GeminiService nem de onSendMessage diretamente,
-// pois o CloseableAiCard é quem gerencia isso e passa as mensagens.
-// Mas para o Navigator.push no ChatScreen, ela precisa do GeminiService e FirestoreService.
-
-// REMOVIDO: A função _processMessageWithML foi removida.

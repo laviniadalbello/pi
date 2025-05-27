@@ -2,6 +2,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:planify/models/task.dart';
 import 'package:planify/services/firestore_service.dart';
+import 'package:flutter/foundation.dart';
 
 class FirestoreTasksService extends FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -26,6 +27,10 @@ class FirestoreTasksService extends FirestoreService {
       createdAt: DateTime.now(),
       userId: _userId, // Use o userId da instância
     );
+
+    // ADICIONE ESTA LINHA:
+    debugPrint(
+        "DEBUG: Dados da tarefa sendo enviados ao Firestore: ${newTask.toFirestore()}");
 
     await _db.collection('tasks').add(newTask.toFirestore());
     print("DEBUG: Tarefa '$title' criada para o usuário '$_userId'.");

@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 
-
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -368,7 +367,8 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (userCredential.user != null) {
-        Navigator.pushNamed(context, '/habitos');
+        Navigator.pushReplacementNamed(context, '/habitos');
+        debugPrint('DEBUG: Login bem-sucedido. Navegando para /habitos.');
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;

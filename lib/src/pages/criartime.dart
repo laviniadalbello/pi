@@ -357,7 +357,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
           children: [
             InkWell(
               onTap: () {
-                _navigateToRoute('/');
+                _navigateToRoute('/habitos');
               },
               child: _bottomBarIcon(Icons.home_rounded),
             ),
@@ -413,30 +413,60 @@ class _CreateTeamPageState extends State<CreateTeamPage>
             Positioned.fill(
               child: Stack(
                 children: [
-                  _animatedCircle(20, 150, 6, [
-                    Colors.lightBlueAccent,
-                    const Color.fromARGB(255, 243, 33, 208),
-                  ], 0),
-                  _animatedCircle(350, 130, 4, [
-                    const Color.fromARGB(164, 180, 34, 238),
-                    Colors.deepPurpleAccent,
-                  ], 1),
-                  _animatedCircle(180, 150, 5, [
-                    Colors.amberAccent,
-                    Colors.orange,
-                  ], 2),
-                  _animatedCircle(40, 115, 5, [
-                    Colors.pinkAccent,
-                    const Color.fromARGB(255, 149, 226, 4),
-                  ], 3),
-                  _animatedCircle(370, 150, 8, [
-                    const Color.fromARGB(173, 36, 17, 204),
-                    const Color.fromARGB(255, 218, 20, 20),
-                  ], 4),
-                  _animatedCircle(100, 120, 6, [
-                    const Color.fromARGB(255, 222, 87, 240),
-                    const Color.fromARGB(255, 27, 112, 1),
-                  ], 5),
+                  _animatedCircle(
+                      20,
+                      150,
+                      6,
+                      [
+                        Colors.lightBlueAccent,
+                        const Color.fromARGB(255, 243, 33, 208),
+                      ],
+                      0),
+                  _animatedCircle(
+                      350,
+                      130,
+                      4,
+                      [
+                        const Color.fromARGB(164, 180, 34, 238),
+                        Colors.deepPurpleAccent,
+                      ],
+                      1),
+                  _animatedCircle(
+                      180,
+                      150,
+                      5,
+                      [
+                        Colors.amberAccent,
+                        Colors.orange,
+                      ],
+                      2),
+                  _animatedCircle(
+                      40,
+                      115,
+                      5,
+                      [
+                        Colors.pinkAccent,
+                        const Color.fromARGB(255, 149, 226, 4),
+                      ],
+                      3),
+                  _animatedCircle(
+                      370,
+                      150,
+                      8,
+                      [
+                        const Color.fromARGB(173, 36, 17, 204),
+                        const Color.fromARGB(255, 218, 20, 20),
+                      ],
+                      4),
+                  _animatedCircle(
+                      100,
+                      120,
+                      6,
+                      [
+                        const Color.fromARGB(255, 222, 87, 240),
+                        const Color.fromARGB(255, 27, 112, 1),
+                      ],
+                      5),
                 ],
               ),
             ),
@@ -465,12 +495,12 @@ class _CreateTeamPageState extends State<CreateTeamPage>
                   _buildTypeSelector(),
                   const SizedBox(height: 50),
                   _buildCreateTeamButton(),
-                  const SizedBox(height: bottomNavBarHeight + fabHeight / 2 + 20),
+                  const SizedBox(
+                      height: bottomNavBarHeight + fabHeight / 2 + 20),
                 ],
               ),
             ),
             if (_isCardVisible) _buildDimOverlay(),
-
             if (_isCardVisible)
               Positioned(
                 bottom: 80,
@@ -530,10 +560,10 @@ class _CreateTeamPageState extends State<CreateTeamPage>
             radius: 45,
             backgroundColor: kDarkElementBg,
             backgroundImage: _logoImage != null ? FileImage(_logoImage!) : null,
-            child:
-                _logoImage == null
-                    ? const Icon(Icons.image_outlined, color: kAccentPurple, size: 40)
-                    : null,
+            child: _logoImage == null
+                ? const Icon(Icons.image_outlined,
+                    color: kAccentPurple, size: 40)
+                : null,
           ),
           const SizedBox(height: 12),
           const Text(
@@ -594,8 +624,7 @@ class _CreateTeamPageState extends State<CreateTeamPage>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ..._teamMembers
-              .map((member) => _avatar(member['imageUrl']!, member['name']!))
-              ,
+              .map((member) => _avatar(member['imageUrl']!, member['name']!)),
           _addMemberButton(),
         ],
       ),
@@ -612,17 +641,16 @@ class _CreateTeamPageState extends State<CreateTeamPage>
             radius: 22,
             backgroundColor: kDarkElementBg,
             backgroundImage: imageUrl.isNotEmpty ? AssetImage(imageUrl) : null,
-            child:
-                imageUrl.isEmpty
-                    ? Text(
-                      name.substring(0, 1).toUpperCase(),
-                      style: const TextStyle(
-                        color: kDarkTextPrimary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    )
-                    : null,
+            child: imageUrl.isEmpty
+                ? Text(
+                    name.substring(0, 1).toUpperCase(),
+                    style: const TextStyle(
+                      color: kDarkTextPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  )
+                : null,
           ),
           const SizedBox(height: 4),
           Text(
