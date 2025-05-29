@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
 import 'package:planify/services/firestore_tasks_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -49,6 +51,9 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
 
   final List<String> _attachments = [];
 
+  final List<String> _emailsConvidados = []; // Lista de e-mails para convidar
+  bool _isEnviandoConvites = false;
+
   @override
   void initState() {
     super.initState();
@@ -86,76 +91,53 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
   void _showAddMemberDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: kDarkElementBg,
-          title: const Text(
-            'Adicionar Membro',
-            style: TextStyle(color: kDarkTextPrimary),
+      builder: (context) => AlertDialog(
+        title: const Text('Adicionar Membro',
+            style: TextStyle(color: Colors.white)),
+        backgroundColor: kDarkElementBg,
+        content: TextField(
+          controller: _memberEmailController,
+          decoration: const InputDecoration(
+            hintText: 'email@exemplo.com',
+            hintStyle: TextStyle(color: Colors.grey),
           ),
-          content: TextField(
-            controller: _memberEmailController,
-            style: const TextStyle(color: kDarkTextPrimary),
-            decoration: InputDecoration(
-              hintText: 'E-mail do membro',
-              hintStyle: TextStyle(color: kDarkTextSecondary.withOpacity(0.7)),
-              enabledBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: kDarkTextSecondary),
-              ),
-              focusedBorder: const UnderlineInputBorder(
-                borderSide: BorderSide(color: kAccentPurple),
-              ),
-            ),
-            keyboardType: TextInputType.emailAddress,
+          style: const TextStyle(color: Colors.white),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child:
+                const Text('Cancelar', style: TextStyle(color: kAccentPurple)),
           ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                'Cancelar',
-                style: TextStyle(color: kDarkTextSecondary),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
+          TextButton(
+            onPressed: () {
+              if (_validateEmail(_memberEmailController.text)) {
+                setState(() {
+                  _emailsConvidados.add(_memberEmailController.text);
+                  _teamMembers.add({
+                    "name": _memberEmailController.text.split('@')[0],
+                    "email": _memberEmailController.text
+                  });
+                });
+                Navigator.pop(context);
                 _memberEmailController.clear();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                'Adicionar',
-                style: TextStyle(color: kAccentPurple),
-              ),
-              onPressed: () {
-                if (_memberEmailController.text.isNotEmpty &&
-                    _memberEmailController.text.contains('@')) {
-                  if (mounted) {
-                    setState(() {
-                      String email = _memberEmailController.text;
-                      String name = email.split('@')[0];
-                      if (name.isNotEmpty) {
-                        name = name[0].toUpperCase() + name.substring(1);
-                      }
-                      _teamMembers.add({"name": name, "email": email});
-                    });
-                  }
-                  Navigator.of(context).pop();
-                  _memberEmailController.clear();
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Por favor, insira um e-mail válido.',
-                        style: TextStyle(color: kDarkTextPrimary),
-                      ),
-                      backgroundColor: kDarkElementBg,
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        );
-      },
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('E-mail inválido!')),
+                );
+              }
+            },
+            child: const Text('Adicionar',
+                style: TextStyle(color: kAccentSecondary)),
+          ),
+        ],
+      ),
     );
+  }
+
+  bool _validateEmail(String email) {
+    return RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+        .hasMatch(email);
   }
 
   Future<void> _selectDueDate() async {
@@ -193,25 +175,54 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     }
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Lógica de submissão do formulário
-      print("Nome do Projeto: ${_projectNameController.text}");
-      print("Descrição: ${_projectDescriptionController.text}");
-      print("Data de Entrega: ${_projectDueDateController.text}");
-      print("Membros: $_teamMembers");
-      print("Prioridade: $_selectedPriority");
-      print("Cor: $_selectedProjectColor");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Projeto criado com sucesso! (Simulação)',
-            style: TextStyle(color: kDarkTextPrimary),
-          ),
-          backgroundColor: kAccentSecondary,
-        ),
-      );
-      // Navigator.pop(context); // Opcional: fechar a tela após submissão
+      try {
+        final user = FirebaseAuth.instance.currentUser!;
+        
+        // 1. Cria o projeto na coleção 'projects'
+        final projetoRef = await FirebaseFirestore.instance.collection('projects').add({
+          'userId': user.uid, // Campo OBRIGATÓRIO pelas regras
+          'name': _projectNameController.text, // Nome do campo deve ser 'name'
+          'description': _projectDescriptionController.text,
+          'createdAt': FieldValue.serverTimestamp(), // OBRIGATÓRIO
+          'members': _teamMembers.map((m) => m['email']).toList(),
+          'color': _selectedProjectColor.value.toRadixString(16),
+          'status': 'ativo' // Adicione status se necessário
+        });
+
+        // 2. Envia convites
+        await _enviarConvites(projetoRef.id);
+        
+        Navigator.pop(context, true);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao criar projeto: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _submitFormNovo() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final user = FirebaseAuth.instance.currentUser!;
+
+        await FirebaseFirestore.instance.collection('projects').add({
+          'userId': user.uid, // OBRIGATÓRIO pelas regras
+          'name': _projectNameController.text, // OBRIGATÓRIO
+          'description': _projectDescriptionController.text,
+          'createdAt': FieldValue.serverTimestamp(), // OBRIGATÓRIO
+          'members': [], // Adicione os membros aqui se desejar
+          'color': _selectedProjectColor.value.toRadixString(16),
+        });
+
+        Navigator.pop(context, true); // Retorna sucesso
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao criar projeto: $e')),
+        );
+      }
     }
   }
 
@@ -757,8 +768,17 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
                     const SizedBox(height: 40),
                     Center(
                       child: ElevatedButton(
-                        onPressed: _submitForm,
-                        child: const Text('Criar Projeto'),
+                        onPressed: _isEnviandoConvites ? null : _submitForm,
+                        child: _isEnviandoConvites
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : const Text('Criar Projeto'),
                       ),
                     ),
                     const SizedBox(height: 100),
@@ -876,5 +896,78 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
         },
       ),
     );
+  }
+
+  Future<void> _enviarConvites(String projetoId) async {
+    if (_emailsConvidados.isEmpty) return;
+
+    setState(() => _isEnviandoConvites = true);
+
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final firestore = FirebaseFirestore.instance;
+
+    try {
+      // 1. Salva convites no Firestore
+      final batch = firestore.batch();
+
+      for (final email in _emailsConvidados) {
+        final conviteRef = firestore.collection('convites').doc();
+        batch.set(conviteRef, {
+          'projetoId': projetoId,
+          'remetenteId': currentUser!.uid,
+          'remetenteNome': currentUser.displayName ?? 'Usuário',
+          'emailConvidado': email,
+          'status': 'pendente',
+          'dataCriacao': FieldValue.serverTimestamp(),
+        });
+
+        // 2. Cria notificação para o convidado
+        final notificacaoRef = firestore.collection('notificacoes').doc();
+        batch.set(notificacaoRef, {
+          'userId':
+              await _getUserIdByEmail(email), // Você precisará implementar
+          'titulo': 'Novo convite de projeto',
+          'mensagem':
+              'Você foi convidado para o projeto ${_projectNameController.text}',
+          'tipo': 'convite',
+          'lida': false,
+          'data': FieldValue.serverTimestamp(),
+          'dados': {
+            'projetoId': projetoId,
+            'conviteId': conviteRef.id,
+          },
+        });
+      }
+
+      await batch.commit();
+
+      // 3. Envia e-mail (simulação)
+      await _enviarEmailSimples();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Convites enviados com sucesso!')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao enviar convites: $e')),
+      );
+    } finally {
+      setState(() => _isEnviandoConvites = false);
+    }
+  }
+
+  Future<String?> _getUserIdByEmail(String email) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    return snapshot.docs.isNotEmpty ? snapshot.docs.first.id : null;
+  }
+
+  Future<void> _enviarEmailSimples() async {
+    // Implementação simulada
+    print('Simulação: E-mails enviados para $_emailsConvidados');
   }
 }
