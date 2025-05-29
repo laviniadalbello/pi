@@ -9,7 +9,7 @@ import 'package:planify/src/pages/criartime.dart';
 import 'package:planify/src/pages/detalhesdastarefas.dart';
 import 'package:planify/src/pages/detalhesdoevento.dart';
 import 'package:planify/src/pages/detalhesdoprojeto.dart';
-import 'package:planify/src/pages/iconedaia.dart';
+import 'package:planify/src/pages/iconedaia.dart' as iconedaia;
 import 'package:planify/services/gemini_service.dart';
 import 'package:planify/src/pages/inicial.dart';
 import 'package:planify/src/pages/login.dart';
@@ -19,7 +19,7 @@ import 'package:planify/src/pages/cadastro.dart';
 import 'package:planify/src/pages/configuracoes.dart';
 import 'package:planify/src/pages/planner_diario.dart';
 import 'package:planify/src/pages/perfil.dart';
-import 'package:planify/src/pages/habits.dart';
+import 'package:planify/src/pages/habits.dart' as habits;
 import 'package:planify/src/pages/perfilvazio.dart';
 import 'package:planify/repositories/invite_repository.dart'; // Adicione esta linha
 import 'package:planify/services/invite_service.dart'; // Adicione esta linha
@@ -73,8 +73,8 @@ class MyApp extends StatelessWidget {
         '/detalhestarefa': (context) => DetailsTaskPage(geminiService: geminiService),
         '/detalheseventos': (context) => Detalhesdoevento(geminiService: geminiService),
         '/detalhesprojeto': (context) => Detalhesdoprojeto(geminiService: geminiService),
-        '/habitos': (context) => HabitsPage(geminiService: geminiService),
-        '/iconia': (context) => CloseableAiCard(
+        '/habitos': (context) => habits.HabitsPage(geminiService: geminiService),
+        '/iconia': (context) => iconedaia.CloseableAiCard(
               geminiService: geminiService,
               firestoreService: Provider.of<FirestoreService>(context, listen: false),
             ),
