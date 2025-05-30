@@ -179,11 +179,13 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     if (_formKey.currentState!.validate()) {
       try {
         final user = FirebaseAuth.instance.currentUser!;
-        
+
         // 1. Cria o projeto na coleção 'projects' (não 'projetos')
-        final projetoRef = await FirebaseFirestore.instance.collection('projects').add({
+        final projetoRef =
+            await FirebaseFirestore.instance.collection('projects').add({
           'userId': user.uid, // Campo OBRIGATÓRIO pelas regras
-          'name': _projectNameController.text, // Nome do campo deve ser 'name' (não 'nome')
+          'name': _projectNameController
+              .text, // Nome do campo deve ser 'name' (não 'nome')
           'description': _projectDescriptionController.text,
           'createdAt': FieldValue.serverTimestamp(), // OBRIGATÓRIO
           'members': _teamMembers.map((m) => m['email']).toList(),
@@ -193,7 +195,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
 
         // 2. Envia convites (mantenha essa parte)
         await _enviarConvites(projetoRef.id);
-        
+
         Navigator.pop(context, true);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -637,11 +639,11 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: kAccentPurple, width: 1.5),
           ),
           contentPadding: const EdgeInsets.symmetric(
@@ -898,76 +900,50 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     );
   }
 
-  Future<void> _enviarConvites(String projetoId) async {
-    if (_emailsConvidados.isEmpty) return;
-
-    setState(() => _isEnviandoConvites = true);
-
-    final currentUser = FirebaseAuth.instance.currentUser;
-    final firestore = FirebaseFirestore.instance;
-
+  Future<void> enviarConvite(String projetoId, String emailConvidado) async {
     try {
-      // 1. Salva convites no Firestore
-      final batch = firestore.batch();
-
-      for (final email in _emailsConvidados) {
-        final conviteRef = firestore.collection('convites').doc();
-        batch.set(conviteRef, {
-          'projetoId': projetoId,
-          'remetenteId': currentUser!.uid,
-          'remetenteNome': currentUser.displayName ?? 'Usuário',
-          'emailConvidado': email,
-          'status': 'pendente',
-          'dataCriacao': FieldValue.serverTimestamp(),
-        });
-
-        // 2. Cria notificação para o convidado
-        final notificacaoRef = firestore.collection('notificacoes').doc();
-        batch.set(notificacaoRef, {
-          'userId':
-              await _getUserIdByEmail(email), // Você precisará implementar
-          'titulo': 'Novo convite de projeto',
-          'mensagem':
-              'Você foi convidado para o projeto ${_projectNameController.text}',
-          'tipo': 'convite',
-          'lida': false,
-          'data': FieldValue.serverTimestamp(),
-          'dados': {
-            'projetoId': projetoId,
-            'conviteId': conviteRef.id,
-          },
-        });
+      // 1. Verifica se o email foi fornecido
+      if (emailConvidado.isEmpty) {
+        return; // Sai sem erro se não tiver email para convidar
       }
 
-      await batch.commit();
+      // 2. Busca usuário pelo email
+      final query = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: emailConvidado)
+          .limit(1)
+          .get();
 
-      // 3. Envia e-mail (simulação)
-      await _enviarEmailSimples();
+      if (query.docs.isEmpty) {
+        throw 'O usuário com email $emailConvidado não está cadastrado no sistema';
+      }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Convites enviados com sucesso!')),
-      );
+      final convidadoId = query.docs.first.id;
+      final user = FirebaseAuth.instance.currentUser!;
+
+      // 3. Cria o convite
+      await FirebaseFirestore.instance.collection('convites').add({
+        'projetoId': projetoId,
+        'remetenteId': user.uid,
+        'convidadoId': convidadoId,
+        'convidadoEmail': emailConvidado,
+        'status': 'pendente',
+        'criadoEm': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao enviar convites: $e')),
-      );
-    } finally {
-      setState(() => _isEnviandoConvites = false);
+      print('Erro no convite: $e');
+      rethrow; // Propaga o erro para ser tratado na UI
     }
   }
 
-  Future<String?> _getUserIdByEmail(String email) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('email', isEqualTo: email)
-        .limit(1)
-        .get();
-
-    return snapshot.docs.isNotEmpty ? snapshot.docs.first.id : null;
-  }
-
-  Future<void> _enviarEmailSimples() async {
-    // Implementação simulada
-    print('Simulação: E-mails enviados para $_emailsConvidados');
+  Future<void> _enviarConvites(String projetoId) async {
+    try {
+      for (final email in _emailsConvidados) {
+        await enviarConvite(projetoId, email);
+      }
+    } catch (e) {
+      print('Erro detalhado: ${e.toString()}');
+      rethrow;
+    }
   }
 }
