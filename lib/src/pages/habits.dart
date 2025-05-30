@@ -7,7 +7,10 @@ import 'package:planify/services/gemini_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:planify/services/firestore_tasks_service.dart';
+import 'package:planify/services/firestore_service.dart';
 import 'package:flutter/services.dart';
+import 'package:planify/models/project_model.dart'; // Ajuste o caminho se necessário
+import 'package:planify/models/task.dart'; // Você fará o mesmo para Task
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -18,469 +21,202 @@ const Color kDarkTextPrimary = Color(0xFFFFFFFF);
 const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
 
-class HabitsPage extends StatefulWidget {
-  final GeminiService geminiService;
-  const HabitsPage({super.key, required this.geminiService});
+class HabitsScreen extends StatefulWidget {
+  final GeminiService
+      geminiService; // Adicione este parâmetro se a classe AI Card precisar dele
+
+  const HabitsScreen({Key? key, required this.geminiService}) : super(key: key);
 
   @override
-  State<HabitsPage> createState() => _HabitsPageState();
+  State<HabitsScreen> createState() => _HabitsScreenState();
 }
 
-class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
+class _HabitsScreenState extends State<HabitsScreen>
+    with TickerProviderStateMixin {
+  // Variáveis de estado
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final GlobalKey _cardKey = GlobalKey();
-
-  final ScrollController _mainScrollController = ScrollController();
-
   bool _isDrawerOpen = false;
   bool _isCardVisible = false;
-  final bool _isHovered = false;
   bool _isNotificationsVisible = false;
+  int _unreadNotificationsCount = 2; // Exemplo
+  String _userName =
+      'Usuário'; // Exemplo, você pode carregar isso do Firebase Auth/Firestore
 
-  // Adicione a instância do FirestoreTasksService aqui
-  final FirestoreTasksService _firestoreService =
-      FirestoreTasksService(userId: 'userId');
-
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'title': 'Nova mensagem',
-      'message': 'Você recebeu uma nova mensagem',
-      'time': '2 min atrás',
-      'read': false,
-    },
-    {
-      'title': 'Lembrete',
-      'message': 'Reunião em 30 minutos',
-      'time': '10 min atrás',
-      'read': false,
-    },
-    {
-      'title': 'Atualização',
-      'message': 'Seu projeto foi atualizado',
-      'time': '1 hora atrás',
-      'read': true,
-    },
-    {
-      'title': 'Novo seguidor',
-      'message': 'Alguém começou a seguir seu perfil',
-      'time': '3 horas atrás',
-      'read': true,
-    },
-  ];
-
-  int get _unreadNotificationsCount =>
-      _notifications.where((n) => !n['read']).length;
-
-  late AnimationController _fadeController;
-  late AnimationController _circleController;
-  late Animation<double> _fadeAnimation;
+  // Controladores de animação
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
-  late PageController _pageController;
   late AnimationController _notificationsController;
   late Animation<Offset> _notificationsAnimation;
+  late AnimationController _circleController; // Para os círculos animados
+  late PageController _pageController; // Para o PageView dos projetos
 
-  String _userName = "Carregando...";
+  // Serviços
+  late FirestoreService _firestoreService;
+
+  // Listas de dados (serão preenchidas do Firestore)
+  List<Project> _projects = [];
+  List<Task> _tasks = [];
 
   @override
   void initState() {
     super.initState();
-    _loadUserData(); // Adicione esta linha
-    _pageController = PageController(viewportFraction: 0.7);
-    initializeDateFormatting('pt_BR', null).then((_) => setState(() {}));
+    _firestoreService = FirestoreService();
+    _isCardVisible = false; // Inicializa o serviço Firestore
 
-    _fadeController = AnimationController(
-      duration: const Duration(milliseconds: 700),
-      vsync: this,
-    );
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    );
-    _fadeController.forward();
-
-    _circleController = AnimationController(
-      duration: const Duration(seconds: 3),
-      vsync: this,
-    )..repeat();
-
+    // Inicialização dos controladores de animação
     _slideController = AnimationController(
-      duration: const Duration(milliseconds: 400),
       vsync: this,
+      duration: const Duration(milliseconds: 300),
     );
-
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 1),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOut,
+    ));
 
     _notificationsController = AnimationController(
-      duration: const Duration(milliseconds: 300),
       vsync: this,
+      duration: const Duration(milliseconds: 300),
     );
-
     _notificationsAnimation = Tween<Offset>(
-      begin: const Offset(1, 0),
+      begin: const Offset(0, -1),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _notificationsController, curve: Curves.easeOut),
-    );
+    ).animate(CurvedAnimation(
+      parent: _notificationsController,
+      curve: Curves.easeOut,
+    ));
 
-    _loadUserData();
+    _circleController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(); // Repetir a animação dos círculos
+
+    _pageController = PageController(
+        viewportFraction: 0.85); // Ajuste para o carousel de projetos
+
+    // Carregar dados ao iniciar a tela
+    _loadData();
+    _loadUserName(); // Carregar nome do usuário
+  }
+
+  Future<void> _loadUserName() async {
+    // Exemplo: carregar nome do usuário logado
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Você pode carregar o nome do display name ou de um documento no Firestore
+      setState(() {
+        _userName = user.displayName ?? user.email ?? 'Usuário';
+      });
+      // Se o nome for carregado do Firestore, use algo como:
+      // DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      // if (userDoc.exists) {
+      //   setState(() {
+      //     _userName = userDoc['name'] ?? 'Usuário';
+      //   });
+      // }
+    }
+  }
+
+  void _loadData() async {
+    // Carregar projetos do Firestore
+    try {
+      final projectSnapshot =
+          await FirebaseFirestore.instance.collection('projects').get();
+      setState(() {
+        _projects = projectSnapshot.docs
+            .map((doc) => Project.fromFirestore(doc))
+            .toList();
+      });
+    } catch (e) {
+      print('Erro ao carregar projetos: $e');
+      // Tratar o erro, talvez mostrar uma mensagem para o usuário
+    }
+
+    // Carregar tarefas do Firestore (se você tiver uma coleção de tarefas)
+    try {
+      final taskSnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .get(); // Ou a coleção de tarefas em progresso
+      setState(() {
+        _tasks =
+            taskSnapshot.docs.map((doc) => Task.fromFirestore(doc)).toList();
+      });
+    } catch (e) {
+      print('Erro ao carregar tarefas: $e');
+      // Tratar o erro
+    }
+  }
+
+  void _navigateToRoute(String routeName) {
+    Navigator.of(context).pushNamed(routeName);
   }
 
   @override
   void dispose() {
-    _fadeController.dispose();
-    _circleController.dispose();
     _slideController.dispose();
-    _pageController.dispose();
     _notificationsController.dispose();
-    _mainScrollController.dispose();
+    _circleController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
-  void _navigateToRoute(String routeName) {
-    // Fecha o drawer se estiver aberto
-    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
-      Navigator.of(context).pop();
-    }
-
-    Navigator.of(context).pushNamed(routeName);
-  }
-
-  Future<void> _loadUserData() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (doc.exists) {
-          setState(() {
-            _userName = doc['name'] ?? 'Usuário';
-          });
-        }
-      }
-    } catch (e) {
-      print('Erro ao carregar dados do usuário: $e');
-      setState(() {
-        _userName = 'Usuário';
-      });
-    }
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 12, // Tamanho da fonte conforme a imagem
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.5,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
-
-    final horizontalPadding = screenWidth * 0.05;
-
     return Scaffold(
-      key: _scaffoldKey,
-      drawer: _buildDrawer(),
-      backgroundColor: Colors.black,
+      key: _scaffoldKey, // Adiciona a chave para o Scaffold
+      backgroundColor: kDarkPrimaryBg, // Cor de fundo principal
+      drawer: _buildDrawer(), // Adiciona o Drawer
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTopBar(), // Barra superior com menu e notificações
+                    _buildTitle(
+                        context), // Título "Vamos construir bons hábitos juntos"
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('PROJETOS'),
+                    const SizedBox(height: 10),
+                    _buildProjectCarouselWidget(
+                        _projects), // Passa a lista de projetos
+                    const SizedBox(height: 20),
+                    _buildInProgressHeader(context),
+                    const SizedBox(height: 10),
+                    _buildTasksList(_tasks), // Passa a lista de tarefas
+                    const SizedBox(height: 80), // Espaço para o FAB
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // AI Card
+          if (_isCardVisible) _buildAiCardSection(context),
+          // Dim Overlay e Sliding Menu
+          if (_isCardVisible) _buildDimOverlay(),
+          _buildSlidingMenu(),
+        ],
+      ),
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomBar(),
-      body: CustomScrollView(
-        controller: _mainScrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Stack(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_isCardVisible) {
-                      if (mounted) {
-                        setState(() {
-                          _isCardVisible = false;
-                          _slideController.reverse();
-                        });
-                      }
-                    }
-                    if (_isNotificationsVisible) {
-                      setState(() {
-                        _isNotificationsVisible = false;
-                        _notificationsController.reverse();
-                      });
-                    }
-                    FocusScope.of(context).unfocus();
-                  },
-                  child: SafeArea(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding,
-                      ),
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: screenHeight * 0.02),
-                            _buildTopBar(),
-                            SizedBox(height: screenHeight * 0.02),
-                            _buildTitle(context),
-                            SizedBox(height: screenHeight * 0.01),
-                            _buildProjectCarousel(context),
-                            SizedBox(height: screenHeight * 0.02),
-                            _buildInProgressHeader(context),
-                            SizedBox(height: screenHeight * 0.015),
-                            _buildTaskCard(
-                              context: context,
-                              title: "Criar Detalhes",
-                              subtitle: "Produtividade",
-                              time: "2 min atras",
-                              progress: 0.6,
-                            ),
-                            SizedBox(height: screenHeight * 0.015),
-                            _buildTaskCard(
-                              context: context,
-                              title: "Revisar a  Home Page",
-                              subtitle: "App de banco",
-                              time: "5 min atras",
-                              progress: 0.7,
-                            ),
-                            SizedBox(height: screenHeight * 0.015),
-                            _buildTaskCard(
-                              context: context,
-                              title: "Trabalhar na  Landing Page",
-                              subtitle: "Curso online",
-                              time: "7 min atras",
-                              progress: 0.8,
-                            ),
-                            SizedBox(height: screenHeight * 0.1),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 42,
-                  right: -60,
-                  child: CloseableAiCard(
-                    // Passando a instância do firestoreService
-                    firestoreService: _firestoreService,
-                    geminiService: widget.geminiService,
-                    scaleFactor: screenWidth < 360 ? 0.35 : 0.4,
-                    enableScroll: true,
-                  ),
-                ),
-                if (_isCardVisible) _buildDimOverlay(),
-                if (_isCardVisible) _buildSlidingMenu(),
-                // Painel de notificações
-                if (_isNotificationsVisible)
-                  Positioned.fill(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isNotificationsVisible = false;
-                          _notificationsController.reverse();
-                        });
-                      },
-                      child: Container(color: Colors.black.withOpacity(0.5)),
-                    ),
-                  ),
-                if (_isNotificationsVisible)
-                  Positioned(
-                    top: screenHeight * 0.08,
-                    right: 0,
-                    width: screenWidth * 0.8,
-                    height: screenHeight * 0.7,
-                    child: SlideTransition(
-                      position: _notificationsAnimation,
-                      child: Material(
-                        color: Colors.transparent,
-                        elevation: 8,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(24),
-                          bottomLeft: Radius.circular(24),
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.all(screenWidth * 0.04),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(223, 17, 24, 39),
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(24),
-                              bottomLeft: Radius.circular(24),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
-                                blurRadius: 12,
-                                offset: const Offset(-6, 0),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Notificações',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: screenWidth * 0.05,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _isNotificationsVisible = false;
-                                        _notificationsController.reverse();
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: screenHeight * 0.02),
-                              Expanded(
-                                child: ListView.builder(
-                                  itemCount: _notifications.length,
-                                  itemBuilder: (context, index) {
-                                    final notification = _notifications[index];
-                                    return Dismissible(
-                                      key: Key(
-                                        'notification_${index}_${notification['title']}',
-                                      ),
-                                      // Direção para arrastar (direita)
-                                      direction: DismissDirection.endToStart,
-                                      onDismissed: (direction) {
-                                        setState(() {
-                                          // Remove a notificação da lista
-                                          _notifications.removeAt(index);
-                                        });
-                                      },
-                                      background: Container(
-                                        alignment: Alignment.centerRight,
-                                        padding:
-                                            const EdgeInsets.only(right: 20.0),
-                                        decoration: BoxDecoration(
-                                          color: Colors.red,
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Icon(
-                                          Icons.delete,
-                                          color: Colors.white,
-                                          size: screenWidth * 0.06,
-                                        ),
-                                      ),
-                                      child: Container(
-                                        margin: EdgeInsets.only(
-                                          bottom: screenHeight * 0.015,
-                                        ),
-                                        padding: EdgeInsets.all(
-                                          screenWidth * 0.03,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: notification['read']
-                                              ? Colors.white.withOpacity(
-                                                  0.05,
-                                                )
-                                              : Colors.blueAccent
-                                                  .withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  notification['title'],
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize:
-                                                        screenWidth * 0.04,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  notification['time'],
-                                                  style: TextStyle(
-                                                    color: Colors.white60,
-                                                    fontSize:
-                                                        screenWidth * 0.03,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: screenHeight * 0.01,
-                                            ),
-                                            Text(
-                                              notification['message'],
-                                              style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: screenWidth * 0.035,
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: screenHeight * 0.01,
-                                            ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.end,
-                                              children: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _notifications[index]
-                                                          ['read'] = true;
-                                                    });
-                                                  },
-                                                  child: Text(
-                                                    'Marcar como lida',
-                                                    style: TextStyle(
-                                                      color: Colors.blueAccent,
-                                                      fontSize:
-                                                          screenWidth * 0.03,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -532,7 +268,8 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
             decoration: BoxDecoration(
-              color: kDarkElementBg,
+              color:
+                  kDarkElementBg, // Substituí para kDarkElementBg (presumi que você tem essa constante)
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
@@ -877,27 +614,27 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     );
   }
 
-  // Métodos restantes (buildProjectCarousel, buildInProgressHeader, buildTaskCard, buildDrawer, buildDrawerItem, animatedCircleResponsive)
-  // que não foram incluídos no erro, mas são necessários para o código funcionar.
-
-  Widget _buildProjectCarousel(BuildContext context) {
+  // Renomeado de _buildProjectCarousel para evitar conflito com o PageView
+  Widget _buildProjectCarouselWidget(List<Project> projects) {
     final screenHeight = MediaQuery.of(context).size.height;
     return SizedBox(
       height: screenHeight * 0.15,
       child: PageView.builder(
         controller: _pageController,
-        itemCount: 3, // Exemplo de 3 projetos
+        itemCount: projects.length, // Usa o número real de projetos
         itemBuilder: (context, index) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: _buildProjectCard(context, index),
+            child: _buildProjectCard(
+                context, projects[index]), // Passa o objeto Project
           );
         },
       ),
     );
   }
 
-  Widget _buildProjectCard(BuildContext context, int index) {
+  // Alterado para receber um objeto Project
+  Widget _buildProjectCard(BuildContext context, Project project) {
     final screenWidth = MediaQuery.of(context).size.width;
     return Container(
       decoration: BoxDecoration(
@@ -914,7 +651,7 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Projeto ${index + 1}',
+                project.name, // Usando project.name
                 style: TextStyle(
                   color: kDarkTextPrimary,
                   fontSize: screenWidth * 0.045,
@@ -929,14 +666,16 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
             ],
           ),
           Text(
-            'Descrição do projeto ${index + 1}',
+            project.description, // Usando project.description
             style: TextStyle(
               color: kDarkTextSecondary,
               fontSize: screenWidth * 0.035,
             ),
           ),
           LinearProgressIndicator(
-            value: (index + 1) * 0.25,
+            value: project.progressPercentage != null
+                ? project.progressPercentage! / 100
+                : 0.0, // Usando progressPercentage
             backgroundColor: kDarkBorder,
             color: kAccentSecondary,
           ),
@@ -966,6 +705,35 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildTasksList(List<Task> tasks) {
+    // Este é um exemplo, você precisará adaptar isso para suas tarefas reais.
+    return ListView.builder(
+      shrinkWrap:
+          true, // Para o ListView funcionar dentro de um SingleChildScrollView
+      physics:
+          const NeverScrollableScrollPhysics(), // Desabilita o scroll próprio do ListView
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        final task = tasks[index];
+        return Padding(
+          padding: const EdgeInsets.only(
+              bottom: 10), // Adicionado para espaçamento entre os cards
+          child: _buildTaskCard(
+            // Reutiliza o _buildTaskCard existente
+            context: context,
+            title: task
+                .title, // Assumindo que sua classe Task terá um campo 'title'
+            subtitle: task.description ?? 'Sem descrição',
+            time: task.displayTime,
+            progress: task.progressPercentage != null
+                ? task.progressPercentage! / 100
+                : 0.0, // Assumindo campo de progresso
+          ),
+        );
+      },
     );
   }
 
