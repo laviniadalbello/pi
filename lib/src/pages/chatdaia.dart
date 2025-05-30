@@ -11,7 +11,6 @@ import 'package:planify/services/firestore_tasks_service.dart'; // Certifique-se
 import 'package:planify/models/message.dart';
 import 'package:planify/services/firestore_service.dart'; // Importação do serviço genérico (não usado diretamente para tasks, mas presente no widget params)
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart'; // <--- ADICIONE ESTA LINHA
 
 // Cores (mantidas do seu código original)
@@ -34,11 +33,11 @@ class ChatScreen extends StatefulWidget {
       firestoreService; // Mantido por enquanto, se for usado para outras coisas
 
   const ChatScreen({
-    Key? key,
+    super.key,
     required this.title,
     required this.geminiService,
     required this.firestoreService, // Mantido
-  }) : super(key: key);
+  });
 
   @override
   _ChatScreenState createState() => _ChatScreenState();

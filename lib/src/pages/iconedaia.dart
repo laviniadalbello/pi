@@ -4,9 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'chatdaia.dart'; // Importe chatdaia.dart
 import 'package:planify/services/gemini_service.dart';
-import 'dart:convert';
 import 'package:planify/services/firestore_service.dart';
-import 'package:planify/services/firestore_tasks_service.dart';
 
 // Cores e SVGs existentes
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
