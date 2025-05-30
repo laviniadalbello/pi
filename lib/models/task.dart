@@ -1,5 +1,6 @@
 // lib/models/task.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class Task {
   final String id;
@@ -18,7 +19,26 @@ class Task {
   final String? estimatedTime; // <--- ADICIONAR ESTE CAMPO
   final String? timeSpent; // <--- ADICIONAR ESTE CAMPO
   final int?
-      progressPercentage; // <--- ADICIONAR ESTE CAMPO (assumindo int para 'number')
+      progressPercentage;
+
+    String get displayTime {
+    if (estimatedTime != null && estimatedTime!.isNotEmpty) {
+      return 'Est: $estimatedTime';
+    }
+    if (timeSpent != null && timeSpent!.isNotEmpty) {
+      return 'Gasto: $timeSpent';
+    }
+    // Se você quiser exibir a data de vencimento formatada
+    if (dueDate != null) {
+      return 'Vence: ${DateFormat('dd/MM').format(dueDate!)}';
+    }
+    // Se você quiser exibir "X minutos/horas/dias atrás"
+    final Duration diff = DateTime.now().difference(createdAt);
+    if (diff.inDays > 0) return '${diff.inDays} dias atrás';
+    if (diff.inHours > 0) return '${diff.inHours} horas atrás';
+    if (diff.inMinutes > 0) return '${diff.inMinutes} min atrás';
+    return 'Recém-criada'; // Default se nenhuma condição for atendida
+  }
 
   Task({
     required this.id,
@@ -35,6 +55,7 @@ class Task {
     this.estimatedTime, // <--- ADICIONAR
     this.timeSpent, // <--- ADICIONAR
     this.progressPercentage, // <--- ADICIONAR
+
   });
 
   // Construtor para criar uma Task a partir de um DocumentSnapshot do Firestore
