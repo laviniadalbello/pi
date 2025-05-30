@@ -180,10 +180,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
       try {
         final user = FirebaseAuth.instance.currentUser!;
         
-        // 1. Cria o projeto na coleção 'projects'
+        // 1. Cria o projeto na coleção 'projects' (não 'projetos')
         final projetoRef = await FirebaseFirestore.instance.collection('projects').add({
           'userId': user.uid, // Campo OBRIGATÓRIO pelas regras
-          'name': _projectNameController.text, // Nome do campo deve ser 'name'
+          'name': _projectNameController.text, // Nome do campo deve ser 'name' (não 'nome')
           'description': _projectDescriptionController.text,
           'createdAt': FieldValue.serverTimestamp(), // OBRIGATÓRIO
           'members': _teamMembers.map((m) => m['email']).toList(),
@@ -191,7 +191,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
           'status': 'ativo' // Adicione status se necessário
         });
 
-        // 2. Envia convites
+        // 2. Envia convites (mantenha essa parte)
         await _enviarConvites(projetoRef.id);
         
         Navigator.pop(context, true);
