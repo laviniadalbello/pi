@@ -1,3 +1,4 @@
+// lib/models/project.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Project {
@@ -7,11 +8,11 @@ class Project {
   final String color;
   final String userId;
   final String status;
-  final List<dynamic> members; // Pode ser uma lista de Map<String, dynamic> para membros
+  final List<dynamic> members;
   final Timestamp createdAt;
-  final String? priority; // Adicionado do Firestore
-  final String? dueDate; // Adicionado do Firestore
-  final int? progressPercentage; // Adicionado do Firestore
+  final String? priority;
+  final String? dueDate;
+  final int? progressPercentage;
 
   Project({
     required this.id,
@@ -24,30 +25,29 @@ class Project {
     required this.createdAt,
     this.priority,
     this.dueDate,
-    this.progressPercentage, // Adicionado ao construtor
+    this.progressPercentage,
   });
 
   factory Project.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
     return Project(
       id: doc.id,
-      name: data['title'] ?? '', // Alterado de 'name' para 'title' com base na imagem do Firestore
+      name: data['name'] ?? '', // Usar 'name'
       description: data['description'] ?? '',
-      color: data['color'] ?? 'FFCCCCCC', // Cor padrão cinza claro se não existir
+      color: data['color'] ?? 'FFCCCCCC',
       userId: data['userId'] ?? '',
       status: data['status'] ?? 'ativo',
-      members: data['members'] ?? [],
+      members: List<dynamic>.from(data['members'] ?? []),
       createdAt: data['createdAt'] ?? Timestamp.now(),
       priority: data['priority'],
       dueDate: data['dueDate'],
-      progressPercentage: data['progressPercentage'], // Mapeia o campo do Firestore
+      progressPercentage: (data['progressPercentage'] as num?)?.toInt(),
     );
   }
 
-  // Opcional: Método para converter o objeto Project de volta para um Map (útil para salvar/atualizar no Firestore)
   Map<String, dynamic> toFirestore() {
     return {
-      'title': name, // Usar 'title' para o campo no Firestore
+      'name': name, // Usar 'name'
       'description': description,
       'color': color,
       'userId': userId,
