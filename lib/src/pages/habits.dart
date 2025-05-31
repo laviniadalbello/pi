@@ -6,7 +6,11 @@ import 'iconedaia.dart'; // Mantenha se CloseableAiCard e outros dependem disso
 import 'package:planify/services/gemini_service.dart'; // Mantenha sua importação
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:planify/services/firestore_tasks_service.dart'; // Mantenha sua importação
+import 'package:planify/services/firestore_tasks_service.dart';
+import 'package:planify/services/firestore_service.dart';
+import 'package:flutter/services.dart';
+import 'package:planify/models/project_model.dart'; // Ajuste o caminho se necessário
+import 'package:planify/models/task.dart'; // Você fará o mesmo para Task
 
 // Importe seus modelos REAIS aqui
 import 'package:planify/models/task.dart'; // Substitua pelo caminho correto
@@ -22,463 +26,202 @@ const Color kDarkTextPrimary = Color(0xFFFFFFFF);
 const Color kDarkTextSecondary = Color(0xFFA0AEC0);
 const Color kDarkBorder = Color(0xFF2D3748);
 
-class HabitsPage extends StatefulWidget {
-  final GeminiService geminiService;
-  const HabitsPage({super.key, required this.geminiService});
+class HabitsScreen extends StatefulWidget {
+  final GeminiService
+      geminiService; // Adicione este parâmetro se a classe AI Card precisar dele
+
+  const HabitsScreen({Key? key, required this.geminiService}) : super(key: key);
 
   @override
-  State<HabitsPage> createState() => _HabitsPageState();
+  State<HabitsScreen> createState() => _HabitsScreenState();
 }
 
-class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
+class _HabitsScreenState extends State<HabitsScreen>
+    with TickerProviderStateMixin {
+  // Variáveis de estado
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final ScrollController _mainScrollController = ScrollController();
-
   bool _isDrawerOpen = false;
   bool _isCardVisible = false;
   bool _isNotificationsVisible = false;
+  int _unreadNotificationsCount = 2; // Exemplo
+  String _userName =
+      'Usuário'; // Exemplo, você pode carregar isso do Firebase Auth/Firestore
 
-  FirestoreTasksService? _firestoreService;
-  String? _currentUserId;
-
-  // Lista mockada de notificações (você pode querer buscar do Firestore também)
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'title': 'Nova mensagem',
-      'message': 'Você recebeu uma nova mensagem',
-      'time': '2 min atrás',
-      'read': false,
-    },
-    {
-      'title': 'Lembrete',
-      'message': 'Reunião em 30 minutos',
-      'time': '10 min atrás',
-      'read': false,
-    },
-    {
-      'title': 'Atualização',
-      'message': 'Seu projeto foi atualizado',
-      'time': '1 hora atrás',
-      'read': true,
-    },
-  ];
-
-  int get _unreadNotificationsCount =>
-      _notifications.where((n) => !n['read']).length;
-
-  late AnimationController _fadeController;
-  late AnimationController _circleController;
-  late Animation<double> _fadeAnimation;
+  // Controladores de animação
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
-  late PageController _pageController;
   late AnimationController _notificationsController;
   late Animation<Offset> _notificationsAnimation;
+  late AnimationController _circleController; // Para os círculos animados
+  late PageController _pageController; // Para o PageView dos projetos
 
-  String _userName = "Carregando...";
+  // Serviços
+  late FirestoreService _firestoreService;
+
+  // Listas de dados (serão preenchidas do Firestore)
+  List<Project> _projects = [];
+  List<Task> _tasks = [];
 
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.75);
-    initializeDateFormatting('pt_BR', null).then((_) {
-      if (mounted) setState(() {});
-    });
+    _firestoreService = FirestoreService();
+    _isCardVisible = false; // Inicializa o serviço Firestore
 
-    _fadeController = AnimationController(
-        duration: const Duration(milliseconds: 700), vsync: this)
-      ..forward();
-    _fadeAnimation =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut);
-    _circleController =
-        AnimationController(duration: const Duration(seconds: 3), vsync: this)
-          ..repeat();
+    // Inicialização dos controladores de animação
     _slideController = AnimationController(
-        duration: const Duration(milliseconds: 400), vsync: this);
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-        .animate(
-            CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOut,
+    ));
+
     _notificationsController = AnimationController(
-        duration: const Duration(milliseconds: 300), vsync: this);
-    _notificationsAnimation =
-        Tween<Offset>(begin: const Offset(1, 0), end: Offset.zero).animate(
-            CurvedAnimation(
-                parent: _notificationsController, curve: Curves.easeOut));
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _notificationsAnimation = Tween<Offset>(
+      begin: const Offset(0, -1),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _notificationsController,
+      curve: Curves.easeOut,
+    ));
 
-    _loadUserData();
+    _circleController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(); // Repetir a animação dos círculos
+
+    _pageController = PageController(
+        viewportFraction: 0.85); // Ajuste para o carousel de projetos
+
+    // Carregar dados ao iniciar a tela
+    _loadData();
+    _loadUserName(); // Carregar nome do usuário
   }
 
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    _circleController.dispose();
-    _slideController.dispose();
-    _pageController.dispose();
-    _notificationsController.dispose();
-    _mainScrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadUserData() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user != null) {
-        _currentUserId = user.uid;
-        _firestoreService = FirestoreTasksService(userId: user.uid);
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .get();
-        if (mounted) {
-          setState(() {
-            _userName =
-                doc.exists ? (doc.data()?['name'] ?? 'Usuário') : 'Usuário';
-          });
-        }
-      } else {
-        if (mounted) setState(() => _userName = 'Visitante');
-      }
-    } catch (e) {
-      print('Erro ao carregar dados do usuário: $e');
-      if (mounted) setState(() => _userName = 'Erro');
+  Future<void> _loadUserName() async {
+    // Exemplo: carregar nome do usuário logado
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Você pode carregar o nome do display name ou de um documento no Firestore
+      setState(() {
+        _userName = user.displayName ?? user.email ?? 'Usuário';
+      });
+      // Se o nome for carregado do Firestore, use algo como:
+      // DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      // if (userDoc.exists) {
+      //   setState(() {
+      //     _userName = userDoc['name'] ?? 'Usuário';
+      //   });
+      // }
     }
-    if (mounted) setState(() {});
+  }
+
+  void _loadData() async {
+    // Carregar projetos do Firestore
+    try {
+      final projectSnapshot =
+          await FirebaseFirestore.instance.collection('projects').get();
+      setState(() {
+        _projects = projectSnapshot.docs
+            .map((doc) => Project.fromFirestore(doc))
+            .toList();
+      });
+    } catch (e) {
+      print('Erro ao carregar projetos: $e');
+      // Tratar o erro, talvez mostrar uma mensagem para o usuário
+    }
+
+    // Carregar tarefas do Firestore (se você tiver uma coleção de tarefas)
+    try {
+      final taskSnapshot = await FirebaseFirestore.instance
+          .collection('tasks')
+          .get(); // Ou a coleção de tarefas em progresso
+      setState(() {
+        _tasks =
+            taskSnapshot.docs.map((doc) => Task.fromFirestore(doc)).toList();
+      });
+    } catch (e) {
+      print('Erro ao carregar tarefas: $e');
+      // Tratar o erro
+    }
   }
 
   void _navigateToRoute(String routeName) {
-    if (_scaffoldKey.currentState?.isDrawerOpen ?? false)
-      Navigator.of(context).pop();
     Navigator.of(context).pushNamed(routeName);
   }
 
   @override
-  Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-    final screenWidth = screenSize.width;
-    final screenHeight = screenSize.height;
-    final horizontalPadding = screenWidth * 0.05;
+  void dispose() {
+    _slideController.dispose();
+    _notificationsController.dispose();
+    _circleController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
 
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 12, // Tamanho da fonte conforme a imagem
+        fontWeight: FontWeight.bold,
+        letterSpacing: 1.5,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
-      drawer: _buildDrawer(),
-      backgroundColor: kDarkPrimaryBg,
+      key: _scaffoldKey, // Adiciona a chave para o Scaffold
+      backgroundColor: kDarkPrimaryBg, // Cor de fundo principal
+      drawer: _buildDrawer(), // Adiciona o Drawer
+      body: Stack(
+        children: [
+          SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTopBar(), // Barra superior com menu e notificações
+                    _buildTitle(
+                        context), // Título "Vamos construir bons hábitos juntos"
+                    const SizedBox(height: 20),
+                    _buildSectionTitle('PROJETOS'),
+                    const SizedBox(height: 10),
+                    _buildProjectCarouselWidget(
+                        _projects), // Passa a lista de projetos
+                    const SizedBox(height: 20),
+                    _buildInProgressHeader(context),
+                    const SizedBox(height: 10),
+                    _buildTasksList(_tasks), // Passa a lista de tarefas
+                    const SizedBox(height: 80), // Espaço para o FAB
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // AI Card
+          if (_isCardVisible) _buildAiCardSection(context),
+          // Dim Overlay e Sliding Menu
+          if (_isCardVisible) _buildDimOverlay(),
+          _buildSlidingMenu(),
+        ],
+      ),
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomBar(),
-      body: CustomScrollView(
-        controller: _mainScrollController,
-        slivers: [
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Stack(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (_isCardVisible)
-                      setState(() {
-                        _isCardVisible = false;
-                        _slideController.reverse();
-                      });
-                    if (_isNotificationsVisible)
-                      setState(() {
-                        _isNotificationsVisible = false;
-                        _notificationsController.reverse();
-                      });
-                    FocusScope.of(context).unfocus();
-                  },
-                  child: SafeArea(
-                    child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: horizontalPadding),
-                      child: FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: screenHeight * 0.02),
-                            _buildTopBar(),
-                            SizedBox(height: screenHeight * 0.02),
-                            _buildTitle(context),
-                            SizedBox(height: screenHeight * 0.01),
-                            _buildProjectCarousel(context),
-                            SizedBox(height: screenHeight * 0.025),
-                            _buildInProgressHeader(context),
-                            SizedBox(height: screenHeight * 0.015),
-                            Expanded(child: _buildTasksList(context)),
-                            SizedBox(height: screenHeight * 0.12),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                if (_firestoreService != null && _currentUserId != null)
-                  Positioned(
-                    bottom: 42,
-                    right: -60,
-                    child: CloseableAiCard(
-                      firestoreService: _firestoreService!,
-                      geminiService: widget.geminiService,
-                      scaleFactor: screenWidth < 360 ? 0.35 : 0.4,
-                      enableScroll: true,
-                    ),
-                  ),
-                if (_isCardVisible) _buildDimOverlay(),
-                if (_isCardVisible) _buildSlidingMenu(),
-
-                // ------------- PAINEL DE NOTIFICAÇÕES COMPLETO -------------
-                if (_isNotificationsVisible)
-                  Positioned.fill(
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isNotificationsVisible = false;
-                          _notificationsController.reverse();
-                        });
-                      },
-                      child: Container(color: Colors.black.withOpacity(0.5)),
-                    ),
-                  ),
-                if (_isNotificationsVisible)
-                  Positioned(
-                    top: screenHeight * 0.08, // Posição a partir do topo
-                    right: 0, // Alinhado à direita
-                    width: screenWidth * 0.85, // Largura do painel
-                    height: screenHeight * 0.75, // Altura do painel
-                    child: SlideTransition(
-                      position: _notificationsAnimation,
-                      child: Material(
-                        color: Colors
-                            .transparent, // Para não cobrir a sombra do Container interno
-                        elevation: 0, // Sombra será do Container interno
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(24),
-                          bottomLeft: Radius.circular(24),
-                        ),
-                        child: Container(
-                          padding: EdgeInsets.all(screenWidth * 0.04),
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(235, 22, 33,
-                                62), // Cor similar a kDarkSurface com opacidade
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(24),
-                              bottomLeft: Radius.circular(24),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.4),
-                                blurRadius: 15,
-                                offset: const Offset(-5, 5), // Sombra sutil
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Notificações',
-                                    style: TextStyle(
-                                      color: kDarkTextPrimary,
-                                      fontSize: screenWidth * 0.05,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.close,
-                                        color: kDarkTextPrimary),
-                                    onPressed: () {
-                                      setState(() {
-                                        _isNotificationsVisible = false;
-                                        _notificationsController.reverse();
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                              SizedBox(
-                                  height: screenHeight * 0.015), // Espaçamento
-                              Expanded(
-                                child: _notifications.isEmpty
-                                    ? Center(
-                                        child: Text("Nenhuma notificação",
-                                            style: TextStyle(
-                                                color: kDarkTextSecondary)))
-                                    : ListView.builder(
-                                        itemCount: _notifications.length,
-                                        padding: EdgeInsets.zero,
-                                        itemBuilder: (context, index) {
-                                          final notification =
-                                              _notifications[index];
-                                          // Gera uma chave única mais robusta para o Dismissible
-                                          final String uniqueKey =
-                                              'notification_${notification['title']}_${notification['time']}_$index';
-                                          return Dismissible(
-                                            key: Key(uniqueKey),
-                                            direction:
-                                                DismissDirection.endToStart,
-                                            onDismissed: (direction) {
-                                              setState(() {
-                                                _notifications.removeAt(index);
-                                                // Aqui você pode adicionar lógica para remover do backend também, se necessário
-                                              });
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(SnackBar(
-                                                      content: Text(
-                                                          "${notification['title']} dispensada"),
-                                                      duration: Duration(
-                                                          seconds: 2)));
-                                            },
-                                            background: Container(
-                                              alignment: Alignment.centerRight,
-                                              padding: const EdgeInsets.only(
-                                                  right: 20.0),
-                                              decoration: BoxDecoration(
-                                                color: Colors.redAccent,
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                              child: Icon(
-                                                  Icons.delete_sweep_outlined,
-                                                  color: Colors.white,
-                                                  size: screenWidth * 0.06),
-                                            ),
-                                            child: Container(
-                                              margin: EdgeInsets.only(
-                                                  bottom: screenHeight * 0.015),
-                                              padding: EdgeInsets.all(
-                                                  screenWidth * 0.035),
-                                              decoration: BoxDecoration(
-                                                  color: notification['read'] ==
-                                                          true
-                                                      ? kDarkSurface.withOpacity(
-                                                          0.5) // Cor para lida
-                                                      : kAccentPurple.withOpacity(
-                                                          0.15), // Cor para não lida
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                      color: notification[
-                                                                  'read'] ==
-                                                              true
-                                                          ? kDarkBorder
-                                                              .withOpacity(0.3)
-                                                          : kAccentPurple
-                                                              .withOpacity(
-                                                                  0.4))),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Expanded(
-                                                        child: Text(
-                                                          notification['title'],
-                                                          style: TextStyle(
-                                                              color:
-                                                                  kDarkTextPrimary,
-                                                              fontSize:
-                                                                  screenWidth *
-                                                                      0.04,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600),
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        notification['time'],
-                                                        style: TextStyle(
-                                                            color:
-                                                                kDarkTextSecondary
-                                                                    .withOpacity(
-                                                                        0.8),
-                                                            fontSize:
-                                                                screenWidth *
-                                                                    0.03),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                      height:
-                                                          screenHeight * 0.008),
-                                                  Text(
-                                                    notification['message'],
-                                                    style: TextStyle(
-                                                        color:
-                                                            kDarkTextSecondary,
-                                                        fontSize:
-                                                            screenWidth * 0.035,
-                                                        height: 1.3),
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                  ),
-                                                  if (notification['read'] ==
-                                                      false) ...[
-                                                    // Só mostra se não estiver lida
-                                                    SizedBox(
-                                                        height: screenHeight *
-                                                            0.01),
-                                                    Align(
-                                                      alignment:
-                                                          Alignment.centerRight,
-                                                      child: TextButton(
-                                                        style: TextButton
-                                                            .styleFrom(
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                                  horizontal: 8,
-                                                                  vertical: 4),
-                                                          tapTargetSize:
-                                                              MaterialTapTargetSize
-                                                                  .shrinkWrap,
-                                                        ),
-                                                        onPressed: () {
-                                                          setState(() {
-                                                            _notifications[
-                                                                    index]
-                                                                ['read'] = true;
-                                                          });
-                                                        },
-                                                        child: Text(
-                                                            'Marcar como lida',
-                                                            style: TextStyle(
-                                                                color:
-                                                                    kAccentSecondary,
-                                                                fontSize:
-                                                                    screenWidth *
-                                                                        0.03)),
-                                                      ),
-                                                    ),
-                                                  ]
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                // ------------- FIM DO PAINEL DE NOTIFICAÇÕES -------------
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -539,65 +282,108 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildProjectCard(BuildContext context, Project project) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    double? progressValue;
-    if (project.progressPercentage != null) {
-      progressValue = project.progressPercentage! / 100.0;
-      progressValue = progressValue.clamp(0.0, 1.0);
-    } else if (project.status == 'concluído' || project.status == 'completed') {
-      // Adicionado 'completed'
-      progressValue = 1.0;
-    }
-
-    return Container(
-      padding: EdgeInsets.all(screenWidth * 0.035),
-      decoration: BoxDecoration(
-        color: kDarkSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kDarkBorder.withOpacity(0.7)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(project.name,
-                    style: TextStyle(
-                        color: kDarkTextPrimary,
-                        fontSize: screenWidth * 0.042,
-                        fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ),
-              Icon(Icons.more_vert,
-                  color: kDarkTextSecondary, size: screenWidth * 0.05),
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 4.0, bottom: 8.0),
-              child: Text(project.description,
-                  style: TextStyle(
-                      color: kDarkTextSecondary, fontSize: screenWidth * 0.032),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis),
+  Widget _buildSlidingMenu() {
+    return Positioned(
+      bottom: 80,
+      left: 30,
+      right: 30,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Material(
+          color: Colors.transparent,
+          elevation: 8,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+            decoration: BoxDecoration(
+              color:
+                  kDarkElementBg, // Substituí para kDarkElementBg (presumi que você tem essa constante)
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/adicionartarefa');
+                  },
+                  child: _menuItem(Icons.edit_outlined, 'Criar Tarefa'),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/criarprojeto');
+                  },
+                  child: _menuItem(Icons.add_circle_outline, 'Criar Projeto'),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/criarevento');
+                  },
+                  child: _menuItem(Icons.schedule_outlined, 'Criar Evento'),
+                ),
+                const SizedBox(height: 16),
+                FloatingActionButton(
+                  mini: true,
+                  backgroundColor: kAccentPurple,
+                  elevation: 0,
+                  shape: const CircleBorder(),
+                  onPressed: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    size: 20,
+                    color: kDarkTextPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
-          if (progressValue != null)
-            LinearProgressIndicator(
-              value: progressValue,
-              backgroundColor: kDarkBorder,
-              color: kAccentSecondary,
-              minHeight: 5,
-              borderRadius: BorderRadius.circular(5),
-            )
-          else
-            const SizedBox(height: 5),
+        ),
+      ),
+    );
+  }
+
+  Widget _menuItem(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: kDarkBorder.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(16),
+        color: kDarkSurface.withOpacity(0.5),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: kDarkTextSecondary, size: 20),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: const TextStyle(color: kDarkTextSecondary, fontSize: 14),
+          ),
         ],
       ),
     );
@@ -846,6 +632,116 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
                 kAccentPurple.withOpacity(0.3)
               ],
               1),
+          _animatedCircleResponsive(
+              context,
+              0.45,
+              0.045,
+              0.012,
+              [
+                Colors.amberAccent,
+                Colors.orange,
+              ],
+              2),
+          _animatedCircleResponsive(
+              context,
+              0.1,
+              0.08,
+              0.012,
+              [
+                Colors.pinkAccent,
+                const Color.fromARGB(255, 149, 226, 4),
+              ],
+              3),
+          _animatedCircleResponsive(
+              context,
+              0.9,
+              0.09,
+              0.02,
+              [
+                const Color.fromARGB(173, 36, 17, 204),
+                const Color.fromARGB(255, 218, 20, 20),
+              ],
+              4),
+          _animatedCircleResponsive(
+              context,
+              0.25,
+              0.03,
+              0.015,
+              [
+                const Color.fromARGB(255, 222, 87, 240),
+                const Color.fromARGB(255, 27, 112, 1),
+              ],
+              5),
+        ],
+      ),
+    );
+  }
+
+  // Renomeado de _buildProjectCarousel para evitar conflito com o PageView
+  Widget _buildProjectCarouselWidget(List<Project> projects) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    return SizedBox(
+      height: screenHeight * 0.15,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: projects.length, // Usa o número real de projetos
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: _buildProjectCard(
+                context, projects[index]), // Passa o objeto Project
+          );
+        },
+      ),
+    );
+  }
+
+  // Alterado para receber um objeto Project
+  Widget _buildProjectCard(BuildContext context, Project project) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return Container(
+      decoration: BoxDecoration(
+        color: kDarkSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kDarkBorder),
+      ),
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                project.name, // Usando project.name
+                style: TextStyle(
+                  color: kDarkTextPrimary,
+                  fontSize: screenWidth * 0.045,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Icon(
+                Icons.more_vert,
+                color: kDarkTextSecondary,
+                size: screenWidth * 0.05,
+              ),
+            ],
+          ),
+          Text(
+            project.description, // Usando project.description
+            style: TextStyle(
+              color: kDarkTextSecondary,
+              fontSize: screenWidth * 0.035,
+            ),
+          ),
+          LinearProgressIndicator(
+            value: project.progressPercentage != null
+                ? project.progressPercentage! / 100
+                : 0.0, // Usando progressPercentage
+            backgroundColor: kDarkBorder,
+            color: kAccentSecondary,
+          ),
         ],
       ),
     );
@@ -853,23 +749,117 @@ class _HabitsPageState extends State<HabitsPage> with TickerProviderStateMixin {
 
   Widget _buildInProgressHeader(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'Em progresso',
+          style: TextStyle(
+            color: kDarkTextPrimary,
+            fontSize: screenWidth * 0.05,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          'Ver todos',
+          style: TextStyle(
+            color: kAccentPurple,
+            fontSize: screenWidth * 0.035,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTasksList(List<Task> tasks) {
+    // Este é um exemplo, você precisará adaptar isso para suas tarefas reais.
+    return ListView.builder(
+      shrinkWrap:
+          true, // Para o ListView funcionar dentro de um SingleChildScrollView
+      physics:
+          const NeverScrollableScrollPhysics(), // Desabilita o scroll próprio do ListView
+      itemCount: tasks.length,
+      itemBuilder: (context, index) {
+        final task = tasks[index];
+        return Padding(
+          padding: const EdgeInsets.only(
+              bottom: 10), // Adicionado para espaçamento entre os cards
+          child: _buildTaskCard(
+            // Reutiliza o _buildTaskCard existente
+            context: context,
+            title: task
+                .title, // Assumindo que sua classe Task terá um campo 'title'
+            subtitle: task.description ?? 'Sem descrição',
+            time: task.displayTime,
+            progress: task.progressPercentage != null
+                ? task.progressPercentage! / 100
+                : 0.0, // Assumindo campo de progresso
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTaskCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required String time,
+    required double progress,
+  }) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return Container(
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      decoration: BoxDecoration(
+        color: kDarkSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: kDarkBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Em progresso',
-              style: TextStyle(
-                  color: kDarkTextPrimary,
-                  fontSize: screenWidth * 0.05,
-                  fontWeight: FontWeight.bold)),
-          GestureDetector(
-            onTap: () => _navigateToRoute('/tasks'),
-            child: Text('Ver todos',
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
                 style: TextStyle(
-                    color: kAccentPurple,
-                    fontSize: screenWidth * 0.035,
-                    fontWeight: FontWeight.w500)),
+                  color: kDarkTextPrimary,
+                  fontSize: screenWidth * 0.04,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Icon(
+                Icons.more_vert,
+                color: kDarkTextSecondary,
+                size: screenWidth * 0.05,
+              ),
+            ],
+          ),
+          SizedBox(height: screenWidth * 0.01),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: kDarkTextSecondary,
+              fontSize: screenWidth * 0.035,
+            ),
+          ),
+          SizedBox(height: screenWidth * 0.02),
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: kDarkBorder,
+            color: kAccentSecondary,
+          ),
+          SizedBox(height: screenWidth * 0.01),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Text(
+              time,
+              style: TextStyle(
+                color: kDarkTextSecondary,
+                fontSize: screenWidth * 0.03,
+              ),
+            ),
           ),
         ],
       ),
