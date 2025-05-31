@@ -98,7 +98,7 @@ class MyApp extends StatelessWidget {
         '/detalhesprojeto': (context) =>
             Detalhesdoprojeto(geminiService: geminiService),
         '/habitos': (context) =>
-            habits.HabitsPage(geminiService: geminiService),
+            habits.HabitsScreen(geminiService: geminiService),
         '/iconia': (context) => iconedaia.CloseableAiCard(
               geminiService: geminiService,
               firestoreService:
