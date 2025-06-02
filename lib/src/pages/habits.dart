@@ -1080,7 +1080,7 @@ class _HabitsScreenState extends State<HabitsScreen>
 
   Widget _buildBottomBar() {
     return BottomAppBar(
-      height: 60,
+      //height: 60,
       color: kDarkSurface,
       shape: const CircularNotchedRectangle(),
       notchMargin: 8,
@@ -1105,7 +1105,7 @@ class _HabitsScreenState extends State<HabitsScreen>
     return IconButton(
       icon: Icon(icon,
           color: isActive ? kAccentPurple : kDarkTextSecondary.withOpacity(0.6),
-          size: 26),
+          size: 24),
       onPressed: onTap,
       padding: const EdgeInsets.all(12),
     );

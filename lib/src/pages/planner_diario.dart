@@ -720,11 +720,13 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
               onTap: () {
                 _navigateToRoute('/planner');
               },
-              child: _bottomBarIcon(Icons.book_outlined),
+              child: _bottomBarIcon(Icons.book_outlined, isActive: true),
             ),
             InkWell(
-              onTap: () {},
-              child: _bottomBarIcon(Icons.person_outline, isActive: true),
+              onTap: () {
+                _navigateToRoute('/perfil');
+              },
+              child: _bottomBarIcon(Icons.person_outline),
             ),
           ],
         ),
