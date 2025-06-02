@@ -179,24 +179,33 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
     if (_formKey.currentState!.validate()) {
       try {
         final user = FirebaseAuth.instance.currentUser!;
+        final userId = user.uid;
 
-        // 1. Cria o projeto na coleção 'projects' (não 'projetos')
+        // Cria o projeto com ownerId e o próprio userId em members
         final projetoRef =
             await FirebaseFirestore.instance.collection('projects').add({
-          'userId': user.uid, // Campo OBRIGATÓRIO pelas regras
-          'name': _projectNameController
-              .text, // Nome do campo deve ser 'name' (não 'nome')
+          'ownerId': userId,
+          'name': _projectNameController.text,
           'description': _projectDescriptionController.text,
-          'createdAt': FieldValue.serverTimestamp(), // OBRIGATÓRIO
-          'members': _teamMembers.map((m) => m['email']).toList(),
+          'createdAt': FieldValue.serverTimestamp(),
+          'members': [userId], // só o criador inicialmente
           'color': _selectedProjectColor.value.toRadixString(16),
-          'status': 'ativo' // Adicione status se necessário
+          'status': 'ativo'
         });
 
-        // 2. Envia convites (mantenha essa parte)
-        await _enviarConvites(projetoRef.id);
+        // Envia convites para cada email adicionado
+        for (final email in _emailsConvidados) {
+          await FirebaseFirestore.instance.collection('invitations').add({
+            'projectId': projetoRef.id,
+            'fromUserId': userId,
+            'toUserEmail': email,
+            'status': 'pending',
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
 
-        Navigator.pop(context, true);
+        // Redireciona para a tela de projetos ou mostra sucesso
+        Navigator.of(context).pop(true);
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erro ao criar projeto: $e')),
@@ -442,7 +451,13 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
               },
               child: _bottomBarIcon(Icons.settings_outlined),
             ),
-            const SizedBox(width: 40),
+            // Ícone de convites
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/convites');
+              },
+              child: _bottomBarIcon(Icons.mail_outline), // Ícone de convite
+            ),
             InkWell(
               onTap: () {
                 _navigateToRoute('/planner');
@@ -898,52 +913,5 @@ class _CreateProjectScreenState extends State<CreateProjectScreen>
         },
       ),
     );
-  }
-
-  Future<void> enviarConvite(String projetoId, String emailConvidado) async {
-    try {
-      // 1. Verifica se o email foi fornecido
-      if (emailConvidado.isEmpty) {
-        return; // Sai sem erro se não tiver email para convidar
-      }
-
-      // 2. Busca usuário pelo email
-      final query = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: emailConvidado)
-          .limit(1)
-          .get();
-
-      if (query.docs.isEmpty) {
-        throw 'O usuário com email $emailConvidado não está cadastrado no sistema';
-      }
-
-      final convidadoId = query.docs.first.id;
-      final user = FirebaseAuth.instance.currentUser!;
-
-      // 3. Cria o convite
-      await FirebaseFirestore.instance.collection('convites').add({
-        'projetoId': projetoId,
-        'remetenteId': user.uid,
-        'convidadoId': convidadoId,
-        'convidadoEmail': emailConvidado,
-        'status': 'pendente',
-        'criadoEm': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('Erro no convite: $e');
-      rethrow; // Propaga o erro para ser tratado na UI
-    }
-  }
-
-  Future<void> _enviarConvites(String projetoId) async {
-    try {
-      for (final email in _emailsConvidados) {
-        await enviarConvite(projetoId, email);
-      }
-    } catch (e) {
-      print('Erro detalhado: ${e.toString()}');
-      rethrow;
-    }
   }
 }

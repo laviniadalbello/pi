@@ -502,7 +502,7 @@ class _HabitsScreenState extends State<HabitsScreen>
       bottomNavigationBar: _buildBottomBar(),
     );
   }
-  
+
   Widget _buildProjectCarouselWidget(List<Project> projects) {
     final screenHeight = MediaQuery.of(context).size.height;
     if (projects.isEmpty && _currentUserId != null) {
@@ -721,7 +721,6 @@ class _HabitsScreenState extends State<HabitsScreen>
     final fontSize = screenWidth * 0.035;
     final iconSize = screenWidth * 0.06;
     String formattedDate = "Carregando data...";
-    // A inicialização do locale já foi feita no initState
     try {
       formattedDate =
           DateFormat('EEEE, dd MMMM', 'pt_BR').format(DateTime.now());
@@ -744,48 +743,63 @@ class _HabitsScreenState extends State<HabitsScreen>
                 color: Colors.white70,
                 fontSize: fontSize,
                 fontWeight: FontWeight.w500)),
-        Stack(
-          alignment: Alignment.topRight,
+        Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            Stack(
+              alignment: Alignment.topRight,
+              children: [
+                IconButton(
+                  icon: Icon(Icons.notifications_none_outlined,
+                      color: Colors.white, size: iconSize),
+                  onPressed: () => setState(() {
+                    _isNotificationsVisible = !_isNotificationsVisible;
+                    if (_isNotificationsVisible)
+                      _notificationsController.forward();
+                    else
+                      _notificationsController.reverse();
+                  }),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                ),
+                if (_unreadNotificationsCount > 0)
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Container(
+                      padding:
+                          EdgeInsets.all(_unreadNotificationsCount > 9 ? 3 : 4),
+                      decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border:
+                              Border.all(color: kDarkPrimaryBg, width: 1.5)),
+                      constraints: BoxConstraints(
+                          minWidth: screenWidth * 0.04,
+                          minHeight: screenWidth * 0.04),
+                      child: Text(
+                        _unreadNotificationsCount > 9
+                            ? "9+"
+                            : _unreadNotificationsCount.toString(),
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: screenWidth * 0.022,
+                            fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
             IconButton(
-              icon: Icon(Icons.notifications_none_outlined,
-                  color: Colors.white, size: iconSize),
-              onPressed: () => setState(() {
-                _isNotificationsVisible = !_isNotificationsVisible;
-                if (_isNotificationsVisible)
-                  _notificationsController.forward();
-                else
-                  _notificationsController.reverse();
-              }),
+              icon:
+                  Icon(Icons.mail_outline, color: Colors.white, size: iconSize),
+              onPressed: () {
+                Navigator.of(context).pushNamed('/convites');
+              },
               padding: EdgeInsets.zero,
               constraints: BoxConstraints(),
             ),
-            if (_unreadNotificationsCount > 0)
-              Positioned(
-                right: 4,
-                top: 4,
-                child: Container(
-                  padding:
-                      EdgeInsets.all(_unreadNotificationsCount > 9 ? 3 : 4),
-                  decoration: BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: kDarkPrimaryBg, width: 1.5)),
-                  constraints: BoxConstraints(
-                      minWidth: screenWidth * 0.04,
-                      minHeight: screenWidth * 0.04),
-                  child: Text(
-                    _unreadNotificationsCount > 9
-                        ? "9+"
-                        : _unreadNotificationsCount.toString(),
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: screenWidth * 0.022,
-                        fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
           ],
         ),
       ],

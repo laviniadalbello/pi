@@ -26,6 +26,7 @@ import 'package:planify/repositories/invite_repository.dart'; // Adicione esta l
 import 'package:planify/services/invite_service.dart'; // Adicione esta linha
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:planify/src/pages/convites_page.dart'; // Adicione esta linha
 
 // Defina o navigatorKey globalmente
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -105,6 +106,7 @@ class MyApp extends StatelessWidget {
                   Provider.of<FirestoreService>(context, listen: false),
             ),
         '/perfilvazio': (context) => const PerfilvazioPage(),
+        '/convites': (context) => const ConvitesPage(), // Adicione esta linha
       },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
