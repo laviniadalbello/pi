@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -9,6 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:planify/services/firestore_service.dart';
 import 'package:planify/services/firestore_tasks_service.dart'; // Presumo que este é o seu serviço principal
 // import 'package:flutter/services.dart'; // Descomente se usado em algum lugar
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Modelos - Certifique-se que os caminhos estão corretos e as classes são 'Project' e 'Task'
 import 'package:planify/models/project_model.dart'; // Contém a classe Project
@@ -37,6 +40,8 @@ class _HabitsScreenState extends State<HabitsScreen>
     with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   // bool _isDrawerOpen = false; // Não parece estar sendo usado para controlar o estado diretamente
+  Uint8List? _profileImageBytes; // Para armazenar a foto do perfil
+  bool _isLoadingProfileImage = false;
   bool _isCardVisible = false;
   bool _isNotificationsVisible = false;
 
@@ -126,6 +131,13 @@ class _HabitsScreenState extends State<HabitsScreen>
     });
 
     _loadUserAndInitialData();
+
+    // Listener para atualizações do perfil
+    FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (user != null && mounted) {
+        _loadUserName(); // Recarrega os dados do usuário quando o auth state muda
+      }
+    });
   }
 
   Future<void> _loadUserAndInitialData() async {
@@ -151,10 +163,18 @@ class _HabitsScreenState extends State<HabitsScreen>
     if (user != null) {
       _currentUserId = user.uid;
       try {
+        // No carregamento
+        final prefs = await SharedPreferences.getInstance();
+        final cachedImage = prefs.getString('profileImage_$_currentUserId');
+        if (cachedImage != null) {
+          setState(() => _profileImageBytes = base64Decode(cachedImage));
+        }
+
         DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid)
             .get();
+
         if (mounted) {
           setState(() {
             if (userDoc.exists) {
@@ -162,6 +182,11 @@ class _HabitsScreenState extends State<HabitsScreen>
                   user.displayName ??
                   user.email ??
                   'Usuário';
+
+              // Carrega a imagem se existir
+              if (userDoc.get('profileImage') != null) {
+                _profileImageBytes = base64Decode(userDoc.get('profileImage'));
+              }
             } else {
               _userName =
                   user.displayName ?? user.email ?? 'Usuário (doc não existe)';
@@ -169,7 +194,7 @@ class _HabitsScreenState extends State<HabitsScreen>
           });
         }
       } catch (e) {
-        print("Erro ao buscar nome do usuário do Firestore: $e");
+        print("Erro ao buscar dados do usuário: $e");
         if (mounted) {
           setState(() {
             _userName =
@@ -244,6 +269,7 @@ class _HabitsScreenState extends State<HabitsScreen>
     _pageController.dispose();
     _fadeController.dispose(); // Dispose do fade controller
     // _mainScrollController.dispose(); // Se você voltar a usar CustomScrollView
+    _profileImageBytes = null; // Limpa a memória da imagem
     super.dispose();
   }
 
@@ -945,13 +971,20 @@ class _HabitsScreenState extends State<HabitsScreen>
               children: [
                 CircleAvatar(
                   radius: screenWidth * 0.07,
-                  backgroundColor: kAccentPurple,
-                  child: Text(
-                      _userName.isNotEmpty ? _userName[0].toUpperCase() : 'U',
-                      style: TextStyle(
-                          color: kDarkTextPrimary,
-                          fontSize: screenWidth * 0.06,
-                          fontWeight: FontWeight.bold)),
+                  backgroundColor: kAccentPurple.withOpacity(0.2),
+                  backgroundImage: _profileImageBytes != null
+                      ? MemoryImage(_profileImageBytes!)
+                      : null,
+                  child: _profileImageBytes == null
+                      ? Text(
+                          _userName.isNotEmpty
+                              ? _userName[0].toUpperCase()
+                              : 'U',
+                          style: TextStyle(
+                              color: kDarkTextPrimary,
+                              fontSize: screenWidth * 0.06,
+                              fontWeight: FontWeight.bold))
+                      : null,
                 ),
                 SizedBox(height: screenWidth * 0.02),
                 Text(_userName,
@@ -961,6 +994,16 @@ class _HabitsScreenState extends State<HabitsScreen>
                         fontWeight: FontWeight.bold),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
+                SizedBox(height: screenWidth * 0.01),
+                Text(
+                  FirebaseAuth.instance.currentUser?.email ?? '',
+                  style: TextStyle(
+                    color: kDarkTextSecondary,
+                    fontSize: screenWidth * 0.03,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),

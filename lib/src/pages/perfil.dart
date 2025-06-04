@@ -15,6 +15,7 @@ import 'package:image_picker_web/image_picker_web.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:image/image.dart' as img;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Seus modelos - Certifique-se que os caminhos estão corretos
 // e que as classes são 'Project' e 'Task'
@@ -79,14 +80,15 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _geminiService = GeminiService(apiKey: 'SUA_API_KEY_GEMINI_AQUI');
-    
+
     _circleController =
         AnimationController(duration: const Duration(seconds: 6), vsync: this)
           ..repeat();
     _slideController = AnimationController(
         duration: const Duration(milliseconds: 400), vsync: this);
     _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+        .animate(
+            CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
     // Carrega os dados e verifica se há foto salva
     _loadAllDataForProfile().then((_) {
@@ -141,7 +143,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           .collection('users')
           .doc(user.uid)
           .get();
-          
+
       if (mounted) {
         if (doc.exists) {
           final data = doc.data() as Map<String, dynamic>?;
@@ -149,16 +151,17 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           // Carrega dados básicos
           final nameFromDoc = data?['name'] ?? data?['nome'];
           setState(() {
-            _userName = nameFromDoc?.toString() ?? 
-                user.displayName ?? 
-                user.email ?? 
+            _userName = nameFromDoc?.toString() ??
+                user.displayName ??
+                user.email ??
                 'Usuário';
             _userHandle = '@${user.email?.split('@').first ?? 'usuario'}';
             _userBio = data?['bio']?.toString() ?? 'Bio não informada';
-            
+
             // Carrega a imagem se existir
             if (data?['profileImage'] != null) {
-              _profileImageBytes = base64Decode(data!['profileImage'] as String);
+              _profileImageBytes =
+                  base64Decode(data!['profileImage'] as String);
             } else {
               _profileImageBytes = null;
             }
@@ -169,13 +172,13 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
               .collection('users')
               .doc(user.uid)
               .set({
-                'name': user.displayName ?? 'Novo Usuário',
-                'email': user.email,
-                'profileComplete': false,
-                'createdAt': FieldValue.serverTimestamp(),
-                'bio': 'Hey there! I am using Planify',
-              });
-              
+            'name': user.displayName ?? 'Novo Usuário',
+            'email': user.email,
+            'profileComplete': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'bio': 'Hey there! I am using Planify',
+          });
+
           if (mounted) {
             await _loadUserProfileFromFirestore(user);
           }
@@ -622,9 +625,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     return CircleAvatar(
       radius: size / 2,
       backgroundColor: kAccentPurple.withOpacity(0.2),
-      backgroundImage: _profileImageBytes != null 
-          ? MemoryImage(_profileImageBytes!) 
-          : null,
+      backgroundImage:
+          _profileImageBytes != null ? MemoryImage(_profileImageBytes!) : null,
       child: _profileImageBytes == null
           ? const Icon(Icons.person, color: kDarkTextPrimary, size: 48)
           : null,
@@ -640,13 +642,18 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         // Converte para Base64 e salva no Firestore
         final base64Image = base64Encode(pickedBytes);
 
+        // Salva no cache local
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('profileImage_$_currentUserId', base64Image);
+
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_currentUserId)
             .update({
-              'profileImage': base64Image,
-              'lastUpdated': FieldValue.serverTimestamp(), // Este campo é importante
-            });
+          'profileImage': base64Image,
+          'lastUpdated':
+              FieldValue.serverTimestamp(), // Este campo é importante
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1042,7 +1049,7 @@ class ImagePickerService {
         maxHeight: 800,
         imageQuality: 85,
       );
-      
+
       if (pickedFile != null) {
         return await pickedFile.readAsBytes();
       }
