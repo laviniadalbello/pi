@@ -7,6 +7,14 @@ import 'configuracoes.dart'; // Certifique-se que este import é necessário
 import 'iconedaia.dart'; // Certifique-se que este import é necessário
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_web/image_picker_web.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:image/image.dart' as img;
+import 'dart:convert';
 
 // Seus modelos - Certifique-se que os caminhos estão corretos
 // e que as classes são 'Project' e 'Task'
@@ -56,6 +64,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   ];
   List<Map<String, dynamic>> _recentActivities = [];
 
+  Uint8List? _profileImageBytes;
+
   void _navigateToRoute(String routeName) {
     // Primeiro, fecha o drawer se estiver aberto
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
@@ -68,20 +78,23 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    // ATENÇÃO: Substitua pela sua chave de API real ou por um método seguro de obtê-la
     _geminiService = GeminiService(apiKey: 'SUA_API_KEY_GEMINI_AQUI');
-    // _firestoreService será inicializado em _loadAllDataForProfile após obter o UID
-
+    
     _circleController =
         AnimationController(duration: const Duration(seconds: 6), vsync: this)
           ..repeat();
     _slideController = AnimationController(
         duration: const Duration(milliseconds: 400), vsync: this);
     _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-        .animate(
-            CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+        .animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    _loadAllDataForProfile();
+    // Carrega os dados e verifica se há foto salva
+    _loadAllDataForProfile().then((_) {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && mounted) {
+        _loadUserProfileFromFirestore(user);
+      }
+    });
   }
 
   Future<void> _loadAllDataForProfile() async {
@@ -128,51 +141,53 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           .collection('users')
           .doc(user.uid)
           .get();
+          
       if (mounted) {
         if (doc.exists) {
-          final data = doc.data()
-              as Map<String, dynamic>?; // Pega os dados como um mapa seguro
+          final data = doc.data() as Map<String, dynamic>?;
 
-          // Tenta pegar 'name', se não existir, tenta 'nome'
+          // Carrega dados básicos
           final nameFromDoc = data?['name'] ?? data?['nome'];
-
           setState(() {
-            _userName = nameFromDoc?.toString() ??
-                user.displayName ??
-                user.email ??
+            _userName = nameFromDoc?.toString() ?? 
+                user.displayName ?? 
+                user.email ?? 
                 'Usuário';
             _userHandle = '@${user.email?.split('@').first ?? 'usuario'}';
-            // Acesso seguro ao campo 'bio'
-            _userBio = data?['bio']?.toString() ??
-                'Bio não informada'; // Mensagem padrão se bio não existir
+            _userBio = data?['bio']?.toString() ?? 'Bio não informada';
+            
+            // Carrega a imagem se existir
+            if (data?['profileImage'] != null) {
+              _profileImageBytes = base64Decode(data!['profileImage'] as String);
+            } else {
+              _profileImageBytes = null;
+            }
           });
         } else {
-          // Sua lógica para criar um novo usuário se o documento não existe...
-          // (Certifique-se que ao criar um usuário, você define um valor para 'bio' e 'name')
-          print(
-              'Documento de usuário não existe para UID: ${user.uid}, criando...');
+          // Cria novo usuário se não existir
           await FirebaseFirestore.instance
               .collection('users')
               .doc(user.uid)
               .set({
-            'name': user.displayName ??
-                'Novo Usuário', // Garanta que 'name' é o campo usado
-            'email': user.email,
-            'profileComplete': false,
-            'createdAt': FieldValue.serverTimestamp(),
-            'bio': 'Hey there! I am using Planify', // Bio padrão na criação
-          });
-          if (mounted)
-            await _loadUserProfileFromFirestore(user); // Recarrega após criar
+                'name': user.displayName ?? 'Novo Usuário',
+                'email': user.email,
+                'profileComplete': false,
+                'createdAt': FieldValue.serverTimestamp(),
+                'bio': 'Hey there! I am using Planify',
+              });
+              
+          if (mounted) {
+            await _loadUserProfileFromFirestore(user);
+          }
         }
       }
     } catch (e) {
-      print('Erro ao carregar dados do perfil do usuário: $e');
+      print('Erro ao carregar perfil: $e');
       if (mounted) {
         setState(() {
           _userName = 'Erro ao carregar';
           _userHandle = '@erro';
-          _userBio = 'Não foi possível carregar a bio.';
+          _userBio = 'Não foi possível carregar os dados.';
         });
       }
     }
@@ -531,26 +546,16 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildProfileSection() {
-    /* ... seu código, usando _userName, _userHandle, _userBio ... */ if (_userName ==
-        "Carregando...") {
-      return const Center(child: CircularProgressIndicator());
-    }
     return Column(
       children: [
         Stack(
           children: [
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: kDarkElementBg,
-              child: Icon(Icons.person, color: kAccentPurple, size: 50),
-            ),
+            _buildProfileImage(),
             Positioned(
               bottom: 0,
               right: 0,
               child: GestureDetector(
-                onTap: () {
-                  _showEditAvatarOptions();
-                },
+                onTap: _pickAndSaveImage,
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -610,6 +615,45 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         ),
       ],
     );
+  }
+
+  Widget _buildProfileImage() {
+    final double size = 100;
+    return CircleAvatar(
+      radius: size / 2,
+      backgroundColor: kAccentPurple.withOpacity(0.2),
+      backgroundImage: _profileImageBytes != null 
+          ? MemoryImage(_profileImageBytes!) 
+          : null,
+      child: _profileImageBytes == null
+          ? const Icon(Icons.person, color: kDarkTextPrimary, size: 48)
+          : null,
+    );
+  }
+
+  Future<void> _pickAndSaveImage() async {
+    try {
+      final pickedBytes = await ImagePickerService.pickImage();
+      if (pickedBytes != null && _currentUserId != null) {
+        setState(() => _profileImageBytes = pickedBytes);
+
+        // Converte para Base64 e salva no Firestore
+        final base64Image = base64Encode(pickedBytes);
+
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(_currentUserId)
+            .update({
+              'profileImage': base64Image,
+              'lastUpdated': FieldValue.serverTimestamp(), // Este campo é importante
+            });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao salvar imagem: $e')),
+      );
+      print('Erro ao salvar imagem: $e');
+    }
   }
 
   Widget _buildStatsSection() {
@@ -968,5 +1012,53 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _circleController.dispose();
+    _slideController.dispose();
+    // Remova as linhas abaixo se as classes não possuem dispose()
+    // _geminiService.dispose();
+    // _firestoreTasksService?.dispose();
+    super.dispose();
+  }
+}
+
+class ImagePickerService {
+  static Future<Uint8List?> pickImage() async {
+    if (kIsWeb) {
+      return _pickImageWeb();
+    } else {
+      return _pickImageMobile();
+    }
+  }
+
+  static Future<Uint8List?> _pickImageMobile() async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      
+      if (pickedFile != null) {
+        return await pickedFile.readAsBytes();
+      }
+    } catch (e) {
+      print('Erro ao selecionar imagem (mobile): $e');
+    }
+    return null;
+  }
+
+  static Future<Uint8List?> _pickImageWeb() async {
+    try {
+      final pickedFile = await ImagePickerWeb.getImageAsBytes();
+      return pickedFile;
+    } catch (e) {
+      print('Erro ao selecionar imagem (web): $e');
+    }
+    return null;
   }
 }

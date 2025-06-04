@@ -21,19 +21,24 @@ dependencies:
 
   mysql1: ^0.20.0
 
-  http: ^1.2.0 
+  http: 1.4.0 
 
   carousel_slider: ^4.2.1 
   percent_indicator: ^4.2.3 
-  intl: 0.20.2
+  intl: 0.19.0
   file_picker: ^8.0.0+1 
-  image_picker: ^1.1.0 
+  image_picker: ^1.0.4 
+  image_picker_web: ^3.0.0 
+  universal_html: ^2.0.8 
+  path_provider: ^2.1.1 
+  path: ^1.8.3
   flutter_svg: ^2.1.0 
-  
+  image: ^4.1.7
 
   cupertino_icons: ^1.0.8
   google_generative_ai: ^0.4.7
   flutter_dotenv: ^5.2.1
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -60,4 +65,3 @@ flutter:
       fonts:
         - asset: assets/fonts/Roboto_Condensed-Light.ttf
           weight: 300
-    
