@@ -263,7 +263,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 Text(
-                  "Login with social accounts",
+                  "TUDO EM UM PLANO.",
                   style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 Expanded(
@@ -272,20 +272,6 @@ class _LoginPageState extends State<LoginPage> {
                     thickness: 1,
                     indent: 10,
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.g_translate, color: Colors.white),
-                  onPressed: () {},
-                ),
-                IconButton(
-                  icon: const Icon(Icons.facebook, color: Colors.white),
-                  onPressed: () {},
                 ),
               ],
             ),
