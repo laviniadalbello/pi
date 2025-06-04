@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
 import 'package:planify/services/firestore_tasks_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -296,7 +298,7 @@ class _CreateEventPageState extends State<CreateEventPage>
     }
   }
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       DateTime? startDate;
       TimeOfDay? tempStartTime =
@@ -408,6 +410,7 @@ class _CreateEventPageState extends State<CreateEventPage>
 
       String action = widget.eventToEdit != null ? "atualizado" : "criado";
       print("Evento $action: ${eventData.name}");
+      await _saveEventToFirestore(eventData);
       Navigator.pop(context, eventData); // Retorna o evento
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -759,6 +762,28 @@ class _CreateEventPageState extends State<CreateEventPage>
         },
       ),
     );
+  }
+
+  Future<void> _saveEventToFirestore(Event event) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final eventData = {
+      'title': event.name,
+      'description': event.description ?? '',
+      'startTime': Timestamp.fromDate(event.startDate),
+      'endTime':
+          event.endDate != null ? Timestamp.fromDate(event.endDate!) : null,
+      'location': event.location ?? '',
+      'status': event.status.toString(),
+      'userId': user.uid,
+      // Adicione outros campos se necessário
+    };
+
+    await FirebaseFirestore.instance
+        .collection('events')
+        .doc(event.id)
+        .set(eventData, SetOptions(merge: true));
   }
 
   @override

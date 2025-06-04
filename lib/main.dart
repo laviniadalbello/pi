@@ -27,6 +27,7 @@ import 'package:planify/services/invite_service.dart'; // Adicione esta linha
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:planify/src/pages/convites_page.dart'; // Adicione esta linha
+import 'package:planify/src/pages/calendario.dart';
 
 // Defina o navigatorKey globalmente
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -107,6 +108,7 @@ class MyApp extends StatelessWidget {
             ),
         '/perfilvazio': (context) => const PerfilvazioPage(),
         '/convites': (context) => const ConvitesPage(), // Adicione esta linha
+        '/calendario': (context) => const CalendarioPage(),
       },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

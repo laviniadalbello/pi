@@ -39,6 +39,7 @@ dependencies:
   google_generative_ai: ^0.4.7
   flutter_dotenv: ^5.2.1
   shared_preferences: ^2.2.2
+  table_calendar: ^3.0.9
 
 dev_dependencies:
   flutter_test:
