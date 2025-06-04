@@ -28,6 +28,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:planify/src/pages/convites_page.dart'; // Adicione esta linha
 import 'package:planify/src/pages/calendario.dart';
+import 'package:planify/services/firestore_planner_service.dart'; // Importa o serviço concreto
 
 // Defina o navigatorKey globalmente
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -57,7 +58,9 @@ void main() async {
       providers: [
         Provider.value(value: notificationService),
         Provider<GeminiService>(create: (_) => geminiService),
-        Provider<FirestoreService>(create: (_) => FirestoreService()),
+        // REMOVIDO: Provider<FirestoreService>(create: (_) => FirestoreService()),
+        // FirestorePlannerService será instanciado dentro de PlannerDiarioPage
+        // e passado para CloseableAiCard.
         Provider<InviteRepository>(create: (_) => InviteRepository()),
         Provider<InviteService>(
           create: (context) => InviteService(
@@ -101,11 +104,21 @@ class MyApp extends StatelessWidget {
             Detalhesdoprojeto(geminiService: geminiService),
         '/habitos': (context) =>
             habits.HabitsScreen(geminiService: geminiService),
-        '/iconia': (context) => iconedaia.CloseableAiCard(
-              geminiService: geminiService,
-              firestoreService:
-                  Provider.of<FirestoreService>(context, listen: false),
-            ),
+        '/iconia': (context) {
+          // Para o /iconia, precisamos de uma instância de FirestoreService.
+          // Como não estamos usando um Provider global para isso,
+          // teremos que criar uma instância aqui, ou garantir que o FirestorePlannerService
+          // seja passado de alguma forma.
+          // Para este caso específico, vamos criar uma instância simples de FirestorePlannerService
+          // com um userId de fallback, já que é uma rota direta.
+          final userId = FirebaseAuth.instance.currentUser?.uid ?? 'guest_user';
+          final firestoreService = FirestorePlannerService(userId: userId);
+
+          return iconedaia.CloseableAiCard(
+            geminiService: geminiService,
+            firestoreService: firestoreService,
+          );
+        },
         '/perfilvazio': (context) => const PerfilvazioPage(),
         '/convites': (context) => const ConvitesPage(), // Adicione esta linha
         '/calendario': (context) => const CalendarioPage(),

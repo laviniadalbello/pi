@@ -1,4 +1,3 @@
-// lib/models/task.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
@@ -13,20 +12,24 @@ class Task {
   final String userId; // Adicionado para identificar o usuário
 
   // Novos campos adicionados (ou já existentes que não estavam no toFirestore)
-  final bool isCompleted; // <--- ADICIONAR ESTE CAMPO
-  final String? projectId; // <--- ADICIONAR ESTE CAMPO (se usado)
-  final DateTime? reminderTime; // <--- ADICIONAR ESTE CAMPO
-  final String? estimatedTime; // <--- ADICIONAR ESTE CAMPO
-  final String? timeSpent; // <--- ADICIONAR ESTE CAMPO
-  final int?
-      progressPercentage;
+  final bool isCompleted;
+  final String? projectId;
+  final DateTime? reminderTime;
+  final String? estimatedTime;
+  final String? timeSpent;
+  final int? progressPercentage;
+  final String? time; // <--- ADICIONADO: Campo para a hora específica da tarefa
 
-    String get displayTime {
+  String get displayTime {
     if (estimatedTime != null && estimatedTime!.isNotEmpty) {
       return 'Est: $estimatedTime';
     }
     if (timeSpent != null && timeSpent!.isNotEmpty) {
       return 'Gasto: $timeSpent';
+    }
+    // Se a tarefa tiver um horário específico
+    if (time != null && time!.isNotEmpty) {
+      return 'Hora: $time';
     }
     // Se você quiser exibir a data de vencimento formatada
     if (dueDate != null) {
@@ -46,16 +49,16 @@ class Task {
     this.description,
     this.dueDate,
     this.priority,
-    this.status = 'pending',
+    required this.status,
     required this.createdAt,
     required this.userId,
-    this.isCompleted = false, // <--- ADICIONAR COM VALOR DEFAULT
-    this.projectId, // <--- ADICIONAR
-    this.reminderTime, // <--- ADICIONAR
-    this.estimatedTime, // <--- ADICIONAR
-    this.timeSpent, // <--- ADICIONAR
-    this.progressPercentage, // <--- ADICIONAR
-
+    this.isCompleted = false,
+    this.projectId,
+    this.reminderTime,
+    this.estimatedTime,
+    this.timeSpent,
+    this.progressPercentage,
+    this.time, // <--- ADICIONADO ao construtor
   });
 
   // Construtor para criar uma Task a partir de um DocumentSnapshot do Firestore
@@ -70,14 +73,13 @@ class Task {
       status: data['status'] ?? 'pending',
       createdAt: (data['createdAt'] as Timestamp).toDate(),
       userId: data['userId'] ?? '',
-      isCompleted: data['isCompleted'] ?? false, // <--- LER ESTE CAMPO
-      projectId: data['projectId'], // <--- LER ESTE CAMPO
-      reminderTime:
-          (data['reminderTime'] as Timestamp?)?.toDate(), // <--- LER ESTE CAMPO
-      estimatedTime: data['estimatedTime'], // <--- LER ESTE CAMPO
-      timeSpent: data['timeSpent'], // <--- LER ESTE CAMPO
-      progressPercentage: (data['progressPercentage'] as num?)
-          ?.toInt(), // <--- LER ESTE CAMPO (cast para int)
+      isCompleted: data['isCompleted'] ?? false,
+      projectId: data['projectId'],
+      reminderTime: (data['reminderTime'] as Timestamp?)?.toDate(),
+      estimatedTime: data['estimatedTime'],
+      timeSpent: data['timeSpent'],
+      progressPercentage: (data['progressPercentage'] as num?)?.toInt(),
+      time: data['time'], // <--- LER ESTE CAMPO
     );
   }
 
@@ -91,14 +93,13 @@ class Task {
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
       'userId': userId,
-      'isCompleted': isCompleted, // <--- ENVIAR ESTE CAMPO
-      'projectId': projectId, // <--- ENVIAR ESTE CAMPO
-      'reminderTime': reminderTime != null
-          ? Timestamp.fromDate(reminderTime!)
-          : null, // <--- ENVIAR ESTE CAMPO
-      'estimatedTime': estimatedTime, // <--- ENVIAR ESTE CAMPO
-      'timeSpent': timeSpent, // <--- ENVIAR ESTE CAMPO
-      'progressPercentage': progressPercentage, // <--- ENVIAR ESTE CAMPO
+      'isCompleted': isCompleted,
+      'projectId': projectId,
+      'reminderTime': reminderTime != null ? Timestamp.fromDate(reminderTime!) : null,
+      'estimatedTime': estimatedTime,
+      'timeSpent': timeSpent,
+      'progressPercentage': progressPercentage,
+      'time': time, // <--- ENVIAR ESTE CAMPO
     };
   }
 }

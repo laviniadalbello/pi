@@ -75,7 +75,7 @@ class _AddTaskPageState extends State<AddTaskPage>
     _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
         .animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    _geminiService = GeminiService(apiKey: 'SUA_API_KEY_GEMINI_AQUI'); // ATENÇÃO: Use sua chave real
+    _geminiService = GeminiService(apiKey: 'AIzaSyBFS5lVuEZzNklLyta4ioepOs2DDw2xPGA'); // ATENÇÃO: Use sua chave real
 
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {

@@ -7,11 +7,13 @@ import 'iconedaia.dart'; // Presumo que este arquivo exista e seja necessário
 import 'package:planify/services/gemini_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:planify/src/pages/iconedaia.dart';
 // Removi a importação duplicada de firestore_tasks_service se FirestoreService for o principal
 import 'package:planify/services/firestore_service.dart';
 import 'package:planify/services/firestore_tasks_service.dart'; // Presumo que este é o seu serviço principal
 // import 'package:flutter/services.dart'; // Descomente se usado em algum lugar
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 
 // Modelos - Certifique-se que os caminhos estão corretos e as classes são 'Project' e 'Task'
 import 'package:planify/models/project_model.dart'; // Contém a classe Project
@@ -41,9 +43,10 @@ class _HabitsScreenState extends State<HabitsScreen>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   // bool _isDrawerOpen = false; // Não parece estar sendo usado para controlar o estado diretamente
   Uint8List? _profileImageBytes; // Para armazenar a foto do perfil
-  bool _isLoadingProfileImage = false;
+  bool _isLoadingProfileImage = false; // Estado para carregamento da imagem
   bool _isCardVisible = false;
   bool _isNotificationsVisible = false;
+  bool _isHovered = false; // Adicionado para a animação de hover do TaskCard
 
   String? _currentUserId; // UID do usuário logado
 
@@ -76,17 +79,11 @@ class _HabitsScreenState extends State<HabitsScreen>
   late Animation<Offset> _slideAnimation;
   late AnimationController _notificationsController;
   late Animation<Offset> _notificationsAnimation;
-  late AnimationController _circleController;
+  late AnimationController _circleController; // Controlador para os círculos animados
   late PageController _pageController;
-  late AnimationController
-      _fadeController; // Adicionado para consistência com o build
-  late Animation<double>
-      _fadeAnimation; // Adicionado para consistência com o build
+  late AnimationController _fadeController; // Adicionado para consistência com o build
+  late Animation<double> _fadeAnimation; // Adicionado para consistência com o build
 
-  // late FirestoreService _firestoreService; // Você instancia FirestoreService globalmente?
-  // Se não for usado nesta tela, pode ser removido.
-  // A instância de FirestoreTasksService também sumiu.
-  // Se CloseableAiCard precisa de um serviço, ele precisa ser fornecido.
   FirestoreTasksService? _userFirestoreTasksService; // Para o CloseableAiCard
 
   String _userName = "Carregando...";
@@ -96,8 +93,6 @@ class _HabitsScreenState extends State<HabitsScreen>
   @override
   void initState() {
     super.initState();
-    // _firestoreService = FirestoreService(); // Se for um serviço global, ok.
-    // Senão, pode não ser necessário aqui.
 
     _pageController =
         PageController(viewportFraction: 0.8); // Ajustado de 0.75 ou 0.85
@@ -124,7 +119,7 @@ class _HabitsScreenState extends State<HabitsScreen>
 
     _circleController =
         AnimationController(vsync: this, duration: const Duration(seconds: 10))
-          ..repeat();
+          ..repeat(); // Repete a animação dos círculos
 
     initializeDateFormatting('pt_BR', null).then((_) {
       if (mounted) setState(() {});
@@ -268,7 +263,6 @@ class _HabitsScreenState extends State<HabitsScreen>
     _circleController.dispose();
     _pageController.dispose();
     _fadeController.dispose(); // Dispose do fade controller
-    // _mainScrollController.dispose(); // Se você voltar a usar CustomScrollView
     _profileImageBytes = null; // Limpa a memória da imagem
     super.dispose();
   }
@@ -279,11 +273,6 @@ class _HabitsScreenState extends State<HabitsScreen>
     }
     Navigator.of(context).pushNamed(routeName);
   }
-
-  // Seus métodos _build... como _buildTopBar, _buildTitle, etc.
-  // O método _buildProjectCarousel foi renomeado para _buildProjectCarouselWidget
-  // e _buildTasksList espera uma lista.
-  // Os cards (_buildProjectCard, _buildTaskCard) usam os objetos Project e Task.
 
   // Adicionei um _buildSectionTitle como no seu código
   Widget _buildSectionTitle(String title) {
@@ -312,16 +301,42 @@ class _HabitsScreenState extends State<HabitsScreen>
       key: _scaffoldKey,
       backgroundColor: kDarkPrimaryBg,
       drawer: _buildDrawer(),
-      // O body mudou de CustomScrollView para Stack > SafeArea > SingleChildScrollView
+      floatingActionButton: _buildFloatingActionButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: _buildBottomBar(),
       body: Stack(
         children: [
+          // Círculos animados de fundo
+          _animatedCircleResponsive(context, 0.05, 0.01, 0.015, [
+            Colors.lightBlueAccent,
+            const Color.fromARGB(255, 243, 33, 208),
+          ], 0),
+          _animatedCircleResponsive(context, 0.85, 0.02, 0.01, [
+            const Color.fromARGB(164, 180, 34, 238),
+            Colors.deepPurpleAccent,
+          ], 1),
+          _animatedCircleResponsive(context, 0.45, 0.045, 0.012, [
+            Colors.amberAccent,
+            Colors.orange,
+          ], 2),
+          _animatedCircleResponsive(context, 0.1, 0.08, 0.012, [
+            Colors.pinkAccent,
+            const Color.fromARGB(255, 149, 226, 4),
+          ], 3),
+          _animatedCircleResponsive(context, 0.9, 0.09, 0.02, [
+            const Color.fromARGB(173, 36, 17, 204),
+            const Color.fromARGB(255, 218, 20, 20),
+          ], 4),
+          _animatedCircleResponsive(context, 0.25, 0.03, 0.015, [
+            const Color.fromARGB(255, 222, 87, 240),
+            const Color.fromARGB(255, 27, 112, 1),
+          ], 5),
+
           SafeArea(
             child: FadeTransition(
               // Adicionado FadeTransition aqui para o conteúdo principal
               opacity: _fadeAnimation,
               child: SingleChildScrollView(
-                // Permite scroll se o conteúdo exceder a tela
-                // controller: _mainScrollController, // _mainScrollController não é usado com SingleChildScrollView
                 padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -330,13 +345,9 @@ class _HabitsScreenState extends State<HabitsScreen>
                     _buildTopBar(),
                     SizedBox(height: screenHeight * 0.02),
                     _buildTitle(context),
-                    // const SizedBox(height: 20), // Usar proporção da tela
                     SizedBox(height: screenHeight * 0.025),
                     _buildSectionTitle('PROJETOS'), // Usando seu método
-                    // const SizedBox(height: 10),
                     SizedBox(height: screenHeight * 0.015),
-                    // Se _projects estiver vazio, PageView.builder com itemCount 0 não mostra nada.
-                    // Você pode adicionar um widget de "nenhum projeto" aqui se preferir.
                     _projects.isEmpty
                         ? Center(
                             child: Padding(
@@ -345,9 +356,9 @@ class _HabitsScreenState extends State<HabitsScreen>
                                 child: (_currentUserId == null ||
                                         _userName ==
                                             "Carregando...") // Checa se ainda está carregando usuário
-                                    ? CircularProgressIndicator(
+                                    ? const CircularProgressIndicator(
                                         color: kAccentPurple)
-                                    : Text("Nenhum projeto encontrado.",
+                                    : const Text("Nenhum projeto encontrado.",
                                         style: TextStyle(
                                             color: kDarkTextSecondary))))
                         : _buildProjectCarouselWidget(_projects),
@@ -355,8 +366,6 @@ class _HabitsScreenState extends State<HabitsScreen>
                     SizedBox(height: screenHeight * 0.025),
                     _buildInProgressHeader(context),
                     SizedBox(height: screenHeight * 0.015),
-                    // Se _tasks estiver vazio, ListView.builder com itemCount 0 não mostra nada.
-                    // Você pode adicionar um widget de "nenhuma tarefa" aqui.
                     _tasks.isEmpty
                         ? Center(
                             child: Padding(
@@ -365,11 +374,10 @@ class _HabitsScreenState extends State<HabitsScreen>
                                 child: (_currentUserId == null ||
                                         _userName == "Carregando...")
                                     ? Container() // Não mostra nada se projetos já tem indicador
-                                    : Text("Nenhuma tarefa em progresso.",
+                                    : const Text("Nenhuma tarefa em progresso.",
                                         style: TextStyle(
                                             color: kDarkTextSecondary))))
-                        : _buildTasksListWidget(
-                            _tasks), // Renomeado para clareza
+                        : _buildTasksListWidget(_tasks),
 
                     SizedBox(
                         height:
@@ -380,12 +388,10 @@ class _HabitsScreenState extends State<HabitsScreen>
             ),
           ),
           // AI Card - Garanta que _userFirestoreTasksService é passado e não nulo
-          if (_userFirestoreTasksService != null &&
-              _currentUserId != null) // Adicionado _isCardVisible
+          if (_userFirestoreTasksService != null && _currentUserId != null)
             Positioned(
-              bottom: -26,
-              right:
-                  -60, // Ajuste conforme seu layout original para CloseableAiCard
+              bottom: -26, // Posição consistente
+              right: -60, // Ajuste a posição conforme o layout desejado
               child: CloseableAiCard(
                 firestoreService: _userFirestoreTasksService!,
                 geminiService: widget.geminiService,
@@ -463,8 +469,8 @@ class _HabitsScreenState extends State<HabitsScreen>
                           child: _notifications.isEmpty
                               ? Center(
                                   child: Text("Nenhuma notificação",
-                                      style:
-                                          TextStyle(color: kDarkTextSecondary)))
+                                      style: TextStyle(
+                                          color: kDarkTextSecondary)))
                               : ListView.builder(
                                   itemCount: _notifications.length,
                                   padding: EdgeInsets.zero,
@@ -502,14 +508,75 @@ class _HabitsScreenState extends State<HabitsScreen>
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             border: Border.all(
-                                                color:
-                                                    notification['read'] == true
-                                                        ? kDarkBorder
-                                                            .withOpacity(0.3)
-                                                        : kAccentPurple
-                                                            .withOpacity(0.4))),
+                                                color: notification['read'] == true
+                                                    ? kDarkBorder
+                                                        .withOpacity(0.3)
+                                                    : kAccentPurple
+                                                        .withOpacity(0.4))),
                                         child: Column(
-                                            /* Conteúdo da Notificação */),
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  notification['title'],
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize:
+                                                        screenWidth * 0.04,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  notification['time'],
+                                                  style: TextStyle(
+                                                    color: Colors.white60,
+                                                    fontSize:
+                                                        screenWidth * 0.03,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              height: screenHeight * 0.01,
+                                            ),
+                                            Text(
+                                              notification['message'],
+                                              style: TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: screenWidth * 0.035,
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: screenHeight * 0.01,
+                                            ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
+                                              children: [
+                                                TextButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _notifications[index]['read'] =
+                                                          true;
+                                                    });
+                                                  },
+                                                  child: Text(
+                                                    'Marcar como lida',
+                                                    style: TextStyle(
+                                                      color: Colors.blueAccent,
+                                                      fontSize:
+                                                          screenWidth * 0.03,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                   },
@@ -523,16 +590,151 @@ class _HabitsScreenState extends State<HabitsScreen>
             ),
         ],
       ),
-      floatingActionButton: _buildFloatingActionButton(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomBar(),
+    );
+  }
+
+  // --- Métodos de construção de Widgets ---
+
+  Widget _buildTopBar() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontSize = screenWidth * 0.035;
+    // final iconSize = screenWidth * 0.06; // Não precisa mais do sino
+    String formattedDate = "Carregando data...";
+    try {
+      formattedDate =
+          DateFormat('EEEE, dd MMMM', 'pt_BR').format(DateTime.now());
+    } catch (e) {
+      formattedDate =
+          DateFormat('EEEE, dd MMMM').format(DateTime.now()); // Fallback
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          icon: Icon(Icons.menu_rounded,
+              color: Colors.white, size: screenWidth * 0.06),
+          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        Text(formattedDate,
+            style: TextStyle(
+                color: Colors.white70,
+                fontSize: fontSize,
+                fontWeight: FontWeight.w500)),
+        // Removido o sino de notificação
+        IconButton(
+          icon: Icon(Icons.mail_outline,
+              color: Colors.white, size: screenWidth * 0.06),
+          onPressed: () {
+            Navigator.of(context).pushNamed('/convites');
+          },
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTitle(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final titleFontSize = screenWidth * 0.065;
+
+    return SizedBox(
+      height: screenHeight * 0.13,
+      child: Stack(
+        children: [
+          Positioned(
+            top: screenHeight * 0.04,
+            left: 0,
+            right: 0,
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: "Vamos construir bons\n",
+                    style: TextStyle(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  TextSpan(
+                    text: "habitos juntos🙌",
+                    style: TextStyle(
+                      fontSize: titleFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              textAlign: TextAlign.start,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Método para os círculos animados de fundo
+  Widget _animatedCircleResponsive(
+    BuildContext context,
+    double xFactor,
+    double yFactor,
+    double sizeFactor,
+    List<Color> colors,
+    int index,
+  ) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final x = screenWidth * xFactor;
+    final y = screenHeight * yFactor;
+    final size = screenWidth * sizeFactor;
+
+    return AnimatedBuilder(
+      animation: _circleController,
+      builder: (context, child) {
+        final t = (_circleController.value + (index * 0.1)) % 1.0;
+        final offset = 2 * sin(t * 2 * pi);
+
+        final colorTween = ColorTween(begin: colors[0], end: colors[1]);
+        final animatedColor = colorTween.transform(t) ?? colors[0];
+
+        final pulse = 0.5 + 0.5 * sin(t * 2 * pi);
+        final scale = 1.0 + 0.05 * pulse;
+        final opacity = 0.8 + 0.2 * pulse;
+
+        return Positioned(
+          top: y + offset,
+          left: x,
+          child: Opacity(
+            opacity: opacity.clamp(0.0, 1.0),
+            child: Transform.scale(
+              scale: scale,
+              child: _decorativeCircle(size, animatedColor),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Método para o círculo decorativo (usado por _animatedCircleResponsive)
+  Widget _decorativeCircle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 
   Widget _buildProjectCarouselWidget(List<Project> projects) {
     final screenHeight = MediaQuery.of(context).size.height;
     if (projects.isEmpty && _currentUserId != null) {
-      // Adicionado _currentUserId != null para não mostrar antes do load inicial
       return Center(
           child: Text('Nenhum projeto para exibir.',
               style: TextStyle(color: kDarkTextSecondary)));
@@ -604,8 +806,7 @@ class _HabitsScreenState extends State<HabitsScreen>
               child: Text(
                 project.description,
                 style: TextStyle(
-                    color: kDarkTextSecondary,
-                    fontSize: screenWidth * 0.035), // Era 0.032 no seu
+                    color: kDarkTextSecondary, fontSize: screenWidth * 0.035), // Era 0.032 no seu
                 maxLines: 2, // Adicionado
                 overflow: TextOverflow.ellipsis, // Adicionado
               ),
@@ -622,6 +823,20 @@ class _HabitsScreenState extends State<HabitsScreen>
           else
             const SizedBox(height: 5), // Placeholder para manter alinhamento
         ],
+      ),
+    );
+  }
+
+  Widget _buildInProgressHeader(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final fontSize = screenWidth * 0.055;
+
+    return Text(
+      'Em Progresso',
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: fontSize,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
@@ -678,531 +893,457 @@ class _HabitsScreenState extends State<HabitsScreen>
     required double progress,
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
-    return Container(
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: kDarkSurface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: kDarkBorder.withOpacity(0.7)), // Era kDarkBorder no seu
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                // Adicionado
-                child: Text(
-                  title,
-                  style: TextStyle(
-                      color: kDarkTextPrimary,
-                      fontSize: screenWidth * 0.04,
-                      fontWeight: FontWeight.bold),
-                  maxLines: 1, // Adicionado
-                  overflow: TextOverflow.ellipsis, // Adicionado
+    return MouseRegion( // Re-adicionado para o efeito de hover
+      onEnter: (_) {
+        setState(() {
+          _isHovered = true;
+        });
+      },
+      onExit: (_) {
+        setState(() {
+          _isHovered = false;
+        });
+      },
+      child: AnimatedContainer( // Re-adicionado para a animação de hover
+        duration: const Duration(milliseconds: 300),
+        padding: EdgeInsets.all(screenWidth * 0.04),
+        decoration: BoxDecoration(
+          color: kDarkSurface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+              color: kDarkBorder.withOpacity(0.7)), // Era kDarkBorder no seu
+          boxShadow: _isHovered // Efeito de sombra ao passar o mouse
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  // Adicionado
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                        color: kDarkTextPrimary,
+                        fontSize: screenWidth * 0.04,
+                        fontWeight: FontWeight.bold),
+                    maxLines: 1, // Adicionado
+                    overflow: TextOverflow.ellipsis, // Adicionado
+                  ),
                 ),
+                Icon(Icons.more_vert,
+                    color: kDarkTextSecondary, size: screenWidth * 0.05),
+              ],
+            ),
+            SizedBox(height: screenWidth * 0.01),
+            if (subtitle.isNotEmpty) // Checa se subtítulo não é vazio
+              Text(
+                subtitle,
+                style: TextStyle(
+                    color: kDarkTextSecondary, fontSize: screenWidth * 0.035),
+                maxLines: 2, // Adicionado
+                overflow: TextOverflow.ellipsis, // Adicionado
               ),
-              Icon(Icons.more_vert,
-                  color: kDarkTextSecondary, size: screenWidth * 0.05),
-            ],
-          ),
-          SizedBox(height: screenWidth * 0.01),
-          if (subtitle.isNotEmpty) // Checa se subtítulo não é vazio
-            Text(
-              subtitle,
-              style: TextStyle(
-                  color: kDarkTextSecondary, fontSize: screenWidth * 0.035),
-              maxLines: 2, // Adicionado
-              overflow: TextOverflow.ellipsis, // Adicionado
+            SizedBox(height: screenWidth * 0.02),
+            if (progress >= 0 &&
+                progress <= 1) // Só mostra se progresso for válido
+              LinearProgressIndicator(
+                value: progress,
+                backgroundColor: kDarkBorder,
+                color: kAccentSecondary, // Cor do progresso da tarefa
+                minHeight: 5,
+                borderRadius: BorderRadius.circular(5),
+              )
+            else
+              const SizedBox(height: 5), // Placeholder
+            SizedBox(height: screenWidth * 0.01),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Text(time,
+                  style: TextStyle(
+                      color: kDarkTextSecondary, fontSize: screenWidth * 0.03)),
             ),
-          SizedBox(height: screenWidth * 0.02),
-          if (progress >= 0 &&
-              progress <= 1) // Só mostra se progresso for válido
-            LinearProgressIndicator(
-              value: progress,
-              backgroundColor: kDarkBorder,
-              color: kAccentSecondary, // Cor do progresso da tarefa
-              minHeight: 5,
-              borderRadius: BorderRadius.circular(5),
-            )
-          else
-            const SizedBox(height: 5), // Placeholder
-          SizedBox(height: screenWidth * 0.01),
-          Align(
-            alignment: Alignment.bottomRight,
-            child: Text(time,
-                style: TextStyle(
-                    color: kDarkTextSecondary, fontSize: screenWidth * 0.03)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Seus outros métodos _buildTopBar, _buildTitle, etc., como você forneceu
-  Widget _buildTopBar() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final fontSize = screenWidth * 0.035;
-    // final iconSize = screenWidth * 0.06; // Não precisa mais do sino
-    String formattedDate = "Carregando data...";
-    try {
-      formattedDate =
-          DateFormat('EEEE, dd MMMM', 'pt_BR').format(DateTime.now());
-    } catch (e) {
-      formattedDate =
-          DateFormat('EEEE, dd MMMM').format(DateTime.now()); // Fallback
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          icon: Icon(Icons.menu_rounded,
-              color: Colors.white, size: screenWidth * 0.06),
-          onPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          padding: EdgeInsets.zero,
-          constraints: BoxConstraints(),
+          ],
         ),
-        Text(formattedDate,
-            style: TextStyle(
-                color: Colors.white70,
-                fontSize: fontSize,
-                fontWeight: FontWeight.w500)),
-        // Removido o sino de notificação
-        IconButton(
-          icon: Icon(Icons.mail_outline,
-              color: Colors.white, size: screenWidth * 0.06),
-          onPressed: () {
-            Navigator.of(context).pushNamed('/convites');
-          },
-          padding: EdgeInsets.zero,
-          constraints: BoxConstraints(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTitle(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final titleFontSize = screenWidth * 0.065;
-
-    return SizedBox(
-      height: screenHeight * 0.13,
-      child: Stack(
-        children: [
-          Positioned(
-            top: screenHeight * 0.015,
-            left: 0,
-            right: 0,
-            child: Text.rich(
-              TextSpan(children: [
-                TextSpan(
-                    text: "Vamos construir bons\n",
-                    style: TextStyle(
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        height: 1.25)),
-                TextSpan(
-                    text: "hábitos juntos 🙌",
-                    style: TextStyle(
-                        fontSize: titleFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        height: 1.25)),
-              ]),
-              textAlign: TextAlign.start,
-            ),
-          ),
-          // Círculos animados (conforme seu código)
-          _animatedCircleResponsive(
-              context,
-              0.85,
-              0.01,
-              0.015,
-              [
-                kAccentPurple.withOpacity(0.3),
-                kAccentSecondary.withOpacity(0.3)
-              ],
-              0),
-          _animatedCircleResponsive(
-              context,
-              0.05,
-              0.02,
-              0.01,
-              [
-                kAccentSecondary.withOpacity(0.3),
-                kAccentPurple.withOpacity(0.3)
-              ],
-              1),
-          _animatedCircleResponsive(
-              context,
-              0.45,
-              0.045,
-              0.012,
-              [
-                Colors.amberAccent,
-                Colors.orange,
-              ],
-              2),
-          _animatedCircleResponsive(
-              context,
-              0.1,
-              0.08,
-              0.012,
-              [
-                Colors.pinkAccent,
-                const Color.fromARGB(255, 149, 226, 4),
-              ],
-              3),
-          _animatedCircleResponsive(
-              context,
-              0.9,
-              0.09,
-              0.02,
-              [
-                const Color.fromARGB(173, 36, 17, 204),
-                const Color.fromARGB(255, 218, 20, 20),
-              ],
-              4),
-          _animatedCircleResponsive(
-              context,
-              0.25,
-              0.03,
-              0.015,
-              [
-                const Color.fromARGB(255, 222, 87, 240),
-                const Color.fromARGB(255, 27, 112, 1),
-              ],
-              5),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInProgressHeader(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('Em progresso',
-              style: TextStyle(
-                  color: kDarkTextPrimary,
-                  fontSize: screenWidth * 0.05,
-                  fontWeight: FontWeight.bold)),
-          GestureDetector(
-            onTap: () => _navigateToRoute('/tasks'),
-            child: Text('Ver todos',
-                style: TextStyle(
-                    color: kAccentPurple,
-                    fontSize: screenWidth * 0.035,
-                    fontWeight: FontWeight.w500)),
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildDrawer() {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final avatarSize = screenWidth * 0.12;
+    final titleFontSize = screenWidth * 0.045;
+    final menuFontSize = screenWidth * 0.04;
+    final iconSize = screenWidth * 0.055;
+
     return Drawer(
-      backgroundColor: kDarkPrimaryBg,
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          DrawerHeader(
-            decoration: const BoxDecoration(color: kDarkSurface),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
+      backgroundColor: Colors.black.withOpacity(0.9),
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: screenHeight * 0.08,
+          left: screenWidth * 0.04,
+          right: screenWidth * 0.04,
+          bottom: screenHeight * 0.03,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // User info section
+            Row(
               children: [
                 CircleAvatar(
-                  radius: screenWidth * 0.07,
-                  backgroundColor: kAccentPurple.withOpacity(0.2),
+                  radius: avatarSize / 2,
+                  // Correção: Garante que a expressão condicional retorne um ImageProvider
                   backgroundImage: _profileImageBytes != null
-                      ? MemoryImage(_profileImageBytes!)
-                      : null,
-                  child: _profileImageBytes == null
-                      ? Text(
-                          _userName.isNotEmpty
-                              ? _userName[0].toUpperCase()
-                              : 'U',
-                          style: TextStyle(
-                              color: kDarkTextPrimary,
-                              fontSize: screenWidth * 0.06,
-                              fontWeight: FontWeight.bold))
-                      : null,
+                      ? MemoryImage(_profileImageBytes!) as ImageProvider<Object>
+                      : const NetworkImage(
+                          "https://i.pravatar.cc/150?img=11"), // Fallback
                 ),
-                SizedBox(height: screenWidth * 0.02),
-                Text(_userName,
-                    style: TextStyle(
-                        color: kDarkTextPrimary,
-                        fontSize: screenWidth * 0.045,
-                        fontWeight: FontWeight.bold),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-                SizedBox(height: screenWidth * 0.01),
+                SizedBox(width: screenWidth * 0.03),
                 Text(
-                  FirebaseAuth.instance.currentUser?.email ?? '',
+                  _userName, // Usando o nome do usuário carregado
                   style: TextStyle(
-                    color: kDarkTextSecondary,
-                    fontSize: screenWidth * 0.03,
+                    color: Colors.white,
+                    fontSize: titleFontSize,
+                    fontWeight: FontWeight.w600,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-          ),
-          _buildDrawerItem(
-              icon: Icons.home_outlined,
-              title: 'Início',
-              onTap: () => Navigator.pop(context)),
-          _buildDrawerItem(
-              icon: Icons.calendar_today_outlined,
-              title: 'Calendário',
-              onTap: () => _navigateToRoute('/calendario')),
-          // Itens removidos: Concluídas, Categorias, Relatórios, Sobre
-          const Divider(color: kDarkBorder),
-          _buildDrawerItem(
-              icon: Icons.settings_outlined,
-              title: 'Configurações',
-              onTap: () => _navigateToRoute('/settings')),
-          _buildDrawerItem(
-              icon: Icons.logout,
-              title: 'Sair',
+            SizedBox(height: screenHeight * 0.04),
+            const Divider(color: Colors.white24),
+
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: _drawerItemResponsive(
+                      context,
+                      Icons.home_outlined,
+                      "Início",
+                      true, // Ativo
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      setState(() {
+                        _isNotificationsVisible = true;
+                        _notificationsController.forward();
+                      });
+                    },
+                    child: _drawerItemResponsive(
+                      context,
+                      Icons.notifications_outlined,
+                      "Notificações",
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateToRoute('/perfil');
+                    },
+                    child: _drawerItemResponsive(
+                      context,
+                      Icons.person_outline,
+                      "Perfil",
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () {
+                      Navigator.pop(context);
+                      _navigateToRoute('/planner');
+                    },
+                    child: _drawerItemResponsive(
+                      context,
+                      Icons.book_outlined,
+                      "Planner Diário",
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(color: Colors.white24),
+            InkWell(
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToRoute('/settings');
+              },
+              child: _drawerItemResponsive(
+                context,
+                Icons.settings_outlined,
+                "Configurações",
+              ),
+            ),
+            InkWell(
               onTap: () async {
                 Navigator.pop(context);
                 await FirebaseAuth.instance.signOut();
-                if (mounted)
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/login', (Route<dynamic> route) => false);
-              }),
+                _navigateToRoute('/'); // Redireciona para a tela de login/inicial
+              },
+              child: _drawerItemResponsive(context, Icons.logout, "Sair"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _drawerItemResponsive(
+    BuildContext context,
+    IconData icon,
+    String label, [
+    bool isActive = false,
+  ]) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final fontSize = screenWidth * 0.04;
+    final iconSize = screenWidth * 0.055;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: isActive ? Colors.white : Colors.white60,
+            size: iconSize,
+          ),
+          SizedBox(width: screenWidth * 0.03),
+          Text(
+            label,
+            style: TextStyle(
+              color: isActive ? Colors.white : Colors.white60,
+              fontSize: fontSize,
+              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+          if (isActive) ...[
+            const Spacer(),
+            Container(
+              width: 5,
+              height: 5,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildDrawerItem(
-      {required IconData icon,
-      required String title,
-      required VoidCallback onTap}) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    return ListTile(
-      leading: Icon(icon, color: kDarkTextSecondary, size: screenWidth * 0.055),
-      title: Text(title,
-          style: TextStyle(
-              color: kDarkTextPrimary.withOpacity(0.9),
-              fontSize: screenWidth * 0.04)),
-      onTap: onTap,
-      dense: true,
-      visualDensity: VisualDensity.compact,
+  Widget _buildFloatingActionButton() {
+    return Transform.translate(
+      offset: const Offset(0, 0),
+      child: FloatingActionButton(
+        backgroundColor: kAccentPurple,
+        elevation: 6,
+        shape: const CircleBorder(),
+        onPressed: () {
+          setState(() {
+            _isCardVisible = !_isCardVisible;
+            if (_isCardVisible) {
+              _slideController.forward();
+            } else {
+              _slideController.reverse();
+            }
+          });
+        },
+        child: const Icon(Icons.add, size: 28, color: kDarkTextPrimary),
+      ),
     );
   }
 
-  Widget _animatedCircleResponsive(
-      BuildContext context,
-      double rightPercent,
-      double topPercent,
-      double sizeFactor,
-      List<Color> colors,
-      int delayMultiplier) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+  Widget _buildBottomBar() {
+    final String _currentPageRoute = '/habitos'; // Ou '/' se for a Home
+
+    return BottomAppBar(
+      color: kDarkSurface,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/habitos'); // Navega para a própria página de hábitos
+              },
+              child: _bottomBarIcon(Icons.home_rounded, isActive: _currentPageRoute == '/habitos'),
+            ),
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/settings');
+              },
+              child: _bottomBarIcon(Icons.settings_outlined, isActive: _currentPageRoute == '/settings'),
+            ),
+            const SizedBox(width: 40),
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/planner');
+              },
+              child: _bottomBarIcon(Icons.book_outlined, isActive: _currentPageRoute == '/planner'),
+            ),
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/perfil');
+              },
+              child: _bottomBarIcon(Icons.person_outline, isActive: _currentPageRoute == '/perfil'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _bottomBarIcon(IconData icon, {bool isActive = false, VoidCallback? onTap}) {
+    return IconButton(
+      icon: Icon(
+        icon,
+        color: isActive ? kAccentPurple : kDarkTextSecondary.withOpacity(0.6),
+        size: 26,
+      ),
+      onPressed: onTap,
+      padding: EdgeInsets.zero, // Removido padding padrão do IconButton
+      constraints: const BoxConstraints(), // Removido constraints padrão do IconButton
+    );
+  }
+
+
+  Widget _buildDimOverlay() {
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _isCardVisible = false;
+            _slideController.reverse();
+          });
+        },
+        child: Container(color: Colors.black.withOpacity(0.6)),
+      ),
+    );
+  }
+
+  Widget _buildSlidingMenu() {
     return Positioned(
-      right: screenWidth * rightPercent,
-      top: screenHeight * topPercent,
-      child: RotationTransition(
-        turns: Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-            parent: _circleController,
-            curve: Interval(delayMultiplier * 0.1, 1.0, curve: Curves.linear))),
-        child: Container(
-          width: screenWidth * sizeFactor,
-          height: screenWidth * sizeFactor,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-                colors: colors,
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight),
-            boxShadow: [
-              BoxShadow(
-                  color: colors[0].withOpacity(0.2),
-                  blurRadius: 6,
-                  spreadRadius: 0.5)
-            ],
+      bottom: 80,
+      left: 30,
+      right: 30,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Material(
+          color: Colors.transparent,
+          elevation: 8,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+            decoration: BoxDecoration(
+              color: kDarkElementBg,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.4),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/adicionartarefa');
+                  },
+                  child: _menuItem(Icons.edit_outlined, 'Criar Tarefa'),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/criarprojeto');
+                  },
+                  child: _menuItem(Icons.add_circle_outline, 'Criar Projeto'),
+                ),
+                const SizedBox(height: 12),
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                    _navigateToRoute('/criarevento');
+                  },
+                  child: _menuItem(Icons.schedule_outlined, 'Criar Evento'),
+                ),
+                const SizedBox(height: 16),
+                FloatingActionButton(
+                  mini: true,
+                  backgroundColor: kAccentPurple,
+                  elevation: 0,
+                  shape: const CircleBorder(),
+                  onPressed: () {
+                    setState(() {
+                      _isCardVisible = false;
+                      _slideController.reverse();
+                    });
+                  },
+                  child: const Icon(
+                    Icons.close,
+                    size: 20,
+                    color: kDarkTextPrimary,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildFloatingActionButton() {
-    return FloatingActionButton(
-      backgroundColor: kAccentPurple,
-      elevation: 6,
-      shape: const CircleBorder(),
-      onPressed: () => setState(() {
-        _isCardVisible = !_isCardVisible;
-        if (_isCardVisible)
-          _slideController.forward();
-        else
-          _slideController.reverse();
-      }),
-      child: const Icon(Icons.add, size: 28, color: kDarkTextPrimary),
-    );
-  }
-
-  Widget _buildBottomBar() {
-    return BottomAppBar(
-      //height: 60,
-      color: kDarkSurface,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
+  Widget _menuItem(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: kDarkBorder.withOpacity(0.5)),
+        borderRadius: BorderRadius.circular(16),
+        color: kDarkSurface.withOpacity(0.5),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _bottomBarIcon(Icons.home_rounded, isActive: true, onTap: () {}),
-          _bottomBarIcon(Icons.settings_outlined,
-              onTap: () => _navigateToRoute('/settings')),
-          const SizedBox(width: 40),
-          _bottomBarIcon(Icons.book_outlined,
-              onTap: () => _navigateToRoute('/planner')),
-          _bottomBarIcon(Icons.person_outline,
-              onTap: () => _navigateToRoute('/perfil')),
+          Icon(icon, color: kDarkTextSecondary, size: 20),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: const TextStyle(color: kDarkTextSecondary, fontSize: 14),
+          ),
         ],
       ),
     );
   }
-
-  Widget _bottomBarIcon(IconData icon,
-      {bool isActive = false, required VoidCallback onTap}) {
-    return IconButton(
-      icon: Icon(icon,
-          color: isActive ? kAccentPurple : kDarkTextSecondary.withOpacity(0.6),
-          size: 24),
-      onPressed: onTap,
-      padding: const EdgeInsets.all(12),
-    );
-  }
-
-  Widget _buildDimOverlay() {
-    return Positioned.fill(
-        child: GestureDetector(
-            onTap: () => setState(() {
-                  _isCardVisible = false;
-                  _slideController.reverse();
-                }),
-            child: Container(color: Colors.black.withOpacity(0.6))));
-  }
-
-  Widget _buildSlidingMenu() {
-    return Positioned(
-        bottom: 80,
-        left: 30,
-        right: 30,
-        child: SlideTransition(
-            position: _slideAnimation,
-            child: Material(
-                color: Colors.transparent,
-                elevation: 8,
-                borderRadius: BorderRadius.circular(24),
-                child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 20, horizontal: 24),
-                    decoration: BoxDecoration(
-                        color: kDarkElementBg,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                              color: Colors.black.withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6))
-                        ]),
-                    child: Column(mainAxisSize: MainAxisSize.min, children: [
-                      InkWell(
-                          onTap: () {
-                            setState(() {
-                              _isCardVisible = false;
-                              _slideController.reverse();
-                            });
-                            _navigateToRoute('/adicionartarefa');
-                          },
-                          child:
-                              _menuItem(Icons.edit_outlined, 'Criar Tarefa')),
-                      const SizedBox(height: 12),
-                      InkWell(
-                          onTap: () {
-                            setState(() {
-                              _isCardVisible = false;
-                              _slideController.reverse();
-                            });
-                            _navigateToRoute('/criarprojeto');
-                          },
-                          child: _menuItem(
-                              Icons.add_circle_outline, 'Criar Projeto')),
-                      const SizedBox(height: 12),
-                      InkWell(
-                          onTap: () {
-                            setState(() {
-                              _isCardVisible = false;
-                              _slideController.reverse();
-                            });
-                            _navigateToRoute('/criarevento');
-                          },
-                          child: _menuItem(
-                              Icons.schedule_outlined, 'Criar Evento')),
-                      const SizedBox(height: 16),
-                      FloatingActionButton(
-                          mini: true,
-                          backgroundColor: kAccentPurple,
-                          elevation: 0,
-                          shape: const CircleBorder(),
-                          onPressed: () => setState(() {
-                                _isCardVisible = false;
-                                _slideController.reverse();
-                              }),
-                          child: const Icon(Icons.close,
-                              size: 20, color: kDarkTextPrimary))
-                    ])))));
-  }
-
-  Widget _menuItem(IconData icon, String label) {
-    return Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        decoration: BoxDecoration(
-            border: Border.all(color: kDarkBorder.withOpacity(0.5)),
-            borderRadius: BorderRadius.circular(16),
-            color: kDarkSurface.withOpacity(0.5)),
-        child: Row(children: [
-          Icon(icon, color: kDarkTextSecondary, size: 20),
-          const SizedBox(width: 12),
-          Text(label,
-              style: const TextStyle(color: kDarkTextSecondary, fontSize: 14))
-        ]));
-  }
-
-  // O método _buildAiCardSection não estava sendo chamado no seu build principal,
-  // mas se você precisar dele, aqui está um exemplo de como ele poderia ser:
-  /*
-  Widget _buildAiCardSection(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    // Adapte a posição e o conteúdo conforme necessário
-    return Positioned(
-      bottom: 100, // Exemplo de posição
-      right: 20,   // Exemplo de posição
-      child: CloseableAiCard(
-        firestoreService: _userFirestoreTasksService!, // Certifique-se que não é nulo
-        geminiService: widget.geminiService,
-        scaleFactor: screenWidth < 360 ? 0.3 : 0.35,
-        enableScroll: true,
-      ),
-    );
-  }
-  */
 }

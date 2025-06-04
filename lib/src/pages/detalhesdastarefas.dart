@@ -634,7 +634,7 @@ class _TodayTaskPageState extends State<TodayTaskPage>
             ),
           if (_isCardVisible) _buildSlidingMenu(),
           Positioned(
-            bottom: 48,
+            bottom: -26,
             right: -60,
             child: CloseableAiCard(
               geminiService: _geminiService,

@@ -5,7 +5,12 @@ import 'package:flutter/widgets.dart' as Widgets;
 import 'iconedaia.dart';
 import '../../services/gemini_service.dart';
 import 'package:planify/services/firestore_tasks_service.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:planify/models/events_model.dart';
+import 'package:planify/models/task.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:planify/services/firestore_planner_service.dart';
+import 'package:planify/services/firestore_service.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -18,80 +23,15 @@ const Color kDarkBorder = Color(0xFF2D3748);
 
 enum TimelineItemType { event, task, projectTask }
 
-class EventModel {
-  final String id;
-  final String name;
-  final DateTime startDate;
-  final TimeOfDay startTime;
-  final DateTime? endDate;
-  final TimeOfDay? endTime;
-  final Color eventColor;
-  final String? location;
-  bool isCompleted;
-  EventModel({
-    required this.id,
-    required this.name,
-    required this.startDate,
-    required this.startTime,
-    this.endDate,
-    this.endTime,
-    this.eventColor = kAccentPurple,
-    this.location,
-    this.isCompleted = false,
-  });
-
-  Duration get duration {
-    if (endDate == null || endTime == null) {
-      return const Duration(hours: 1);
-    }
-    final startDateTime = DateTime(
-      startDate.year,
-      startDate.month,
-      startDate.day,
-      startTime.hour,
-      startTime.minute,
-    );
-    final endDateTime = DateTime(
-      endDate!.year,
-      endDate!.month,
-      endDate!.day,
-      endTime!.hour,
-      endTime!.minute,
-    );
-    return endDateTime.difference(startDateTime);
-  }
-}
-
-class TaskModel {
-  final String id;
-  final String name;
-  bool isCompleted;
-  final DateTime? date;
-  final TimeOfDay? time;
-  final Color? taskColor;
-  final String? projectName;
-  TaskModel({
-    required this.id,
-    required this.name,
-    this.isCompleted = false,
-    this.date,
-    this.time,
-    this.taskColor,
-    this.projectName,
-  });
-
-  Duration get duration => const Duration(hours: 1);
-}
-
 class TimelineItem {
   final String id;
   final TimelineItemType type;
   final String title;
-  final TimeOfDay startTime;
+  final TimeOfDay startTime; // Mantido como TimeOfDay
   final Duration duration;
   final Color itemColor;
   final String? subtitle;
-  bool isCompleted;
+  final bool isCompleted; // Definido como 'final' para imutabilidade
 
   TimelineItem({
     required this.id,
@@ -103,15 +43,83 @@ class TimelineItem {
     this.subtitle,
     this.isCompleted = false,
   });
+
+  // Factory constructor para criar TimelineItem a partir de Event
+  factory TimelineItem.fromEvent(Event event) {
+    return TimelineItem(
+      id: event.id!, // Assumindo que o ID do evento não será nulo vindo do Firestore
+      type: TimelineItemType.event,
+      title: event.title,
+      // CONVERSÃO: DateTime (do modelo Event) para TimeOfDay (para o TimelineItem)
+      startTime: TimeOfDay.fromDateTime(event.startTime),
+      duration: event.endTime?.difference(event.startTime) ?? const Duration(hours: 1),
+      itemColor: event.eventColor,
+      subtitle: event.location,
+      isCompleted: event.isCompleted,
+    );
+  }
+
+  // Factory constructor para criar TimelineItem a partir de Task
+  factory TimelineItem.fromTask(Task task) {
+    bool taskIsCompleted = task.status == 'completed';
+
+    // ATENÇÃO: task.dueDate já é DateTime?, não precisa de .toDate()
+    // E precisamos garantir que task.dueDate e task.time não são nulos aqui,
+    // pois esta factory é para itens com horário na timeline.
+    // A lógica de _getTasksWithoutTime já deve filtrar os sem horário.
+    if (task.dueDate == null || task.time == null) {
+      // Isso não deve acontecer se a lógica de filtragem estiver correta,
+      // mas é uma salvaguarda. Poderia lançar um erro ou retornar um item nulo.
+      // Por simplicidade, vamos assumir que dueDate e time não são nulos se chegar aqui.
+      debugPrint('DEBUG: Erro na TimelineItem.fromTask: Task sem dueDate ou time sendo processada como TimelineItem com horário. ID: ${task.id}, Título: ${task.title}');
+      // Retornar um TimelineItem com dados padrão ou lançar um erro.
+      // Para evitar crash, retornando um item básico.
+      return TimelineItem(
+        id: task.id!,
+        type: TimelineItemType.task,
+        title: task.title,
+        startTime: TimeOfDay.now(),
+        duration: const Duration(hours: 1),
+        itemColor: Colors.red, // Cor de erro
+        subtitle: 'Erro de data/hora',
+        isCompleted: false,
+      );
+    }
+
+    // Compondo o DateTime completo a partir de dueDate e time
+    final parts = task.time!.split(':');
+    final int hour = int.parse(parts[0]);
+    final int minute = int.parse(parts[1]);
+
+    final DateTime fullTaskDateTime = DateTime(
+      task.dueDate!.year, // Usar ! pois verificamos que não é nulo acima
+      task.dueDate!.month,
+      task.dueDate!.day,
+      hour,
+      minute,
+    );
+
+    return TimelineItem(
+      id: task.id!, // Assumindo que o ID da tarefa não será nulo vindo do Firestore
+      type: task.projectId != null ? TimelineItemType.projectTask : TimelineItemType.task, // <--- CORRIGIDO: usando projectId
+      title: task.title, // <--- CORRIGIDO: usando 'title' da Task
+      // CONVERSÃO: DateTime (composto da data e hora da Task) para TimeOfDay (para o TimelineItem)
+      startTime: TimeOfDay.fromDateTime(fullTaskDateTime),
+      duration: const Duration(hours: 1), // Duração padrão para tarefas
+      itemColor: kAccentSecondary, // <--- CORRIGIDO: Usando kAccentSecondary como cor padrão para tarefas
+      subtitle: task.description, // Usando description como subtitle
+      isCompleted: taskIsCompleted,
+    );
+  }
 }
 
+// Início da classe PlannerDiarioPage
 class PlannerDiarioPage extends StatefulWidget {
   final GeminiService geminiService;
 
   const PlannerDiarioPage({
     super.key,
-    required this.geminiService, // <<-- Modifique o construtor
-
+    required this.geminiService,
   });
 
   @override
@@ -122,20 +130,28 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   DateTime _selectedDate = DateTime.now();
-  int _selectedDateIndexHorizontal = 2;
+  int _selectedDateIndexHorizontal = 2; // Default to today's index
   bool _isCardVisible = false;
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
 
-  final Map<String, bool> _completionStatus = {};
+  String _currentFilter = "Todos";
 
-  String _currentFilter = "Todos"; // Opções: "Todos", "Eventos", "Tarefas"
-
-  final FirestoreTasksService _firestoreService = FirestoreTasksService(userId: 'userId');
+  // ATENÇÃO: Agora usa FirestorePlannerService
+  late final FirestorePlannerService _firestoreService; // Tipo concreto
 
   @override
   void initState() {
     super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      debugPrint("DEBUG: Erro: Usuário não logado no FirestorePlannerService. Usando ID 'guest'.");
+      // Considere redirecionar para tela de login ou mostrar erro robusto
+      _firestoreService = FirestorePlannerService(userId: 'guest');
+    } else {
+      _firestoreService = FirestorePlannerService(userId: user.uid);
+      debugPrint("DEBUG: FirestorePlannerService inicializado para o usuário: ${user.uid}");
+    }
 
     _slideController = AnimationController(
       duration: const Duration(milliseconds: 400),
@@ -146,6 +162,17 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
       begin: const Offset(0, 1),
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
+
+    final today = DateTime.now();
+    for (int i = 0; i < 5; i++) {
+      final date = today.add(Duration(days: i - 2));
+      if (date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day) {
+        _selectedDateIndexHorizontal = i;
+        break;
+      }
+    }
   }
 
   @override
@@ -155,169 +182,42 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
   }
 
   void _navigateToRoute(String routeName) {
-    // Fecha o drawer se estiver aberto
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
-
+    // Usar pushReplacementNamed se for para substituir a rota atual na pilha
     Navigator.of(context).pushNamed(routeName);
   }
 
-  List<EventModel> _getMockEvents(DateTime date) {
-    if (date.day == DateTime.now().day) {
-      return [
-        EventModel(
-          id: 'e1',
-          name: 'Reunião de Kickoff',
-          startDate: date,
-          startTime: const TimeOfDay(hour: 9, minute: 0),
-          endTime: const TimeOfDay(hour: 10, minute: 30),
-          eventColor: kAccentPurple,
-          location: 'Online',
-          isCompleted: _completionStatus['e1'] ?? false,
-        ),
-        EventModel(
-          id: 'e2',
-          name: 'Almoço com Equipe',
-          startDate: date,
-          startTime: const TimeOfDay(hour: 12, minute: 30),
-          endTime: const TimeOfDay(hour: 13, minute: 30),
-          eventColor: kAccentSecondary,
-          location: 'Restaurante Central',
-          isCompleted: _completionStatus['e2'] ?? false,
-        ),
-      ];
+  Future<void> _toggleTimelineItemCompletion(TimelineItem item) async {
+    // A UI será atualizada automaticamente pelo StreamBuilder após a mudança no Firestore.
+    if (item.type == TimelineItemType.event) {
+      await _firestoreService.updateEventCompletion(item.id, !item.isCompleted);
+    } else { // Task or ProjectTask
+      await _firestoreService.updateTaskCompletion(item.id, !item.isCompleted);
     }
-    return [];
   }
 
-  List<TaskModel> _getMockTasks(DateTime date) {
-    if (date.day == DateTime.now().day) {
-      return [
-        TaskModel(
-          id: 't1',
-          name: 'Revisar Documento XPTO',
-          date: date,
-          time: const TimeOfDay(hour: 11, minute: 0),
-          taskColor: Colors.orangeAccent,
-          isCompleted: _completionStatus['t1'] ?? false,
-        ),
-        TaskModel(
-          id: 't2',
-          name: 'Ligar para Cliente Y',
-          date: date,
-          taskColor: Colors.pinkAccent,
-          isCompleted: _completionStatus['t2'] ?? false,
-        ), // Sem hora específica
-        TaskModel(
-          id: 'pt1',
-          name: 'Desenvolver Feature A',
-          date: date,
-          time: const TimeOfDay(hour: 14, minute: 0),
-          taskColor: Colors.teal,
-          projectName: 'Projeto Phoenix',
-          isCompleted: _completionStatus['pt1'] ?? false,
-        ),
-      ];
-    }
-    if (date.day == DateTime.now().add(const Duration(days: 1)).day) {
-      return [
-        TaskModel(
-          id: 't3',
-          name: 'Preparar Apresentação',
-          date: date,
-          time: const TimeOfDay(hour: 10, minute: 0),
-          taskColor: Colors.blueAccent,
-          isCompleted: _completionStatus['t3'] ?? false,
-        ),
-      ];
-    }
-    return [];
-  }
-
-  List<TimelineItem> _generateTimelineItems(DateTime date) {
-    List<TimelineItem> items = [];
-    final events = _getMockEvents(date);
-    final tasks = _getMockTasks(date);
-
-    for (var event in events) {
-      items.add(
-        TimelineItem(
-          id: event.id,
-          type: TimelineItemType.event,
-          title: event.name,
-          startTime: event.startTime,
-          duration: event.duration,
-          itemColor: event.eventColor,
-          subtitle: event.location,
-          isCompleted: event.isCompleted,
-        ),
-      );
-    }
-
-    for (var task in tasks) {
-      if (task.time != null) {
-        items.add(
-          TimelineItem(
-            id: task.id,
-            type: task.projectName != null
-                ? TimelineItemType.projectTask
-                : TimelineItemType.task,
-            title: task.name,
-            startTime: task.time!,
-            duration: task.duration,
-            itemColor: task.taskColor ?? kAccentSecondary,
-            subtitle: task.projectName,
-            isCompleted: task.isCompleted,
-          ),
-        );
+  // Esta função é correta para filtrar as tarefas sem horário
+  List<Task> _getTasksWithoutTime(List<Task> allTasks, DateTime date) {
+    return allTasks.where((task) {
+      // Verifica se a tarefa tem um campo 'dueDate' e se ele corresponde à data selecionada
+      // E se o campo 'time' é nulo ou vazio
+      if (task.dueDate != null && (task.time == null || task.time!.isEmpty)) {
+        final taskDate = task.dueDate!; // Já é DateTime, usar ! após a verificação de nulo
+        return taskDate.year == date.year &&
+            taskDate.month == date.month &&
+            taskDate.day == date.day;
       }
-    }
-
-    if (_currentFilter == "Eventos") {
-      items =
-          items.where((item) => item.type == TimelineItemType.event).toList();
-    } else if (_currentFilter == "Tarefas") {
-      items = items
-          .where(
-            (item) =>
-                item.type == TimelineItemType.task ||
-                item.type == TimelineItemType.projectTask,
-          )
-          .toList();
-    }
-
-    items.sort((a, b) {
-      final timeA = a.startTime.hour * 60 + a.startTime.minute;
-      final timeB = b.startTime.hour * 60 + b.startTime.minute;
-      return timeA.compareTo(timeB);
-    });
-
-    return items;
-  }
-
-  List<TaskModel> _getTasksWithoutTime(DateTime date) {
-    final tasks = _getMockTasks(date);
-    return tasks.where((task) => task.time == null).toList();
+      return false;
+    }).toList();
   }
 
   void _onHorizontalDateSelected(int index, DateTime date) {
     setState(() {
       _selectedDateIndexHorizontal = index;
       _selectedDate = date;
-    });
-  }
-
-  void _toggleItemCompletion(String id) {
-    setState(() {
-      _completionStatus[id] = !(_completionStatus[id] ?? false);
-    });
-  }
-
-  void _toggleTaskCompletion(TaskModel task) {
-    setState(() {
-      task.isCompleted = !task.isCompleted;
-      _completionStatus[task.id] = task.isCompleted;
+      debugPrint("DEBUG: Data selecionada alterada para: $_selectedDate");
     });
   }
 
@@ -346,6 +246,23 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        debugPrint("DEBUG: Data selecionada no picker: $_selectedDate");
+        final today = DateTime.now();
+        int newIndex = -1;
+        for (int i = 0; i < 5; i++) {
+          final dateInSelector = today.add(Duration(days: i - 2));
+          if (dateInSelector.year == picked.year &&
+              dateInSelector.month == picked.month &&
+              dateInSelector.day == picked.day) {
+            newIndex = i;
+            break;
+          }
+        }
+        if (newIndex != -1) {
+          _selectedDateIndexHorizontal = newIndex;
+        } else {
+          _selectedDateIndexHorizontal = 2; // Volta para o "Hoje"
+        }
       });
     }
   }
@@ -365,25 +282,16 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     bool isFont = false,
   }) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
 
     double adjustedSize = baseSize;
 
-    // Para telas muito pequenas (< 320dp)
     if (screenWidth < 320) {
       adjustedSize = baseSize * 0.8;
-    }
-    // Para telas pequenas (320dp - 360dp)
-    else if (screenWidth < 360) {
-      adjustedSize = baseSize * 0.9;
-    }
-    // Para telas grandes (> 480dp)
-    else if (screenWidth > 480) {
+    } else if (screenWidth > 480) {
       adjustedSize = baseSize * 1.1;
     }
 
-    // Ajuste adicional para fontes em telas de alta densidade
     if (isFont && pixelRatio > 2.5) {
       adjustedSize = adjustedSize * 0.95;
     }
@@ -412,21 +320,12 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
     const int startHour = 7;
     const int endHour = 22;
 
-    final List<TimelineItem> timelineItems = _generateTimelineItems(
-      _selectedDate,
-    );
-    final List<TaskModel> tasksWithoutTime = _getTasksWithoutTime(
-      _selectedDate,
-    );
-
     final now = DateTime.now();
     final currentHour = now.hour;
     final currentMinute = now.minute;
     final isToday = _selectedDate.year == now.year &&
         _selectedDate.month == now.month &&
         _selectedDate.day == now.day;
-
-    final notchMargin = _getResponsiveSize(context, 8.0);
 
     return Scaffold(
       backgroundColor: kDarkPrimaryBg,
@@ -481,126 +380,207 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
           SizedBox(width: _getResponsiveSize(context, screenWidth * 0.02)),
         ],
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                _buildHorizontalDateSelector(context),
-                _buildFilterSelector(context),
-                if (tasksWithoutTime.isNotEmpty)
-                  _buildTasksWithoutTimeSection(tasksWithoutTime, context),
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: _getResponsiveSize(context, screenHeight * 0.02),
-                    bottom: _getResponsiveSize(context, screenHeight * 0.1) +
-                        safeAreaBottom,
-                    right: _getResponsiveSize(context, screenWidth * 0.04),
-                    left: _getResponsiveSize(context, screenWidth * 0.02),
-                  ),
-                  child: SizedBox(
-                    height: (endHour - startHour + 1) * hourHeight,
-                    child: Stack(
-                      children: [
-                        // Fundo da timeline com horas
-                        Positioned.fill(
-                          child: CustomPaint(
-                            painter: TimelinePainter(
-                              startHour: startHour,
-                              endHour: endHour,
-                              hourHeight: hourHeight,
-                              leftPadding: leftPaddingForTimeline,
-                              textSize: _getResponsiveSize(
-                                context,
-                                screenWidth * 0.025,
-                                isFont: true,
-                              ),
-                            ),
-                          ),
-                        ),
+      body: StreamBuilder<List<dynamic>>(
+        stream: _firestoreService.getEventsAndTasksForSelectedDay(_selectedDate),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: kAccentPurple));
+          }
+          if (snapshot.hasError) {
+            debugPrint('DEBUG: StreamBuilder Error: ${snapshot.error}'); // Para depuração
+            return Center(child: Text('Erro ao carregar dados: ${snapshot.error}', style: const TextStyle(color: kDarkTextPrimary)));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            debugPrint('DEBUG: Nenhum dado recebido do StreamBuilder para a data: $_selectedDate');
+            return Center(
+              child: Text(
+                'Nenhum evento ou tarefa para esta data.',
+                style: TextStyle(color: kDarkTextSecondary, fontSize: _getResponsiveSize(context, screenWidth * 0.038, isFont: true)),
+              ),
+            );
+          }
 
-                        if (isToday &&
-                            currentHour >= startHour &&
-                            currentHour <= endHour)
-                          Positioned(
-                            top: (currentHour -
-                                    startHour +
-                                    (currentMinute / 60.0)) *
-                                hourHeight,
-                            left: 0,
-                            right: 0,
-                            child: Container(
-                              height: _getResponsiveSize(context, 2.0),
-                              color: Colors.redAccent,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: _getResponsiveSize(
-                                      context,
-                                      screenWidth * 0.02,
-                                    ),
-                                    height: _getResponsiveSize(
-                                      context,
-                                      screenWidth * 0.02,
-                                    ),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.redAccent,
-                                      shape: BoxShape.circle,
-                                    ),
+          debugPrint('DEBUG: Dados recebidos do StreamBuilder: ${snapshot.data!.length} itens.');
+
+          // LÓGICA DE GERAÇÃO E FILTRAGEM DOS TIMELINE ITEMS
+          final List<TimelineItem> timelineItems = [];
+          final List<Task> tasksWithoutTime = []; // Para tarefas sem horário definido
+
+          for (var item in snapshot.data!) {
+            if (item is Event) {
+              timelineItems.add(TimelineItem.fromEvent(item));
+              debugPrint('DEBUG: Evento adicionado: ${item.title} (ID: ${item.id})');
+            } else if (item is Task) {
+              // Verifica se a tarefa tem horário para ser adicionada à linha do tempo principal
+              // E se tem uma data de vencimento (dueDate)
+              if (item.time != null && item.time!.isNotEmpty && item.dueDate != null) {
+                timelineItems.add(TimelineItem.fromTask(item));
+                debugPrint('DEBUG: Tarefa com horário adicionada: ${item.title} (ID: ${item.id}, Hora: ${item.time})');
+              } else {
+                tasksWithoutTime.add(item);
+                debugPrint('DEBUG: Tarefa sem horário adicionada à lista separada: ${item.title} (ID: ${item.id})');
+              }
+            }
+          }
+
+          debugPrint('DEBUG: Total de itens na timeline principal: ${timelineItems.length}');
+          debugPrint('DEBUG: Total de tarefas sem horário: ${tasksWithoutTime.length}');
+
+
+          // Filtra os itens da linha do tempo com base no _currentFilter
+          List<TimelineItem> filteredTimelineItems = [];
+          if (_currentFilter == "Eventos") {
+            filteredTimelineItems = timelineItems.where((item) => item.type == TimelineItemType.event).toList();
+            debugPrint('DEBUG: Filtro "Eventos" aplicado. Itens filtrados: ${filteredTimelineItems.length}');
+          } else if (_currentFilter == "Tarefas") {
+            filteredTimelineItems = timelineItems
+                .where(
+                    (item) =>
+                        item.type == TimelineItemType.task ||
+                        item.type == TimelineItemType.projectTask,
+                )
+                .toList();
+            debugPrint('DEBUG: Filtro "Tarefas" aplicado. Itens filtrados: ${filteredTimelineItems.length}');
+          } else { // "Todos"
+            filteredTimelineItems = timelineItems;
+            debugPrint('DEBUG: Filtro "Todos" aplicado. Itens filtrados: ${filteredTimelineItems.length}');
+          }
+
+          // Ordena os itens da linha do tempo
+          filteredTimelineItems.sort((a, b) {
+            final timeA = a.startTime.hour * 60 + a.startTime.minute;
+            final timeB = b.startTime.hour * 60 + b.startTime.minute;
+            return timeA.compareTo(timeB);
+          });
+          // FIM DA LÓGICA DE GERAÇÃO DOS TIMELINE ITEMS
+
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  children: [
+                    _buildHorizontalDateSelector(context),
+                    _buildFilterSelector(context),
+                    if (tasksWithoutTime.isNotEmpty && (_currentFilter == "Todos" || _currentFilter == "Tarefas"))
+                      _buildTasksWithoutTimeSection(tasksWithoutTime, context),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: _getResponsiveSize(context, screenHeight * 0.02),
+                        bottom: _getResponsiveSize(context, screenHeight * 0.1) +
+                            safeAreaBottom,
+                        right: _getResponsiveSize(context, screenWidth * 0.04),
+                        left: _getResponsiveSize(context, screenWidth * 0.02),
+                      ),
+                      child: SizedBox(
+                        height: (endHour - startHour + 1) * hourHeight,
+                        child: Stack(
+                          children: [
+                            // Linhas do tempo e horas
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: TimelinePainter(
+                                  startHour: startHour,
+                                  endHour: endHour,
+                                  hourHeight: hourHeight,
+                                  leftPadding: leftPaddingForTimeline,
+                                  textSize: _getResponsiveSize(
+                                    context,
+                                    screenWidth * 0.025,
+                                    isFont: true,
                                   ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
+                            // Linha indicadora do tempo atual (se for hoje)
+                            if (isToday &&
+                                currentHour >= startHour &&
+                                currentHour <= endHour)
+                              Positioned(
+                                top: (currentHour -
+                                        startHour +
+                                        (currentMinute / 60.0)) *
+                                    hourHeight,
+                                left: 0,
+                                right: 0,
+                                child: Container(
+                                  height: _getResponsiveSize(context, 2.0),
+                                  color: Colors.redAccent,
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: _getResponsiveSize(
+                                          context,
+                                          screenWidth * 0.02,
+                                        ),
+                                        height: _getResponsiveSize(
+                                          context,
+                                          screenWidth * 0.02,
+                                        ),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
 
-                        ...timelineItems.map((item) {
-                          final itemTop = (item.startTime.hour -
-                                  startHour +
-                                  (item.startTime.minute / 60.0)) *
-                              hourHeight;
-                          final itemHeight =
-                              (item.duration.inMinutes / 60.0) * hourHeight;
-                          return Positioned(
-                            top: itemTop,
-                            left: leftPaddingForTimeline +
-                                _getResponsiveSize(context, screenWidth * 0.02),
-                            right: 0,
-                            height: max(
-                              itemHeight,
-                              _getResponsiveSize(context, screenHeight * 0.1),
-                            ),
-                            child: _buildTimelineItemCard(item, context),
-                          );
-                        }),
-                      ],
+                            // Itens da linha do tempo (Eventos e Tarefas com horário)
+                            ...filteredTimelineItems.map((item) {
+                              final itemTop = (item.startTime.hour -
+                                      startHour +
+                                      (item.startTime.minute / 60.0)) *
+                                  hourHeight;
+                              final itemHeight =
+                                  (item.duration.inMinutes / 60.0) * hourHeight;
+                              return Positioned(
+                                top: itemTop,
+                                left: leftPaddingForTimeline +
+                                    _getResponsiveSize(context, screenWidth * 0.02),
+                                right: 0,
+                                height: max(
+                                  itemHeight,
+                                  _getResponsiveSize(context, screenHeight * 0.05),
+                                ),
+                                child: _buildTimelineItemCard(item, context),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 100),
-          if (_isCardVisible) _buildDimOverlay(),
-          if (_isCardVisible) _buildSlidingMenu(),
-          Positioned(
-            bottom: 56, // Posição ajustável
-            right: -60, // Posição ajustável
-            child: CloseableAiCard(
-              scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
-              enableScroll: true,
-              geminiService: widget.geminiService, 
-              firestoreService: _firestoreService,
-            ),
-          ),
-        ],
+              ),
+              // Dim Overlay para o card flutuante
+              if (_isCardVisible) _buildDimOverlay(),
+              // Sliding Menu para o card flutuante
+              if (_isCardVisible) _buildSlidingMenu(),
+              // CloseableAiCard (Placeholder - você precisa fornecer o código real em iconedaia.dart)
+              Positioned(
+                bottom: 56, // Ajuste para ficar acima do BottomAppBar
+                right: -_getResponsiveSize(context, screenWidth * 0.15), // Ajuste a posição para caber na tela
+                child: CloseableAiCard(
+                  scaleFactor: MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
+                  enableScroll: true,
+                  geminiService: widget.geminiService,
+                  firestoreService: _firestoreService, // Passando o FirestorePlannerService
+                ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: _buildFloatingActionButton(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomBar(),
-      extendBody: true,
+      extendBody: true, // Permite que o body se estenda para debaixo do BottomAppBar
     );
   }
+
+  // --- Widgets de Auxílio ---
 
   Widget _buildFilterSelector(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -644,6 +624,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
       onTap: () {
         setState(() {
           _currentFilter = label;
+          debugPrint('DEBUG: Filtro alterado para: $_currentFilter');
         });
       },
       child: Container(
@@ -666,69 +647,6 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
             ),
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFloatingActionButton(BuildContext context) {
-    return Transform.translate(
-      offset: const Offset(0, 0),
-      child: FloatingActionButton(
-        backgroundColor: kAccentPurple,
-        elevation: 6,
-        shape: const CircleBorder(),
-        onPressed: () {
-          setState(() {
-            _isCardVisible = !_isCardVisible;
-            if (_isCardVisible) {
-              _slideController.forward();
-            } else {
-              _slideController.reverse();
-            }
-          });
-        },
-        child: const Icon(Icons.add, size: 28, color: kDarkTextPrimary),
-      ),
-    );
-  }
-
-  Widget _buildBottomBar() {
-    return BottomAppBar(
-      color: kDarkSurface,
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            InkWell(
-              onTap: () {
-                _navigateToRoute('/habitos');
-              },
-              child: _bottomBarIcon(Icons.home_rounded),
-            ),
-            InkWell(
-              onTap: () {
-                _navigateToRoute('/settings');
-              },
-              child: _bottomBarIcon(Icons.settings_outlined),
-            ),
-            const SizedBox(width: 40),
-            InkWell(
-              onTap: () {
-                _navigateToRoute('/planner');
-              },
-              child: _bottomBarIcon(Icons.book_outlined, isActive: true),
-            ),
-            InkWell(
-              onTap: () {
-                _navigateToRoute('/perfil');
-              },
-              child: _bottomBarIcon(Icons.person_outline),
-            ),
-          ],
         ),
       ),
     );
@@ -851,7 +769,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
   }
 
   Widget _buildTasksWithoutTimeSection(
-    List<TaskModel> tasks,
+    List<Task> tasks, // Agora recebe List<Task>
     BuildContext context,
   ) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -894,21 +812,25 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
               final task = tasks[index];
               return ListTile(
                 leading: GestureDetector(
-                  onTap: () => _toggleTaskCompletion(task),
+                  // ATENÇÃO: Chamando _toggleTimelineItemCompletion para consistência
+                  onTap: () => _toggleTimelineItemCompletion(
+                    // Crie um TimelineItem temporário para passar à função genérica
+                    TimelineItem.fromTask(task),
+                  ),
                   child: Container(
                     width: _getResponsiveSize(context, 24.0),
                     height: _getResponsiveSize(context, 24.0),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: task.isCompleted
-                          ? (task.taskColor ?? kAccentSecondary)
+                      color: task.status == 'completed' // Usando status da Task
+                          ? kAccentSecondary // Cor quando concluído
                           : Colors.transparent,
                       border: Border.all(
-                        color: task.taskColor ?? kAccentSecondary,
+                        color: kAccentSecondary, // Cor da borda padrão para tarefas
                         width: 2,
                       ),
                     ),
-                    child: task.isCompleted
+                    child: task.status == 'completed' // Usando status da Task
                         ? Icon(
                             Icons.check,
                             size: _getResponsiveSize(context, 16.0),
@@ -918,7 +840,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                   ),
                 ),
                 title: Text(
-                  task.name,
+                  task.title, // <--- CORRIGIDO: usando 'title' da Task
                   style: TextStyle(
                     color: kDarkTextPrimary,
                     fontSize: _getResponsiveSize(
@@ -927,12 +849,12 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                       isFont: true,
                     ),
                     decoration:
-                        task.isCompleted ? TextDecoration.lineThrough : null,
+                        task.status == 'completed' ? TextDecoration.lineThrough : null, // Usando status da Task
                   ),
                 ),
-                subtitle: task.projectName != null
+                subtitle: task.projectId != null // <--- CORRIGIDO: usando projectId
                     ? Text(
-                        task.projectName!,
+                        task.projectId!, // <--- CORRIGIDO: usando projectId
                         style: TextStyle(
                           color: kDarkTextSecondary,
                           fontSize: _getResponsiveSize(
@@ -950,7 +872,7 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                     size: _getResponsiveSize(context, 20.0),
                   ),
                   onPressed: () {
-                    // Implementar menu de opções para a tarefa
+                    // TODO: Implementar ações para a tarefa
                   },
                 ),
               );
@@ -986,16 +908,17 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
       ),
       child: InkWell(
         onTap: () {
-          // Implementar ação ao tocar no card
+          // TODO: Implementar ação de clique para o item da timeline
+          debugPrint('Item clicado: ${item.title}');
         },
         borderRadius: _getResponsiveBorderRadius(context, 12.0),
         child: Padding(
-          padding: EdgeInsets.all(_getResponsiveSize(context, 12.0)),
+          padding: EdgeInsets.all(_getResponsiveSize(context, 8.0)),
           child: Row(
             children: [
-              // Indicador de status (checkbox para tarefas, círculo para eventos)
+              // Checkbox de conclusão
               GestureDetector(
-                onTap: () => _toggleItemCompletion(item.id),
+                onTap: () => _toggleTimelineItemCompletion(item),
                 child: Container(
                   width: _getResponsiveSize(context, 24.0),
                   height: _getResponsiveSize(context, 24.0),
@@ -1015,7 +938,8 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                 ),
               ),
               SizedBox(width: _getResponsiveSize(context, 12.0)),
-              // Conteúdo do item
+
+              // Título e subtítulo
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1051,7 +975,8 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
                   ],
                 ),
               ),
-              // Horário do item
+
+              // Hora e duração
               Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -1218,8 +1143,72 @@ class _PlannerDiarioPageState extends State<PlannerDiarioPage>
       ),
     );
   }
+
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return Transform.translate(
+      offset: const Offset(0, 0),
+      child: FloatingActionButton(
+        backgroundColor: kAccentPurple,
+        elevation: 6,
+        shape: const CircleBorder(),
+        onPressed: () {
+          setState(() {
+            _isCardVisible = !_isCardVisible;
+            if (_isCardVisible) {
+              _slideController.forward();
+            } else {
+              _slideController.reverse();
+            }
+          });
+        },
+        child: const Icon(Icons.add, size: 28, color: kDarkTextPrimary),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar() {
+    return BottomAppBar(
+      color: kDarkSurface,
+      shape: const CircularNotchedRectangle(),
+      notchMargin: 8,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/habitos');
+              },
+              child: _bottomBarIcon(Icons.home_rounded),
+            ),
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/settings');
+              },
+              child: _bottomBarIcon(Icons.settings_outlined),
+            ),
+            const SizedBox(width: 40),
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/planner');
+              },
+              child: _bottomBarIcon(Icons.book_outlined, isActive: true),
+            ),
+            InkWell(
+              onTap: () {
+                _navigateToRoute('/perfil');
+              },
+              child: _bottomBarIcon(Icons.person_outline),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
+// Classe TimelinePainter
 class TimelinePainter extends CustomPainter {
   final int startHour;
   final int endHour;

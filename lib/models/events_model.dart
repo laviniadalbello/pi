@@ -1,68 +1,84 @@
-// No topo do seu arquivo PlannerDiarioPage.dart ou em um arquivo de modelo separado
-
+// lib/models/events_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart'; // Para Color e TimeOfDay
-import 'package:intl/intl.dart'; 
+import 'package:flutter/material.dart'; // Importe para usar Color
 
-class EventModel {
+class Event {
   final String id;
-  final String title; // Mudado de 'name' para 'title' para bater com Firestore
+  final String title;
   final DateTime startTime; // Firestore tem 'startTime' como Timestamp
-  final DateTime? endTime;  // Firestore tem 'endTime' como Timestamp
-  final Color eventColor;   // Você precisará de uma lógica para definir isso a partir dos dados ou default
+  final DateTime? endTime; // Firestore tem 'endTime' como Timestamp
+  final Color eventColor; // Você precisará de uma lógica para definir isso a partir dos dados ou default
   final String? location;
-  final String status;     // 'pending', 'completed', 'cancelled', etc.
+  final String status; // 'pending', 'completed', 'cancelled', etc.
   final String userId;
+  final bool isCompleted; // Adicionado para consistência com `updateEventCompletion`
 
-  EventModel({
+  Event({
     required this.id,
     required this.title,
     required this.startTime,
     this.endTime,
-    this.eventColor = kAccentPurple, // Cor padrão
+    this.eventColor = const Color(0xFF7F5AF0), // <-- Cor padrão: um roxo/azul
     this.location,
     required this.status,
     required this.userId,
+    this.isCompleted = false, // Padrão para não concluído
   });
 
-  // Calcula a duração baseada em startTime e endTime
-  Duration get duration {
-    if (endTime == null) {
-      return const Duration(hours: 1); // Duração padrão se não houver endTime
+  // Método auxiliar para converter String Hex para Color
+  static Color _colorFromHex(String hexColor) {
+    hexColor = hexColor.toUpperCase().replaceAll("#", "");
+    if (hexColor.length == 6) {
+      hexColor = "FF" + hexColor; // Adiciona opacidade total se ausente
     }
-    return endTime!.difference(startTime);
+    return Color(int.parse(hexColor, radix: 16));
   }
 
-  // Converte o startTime (DateTime) para TimeOfDay para a UI da timeline
-  TimeOfDay get startTimeOfDay {
-    return TimeOfDay(hour: startTime.hour, minute: startTime.minute);
+  // Método auxiliar para converter Color para String Hex
+  static String _colorToHex(Color color) {
+    // Retorna o valor ARGB completo (ex: FF7F5AF0)
+    return '#${color.value.toRadixString(16).padLeft(8, '0')}';
+    // Se preferir apenas o RGB (ex: 7F5AF0), remova o substring(2):
+    // return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
   }
 
-  bool get isCompleted { // Deriva isCompleted do status
-    return status == 'completed'; // Ajuste conforme seus valores de status
-  }
 
-  factory EventModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    
-    DateTime parsedStartTime = (data['startTime'] as Timestamp? ?? Timestamp.now()).toDate();
-    DateTime? parsedEndTime = (data['endTime'] as Timestamp?)?.toDate();
+  // Factory constructor para criar um Evento a partir de um documento do Firestore
+  factory Event.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
 
-    // Lógica para cor do evento - pode vir do Firestore ou ser definida de outra forma
-    // Exemplo: se você tiver um campo 'colorHex' no Firestore para eventos:
-    // Color color = data['colorHex'] != null 
-    //              ? Color(int.parse("0xFF${data['colorHex'].replaceAll('#', '')}")) 
-    //              : kAccentPurple;
+    // Converte Timestamp para DateTime
+    final Timestamp? startTimeStamp = data['startTime'] as Timestamp?;
+    final Timestamp? endTimeStamp = data['endTime'] as Timestamp?;
 
-    return EventModel(
-      id: doc.id,
-      title: data['title'] ?? 'Evento Sem Título',
-      startTime: parsedStartTime,
-      endTime: parsedEndTime,
+    // Obtém a cor como String Hex e converte para Color
+    final String colorHex = data['eventColor'] ?? '#7F5AF0'; // Valor padrão se a cor não for encontrada
+    final Color convertedColor = _colorFromHex(colorHex);
+
+    return Event(
+      id: doc.id, // O ID do documento do Firestore
+      title: data['title'] ?? 'Sem Título',
+      startTime: startTimeStamp?.toDate() ?? DateTime.now(), // Converte para DateTime
+      endTime: endTimeStamp?.toDate(), // Converte para DateTime
+      eventColor: convertedColor,
       location: data['location'],
       status: data['status'] ?? 'pending',
       userId: data['userId'] ?? '',
-      eventColor: kAccentPurple, // TODO: Defina a cor do evento (pode vir do Firestore ou lógica)
+      isCompleted: data['isCompleted'] ?? false, // Padrão se não estiver no Firestore
     );
+  }
+
+  // MÉTODO toFirestore QUE ESTÁ FALTANDO OU COM PROBLEMAS
+  Map<String, dynamic> toFirestore() {
+    return {
+      'title': title,
+      'startTime': Timestamp.fromDate(startTime), // Converte DateTime para Timestamp
+      'endTime': endTime != null ? Timestamp.fromDate(endTime!) : null, // Converte DateTime para Timestamp
+      'eventColor': _colorToHex(eventColor), // Converte Color para String Hex
+      'location': location,
+      'status': status,
+      'userId': userId,
+      'isCompleted': isCompleted,
+    };
   }
 }

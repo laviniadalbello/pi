@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'package:intl/intl.dart'; // Para formatação de data
+import 'package:intl/intl.dart'; 
 import 'package:planify/services/gemini_service.dart';
 import 'package:planify/services/firestore_tasks_service.dart';
-import 'configuracoes.dart'; // Certifique-se que este import é necessário
-import 'iconedaia.dart'; // Certifique-se que este import é necessário
+import 'configuracoes.dart'; 
+import 'iconedaia.dart'; 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
@@ -16,13 +16,10 @@ import 'package:universal_html/html.dart' as html;
 import 'package:image/image.dart' as img;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:planify/models/project_model.dart'; 
+import 'package:planify/models/task.dart'; 
 
-// Seus modelos - Certifique-se que os caminhos estão corretos
-// e que as classes são 'Project' e 'Task'
-import 'package:planify/models/project_model.dart'; // Deve conter a classe Project
-import 'package:planify/models/task.dart'; // Deve conter a classe Task
 
-// Suas constantes de cor (kDarkPrimaryBg, etc.)
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
 const Color kDarkElementBg = Color(0xFF202A44);
@@ -47,39 +44,36 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   late Animation<Offset> _slideAnimation;
 
   late GeminiService _geminiService;
-  FirestoreTasksService?
-      _firestoreTasksService; // Modificado para ser nullable e usar o nome que passamos para o card
+  FirestoreTasksService? _firestoreTasksService;
 
   bool _isCardVisible = false;
   String? _currentUserId;
   String? _currentUserEmail;
 
-  // Dados do perfil - serão carregados do Firestore
+  // Variáveis de estado para os dados do perfil
   String _userName = "Carregando...";
   String _userHandle = "@usuario";
   String _userBio = "Buscando informações...";
   List<Map<String, dynamic>> _userStats = [
     {"label": "Projetos", "value": 0},
     {"label": "Tarefas", "value": 0},
-    {"label": "Equipes", "value": 0}, // Será atualizado
+    {"label": "Equipes", "value": 0},
   ];
   List<Map<String, dynamic>> _recentActivities = [];
 
   Uint8List? _profileImageBytes;
 
   void _navigateToRoute(String routeName) {
-    // Primeiro, fecha o drawer se estiver aberto
     if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
       Navigator.of(context).pop();
     }
-    // Então, navega para a nova rota
     Navigator.of(context).pushNamed(routeName);
   }
 
   @override
   void initState() {
     super.initState();
-    _geminiService = GeminiService(apiKey: 'SUA_API_KEY_GEMINI_AQUI');
+    _geminiService = GeminiService(apiKey: 'SUA_API_KEY_GEMINI_AQUI'); // Lembre-se de substituir pela sua chave real
 
     _circleController =
         AnimationController(duration: const Duration(seconds: 6), vsync: this)
@@ -90,11 +84,12 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         .animate(
             CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
 
-    // Carrega os dados e verifica se há foto salva
+    // Carrega os dados do perfil após a inicialização
     _loadAllDataForProfile().then((_) {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null && mounted) {
-        _loadUserProfileFromFirestore(user);
+        // Já chamado dentro de _loadAllDataForProfile, mas mantido para clareza
+        // _loadUserProfileFromFirestore(user);
       }
     });
   }
@@ -119,21 +114,20 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     }
 
     _currentUserId = user.uid;
-    _currentUserEmail = user.email; // Guardar o email para a query de 'members'
+    _currentUserEmail = user.email;
     _firestoreTasksService = FirestoreTasksService(userId: _currentUserId!);
 
-    // Carrega todos os dados em paralelo quando possível
     try {
       await Future.wait([
-        _loadUserProfileFromFirestore(user), // Carrega nome, bio, handle
+        _loadUserProfileFromFirestore(user),
         _loadUserStatsFromFirestore(
-            _currentUserId!, _currentUserEmail), // Carrega contagens
+            _currentUserId!, _currentUserEmail),
         _loadRecentActivitiesFromFirestore(
-            _currentUserId!), // Carrega atividades
+            _currentUserId!),
       ]);
     } catch (e) {
       print("Erro ao carregar todos os dados do perfil: $e");
-      // Você pode querer definir um estado de erro mais geral aqui
+      // Lidar com o erro na UI, se necessário
     }
   }
 
@@ -148,7 +142,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         if (doc.exists) {
           final data = doc.data() as Map<String, dynamic>?;
 
-          // Carrega dados básicos
           final nameFromDoc = data?['name'] ?? data?['nome'];
           setState(() {
             _userName = nameFromDoc?.toString() ??
@@ -158,7 +151,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             _userHandle = '@${user.email?.split('@').first ?? 'usuario'}';
             _userBio = data?['bio']?.toString() ?? 'Bio não informada';
 
-            // Carrega a imagem se existir
             if (data?['profileImage'] != null) {
               _profileImageBytes =
                   base64Decode(data!['profileImage'] as String);
@@ -167,7 +159,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             }
           });
         } else {
-          // Cria novo usuário se não existir
+          // Se o documento do usuário não existe, cria um novo
           await FirebaseFirestore.instance
               .collection('users')
               .doc(user.uid)
@@ -180,6 +172,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           });
 
           if (mounted) {
+            // Recarrega o perfil após a criação
             await _loadUserProfileFromFirestore(user);
           }
         }
@@ -196,33 +189,78 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     }
   }
 
+  // NOVO MÉTODO: Atualizar dados do perfil no Firestore
+  Future<void> _updateUserProfile({
+    required String name,
+    required String bio,
+  }) async {
+    if (_currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro: Usuário não autenticado.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(_currentUserId).update({
+        'name': name,
+        'bio': bio,
+        'lastUpdated': FieldValue.serverTimestamp(), // Adiciona um timestamp de última atualização
+      });
+      if (mounted) {
+        setState(() {
+          _userName = name;
+          _userBio = bio;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Perfil atualizado com sucesso!',
+              style: TextStyle(color: kDarkTextPrimary),
+            ),
+            backgroundColor: kAccentSecondary,
+          ),
+        );
+      }
+    } catch (e) {
+      print('Erro ao atualizar perfil: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao atualizar perfil: $e')),
+        );
+      }
+    }
+  }
+
+
   Future<void> _loadUserStatsFromFirestore(
       String userId, String? userEmail) async {
     try {
-      // Contar Projetos do usuário
+      // Contagem de projetos
       final projectCountQuery = FirebaseFirestore.instance
           .collection('projects')
           .where('userId', isEqualTo: userId);
       final projectCountSnapshot = await projectCountQuery.count().get();
       final int projectCount = projectCountSnapshot.count ?? 0;
 
-      // Contar Tarefas do usuário
+      // Contagem de tarefas
       final taskCountQuery = FirebaseFirestore.instance
           .collection('tasks')
           .where('userId', isEqualTo: userId);
       final taskCountSnapshot = await taskCountQuery.count().get();
       final int taskCount = taskCountSnapshot.count ?? 0;
 
-      // Contar "Equipes" - Projetos onde o usuário é membro (pelo email)
-      // ATENÇÃO: Ajuste esta lógica se 'equipes' tiver uma definição diferente para você.
+      // Contagem de equipes (projetos onde o usuário é membro)
       int teamCount = 0;
       if (userEmail != null && userEmail.isNotEmpty) {
         final teamQuery = FirebaseFirestore.instance
             .collection('projects')
             .where('members',
                 arrayContains:
-                    userEmail); // Assume que 'members' é um array de emails
-        // .where('userId', isNotEqualTo: userId); // Opcional: para não contar projetos que ele já possui
+                    userEmail); // Assumindo que 'members' armazena emails
         final teamSnapshot = await teamQuery.count().get();
         teamCount = teamSnapshot.count ?? 0;
       }
@@ -232,7 +270,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           _userStats = [
             {"label": "Projetos", "value": projectCount},
             {"label": "Tarefas", "value": taskCount},
-            {"label": "Equipes", "value": projectCount},
+            {"label": "Equipes", "value": teamCount}, // Corrigido para teamCount
           ];
         });
       }
@@ -253,7 +291,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   Future<void> _loadRecentActivitiesFromFirestore(String userId) async {
     List<Map<String, dynamic>> activities = [];
     try {
-      // Buscar os 2 projetos mais recentes
+      // Projetos recentes
       QuerySnapshot recentProjects = await FirebaseFirestore.instance
           .collection('projects')
           .where('userId', isEqualTo: userId)
@@ -262,8 +300,8 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           .get();
 
       for (var doc in recentProjects.docs) {
-        Project project = Project.fromFirestore(doc); // Usa seu modelo Project
-        Color activityColor = kAccentPurple; // Cor padrão
+        Project project = Project.fromFirestore(doc);
+        Color activityColor = kAccentPurple;
         try {
           if (project.color.isNotEmpty) {
             String colorString = project.color.replaceAll('#', '');
@@ -282,31 +320,33 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         });
       }
 
-      // Buscar as 2 tarefas mais recentes (ou com prazo mais próximo, etc.)
+      // Tarefas recentes
       QuerySnapshot recentTasks = await FirebaseFirestore.instance
           .collection('tasks')
           .where('userId', isEqualTo: userId)
-          .orderBy('createdAt', descending: true) // ou 'dueDate'
+          .orderBy('createdAt', descending: true)
           .limit(2)
           .get();
 
       for (var doc in recentTasks.docs) {
-        Task task = Task.fromFirestore(doc); // Usa seu modelo Task
+        Task task = Task.fromFirestore(doc);
         activities.add({
           "type": "task",
           "title": task.title,
           "date": DateFormat('dd/MM/yy, HH:mm', 'pt_BR')
-              .format(task.createdAt), // Ou task.dueDate
+              .format(task.createdAt), // createdAt já é DateTime
           "status": task.status,
-          "color": kAccentSecondary, // Cor de exemplo para tarefas
+          "color": kAccentSecondary, // Cor padrão para tarefas
         });
       }
 
-      // Ordenar todas as atividades combinadas pela data (mais recentes primeiro)
-      // Isso assume que 'date' é uma String formatada que pode ser comparada ou um DateTime.
-      // Para comparação de datas reais, seria melhor converter 'date' para DateTime antes de ordenar.
-      // Por simplicidade, se as datas formatadas já ordenam bem:
-      // activities.sort((a, b) => b['date'].compareTo(a['date']));
+      // Ordenar atividades por data (mais recente primeiro)
+      activities.sort((a, b) {
+        DateTime dateA = DateFormat('dd/MM/yy, HH:mm', 'pt_BR').parse(a["date"]);
+        DateTime dateB = DateFormat('dd/MM/yy, HH:mm', 'pt_BR').parse(b["date"]);
+        return dateB.compareTo(dateA); // Ordem decrescente
+      });
+
 
       if (mounted) {
         setState(() {
@@ -319,20 +359,11 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     }
   }
 
-  // Seu método testFirestore, dispose, _navigateToRoute, e todos os _build... methods
-  // (como _buildFloatingActionButton, _buildDimOverlay, _buildSlidingMenu, _menuItem,
-  // _buildBottomBar, _buildBottomBarIcon, _animatedCircle, _buildHeader, _buildProfileSection,
-  // _buildStatsSection, _buildRecentActivitiesSection, _buildActivityItem, _buildActionButtons,
-  // _buildAiCardSection, _showEditProfileDialog, _showEditAvatarOptions, _showOptionsMenu)
-  // permanecem aqui como você os definiu no código que me enviou.
-  // Apenas garanta que _buildAiCardSection use _firestoreTasksService se precisar do userId.
 
-  // ... (COLE AQUI O RESTANTE DOS SEUS MÉTODOS _build... E OUTROS MÉTODOS HELPER) ...
-  // Exemplo do _buildAiCardSection ajustado para usar o serviço correto:
   Widget _buildAiCardSection(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     if (_firestoreTasksService == null)
-      return SizedBox.shrink(); // Não mostra se o serviço não está pronto
+      return const SizedBox.shrink(); // Use const para widgets sem estado
 
     return Transform.translate(
       offset: Offset(screenWidth * 0.15, -25),
@@ -343,7 +374,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           child: CloseableAiCard(
             geminiService: _geminiService,
             firestoreService:
-                _firestoreTasksService!, // Usa a instância correta com userId
+                _firestoreTasksService!,
             scaleFactor: screenWidth < 360 ? 0.3 : 0.35,
             enableScroll: true,
           ),
@@ -352,13 +383,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     );
   }
 
-  // Cole todos os seus outros métodos _build... aqui para o código ficar completo.
-  // ...
-  // Exemplo:
+
   Widget _buildBottomBar() {
-    // Use a lógica que você definiu para a PerfilPage, garantindo que isActive é true para o ícone do perfil
-    final String _currentPageRoute =
-        '/perfil'; // Definindo a rota atual para esta página
+    final String _currentPageRoute = '/perfil';
     return BottomAppBar(
       color: kDarkSurface,
       shape: const CircularNotchedRectangle(),
@@ -389,7 +416,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
 
   Widget _bottomBarIcon(IconData icon,
       {bool isActive = false, required VoidCallback onTap}) {
-    // Usando a versão IconButton que você tem na HabitsScreen para consistência
     return IconButton(
       icon: Icon(icon,
           color: isActive ? kAccentPurple : kDarkTextSecondary.withOpacity(0.6),
@@ -398,32 +424,170 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       padding: const EdgeInsets.all(12),
     );
   }
-  // ... e assim por diante para todos os seus outros métodos _build ...
-  // Cole o restante dos seus métodos _build... aqui. O código que você enviou era extenso.
-  // O método build principal é o mais importante e deve estar lá.
 
-  // Coloque o método build principal aqui, como você o enviou.
-  // Vou colocar uma versão simplificada dele para garantir que ele usa as variáveis de estado.
+  // MÉTODO _showEditProfileDialog REINSERIDO E AJUSTADO
+  void _showEditProfileDialog() {
+    final nameController = TextEditingController(text: _userName);
+    final handleController = TextEditingController(text: _userHandle); // Handle é derivado do email, não editável diretamente
+    final bioController = TextEditingController(text: _userBio);
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: kDarkElementBg,
+            title: const Text(
+              'Editar Perfil',
+              style: TextStyle(color: kDarkTextPrimary),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    style: const TextStyle(color: kDarkTextPrimary),
+                    decoration: InputDecoration(
+                      labelText: 'Nome',
+                      labelStyle: const TextStyle(color: kDarkTextSecondary),
+                      enabledBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: kDarkTextSecondary),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: kAccentPurple),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // O campo de handle é apenas para exibição, não editável diretamente
+                  TextField(
+                    controller: handleController,
+                    style: const TextStyle(color: kDarkTextSecondary), // Estilo para indicar que não é editável
+                    decoration: InputDecoration(
+                      labelText: 'Nome de usuário',
+                      labelStyle: const TextStyle(color: kDarkTextSecondary),
+                      enabledBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: kDarkTextSecondary),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: kDarkTextSecondary), // Não muda a cor no foco
+                      ),
+                    ),
+                    readOnly: true, // Torna o campo somente leitura
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: bioController,
+                    style: const TextStyle(color: kDarkTextPrimary),
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      labelText: 'Bio',
+                      alignLabelWithHint: true,
+                      labelStyle: const TextStyle(color: kDarkTextSecondary),
+                      enabledBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: kDarkTextSecondary),
+                      ),
+                      focusedBorder: const UnderlineInputBorder(
+                        borderSide: BorderSide(color: kAccentPurple),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: kDarkTextSecondary),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // Lógica para salvar as alterações
+                  _updateUserProfile(
+                    name: nameController.text,
+                    bio: bioController.text,
+                  );
+                  Navigator.pop(context); // Fecha o diálogo
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: kAccentPurple),
+                child: const Text(
+                  'Salvar',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // Implementação do _showOptionsMenu
+  void _showOptionsMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: kDarkElementBg,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.edit, color: kDarkTextPrimary),
+              title: const Text('Editar Perfil', style: TextStyle(color: kDarkTextPrimary)),
+              onTap: () {
+                Navigator.pop(context); // Fecha o bottom sheet
+                _showEditProfileDialog(); // Abre o diálogo de edição de perfil
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: kDarkTextPrimary),
+              title: const Text('Sair', style: TextStyle(color: kDarkTextPrimary)),
+              onTap: () async {
+                Navigator.pop(context); // Fecha o bottom sheet
+                await FirebaseAuth.instance.signOut();
+                // Navega para a página inicial/login
+                _navigateToRoute('/'); // Assumindo que '/' é sua página inicial/login
+              },
+            ),
+            // Adicione outras opções aqui se necessário
+            const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
+
+  // _showEditAvatarOptions() e _showOptionsMenu() foram implementados acima.
+  // Removendo as declarações vazias para evitar duplicidade.
+  // void _showEditAvatarOptions() {} // Removido
+  // void _showOptionsMenu() {} // Removido
+
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance
-        .currentUser; // Pode ser útil ter screenWidth/Height aqui também
-    // final screenWidth = MediaQuery.of(context).size.width;
-    // final screenHeight = MediaQuery.of(context).size.height;
-
+    final user = FirebaseAuth.instance.currentUser;
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: Colors.black, // ou kDarkPrimaryBg
+      backgroundColor: Colors.black,
       extendBody: true,
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomBar(), // Chama a versão atualizada
+      bottomNavigationBar: _buildBottomBar(),
       body: SafeArea(
         child: Stack(
           children: [
             Positioned.fill(
               child: Stack(
-                children: [/* Seus _animatedCircle aqui */],
+                children: [
+                  // Seus _animatedCircle aqui (certifique-se de que estão definidos ou remova o comentário)
+                  // Exemplo:
+                  _animatedCircle(50, 50, 1, [Colors.purple, Colors.deepPurple], 0),
+                  _animatedCircle(150, 200, 0.8, [Colors.blue, Colors.lightBlue], 1),
+                  _animatedCircle(250, 100, 1.2, [Colors.green, Colors.lightGreen], 2),
+                ],
               ),
             ),
             SingleChildScrollView(
@@ -433,56 +597,49 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
                 children: [
                   _buildHeader(),
                   const SizedBox(height: 30),
-                  _buildProfileSection(), // Este método usará _userName, _userHandle, _userBio
+                  _buildProfileSection(),
                   const SizedBox(height: 30),
-                  _buildStatsSection(), // Este método usará _userStats
+                  _buildStatsSection(),
                   const SizedBox(height: 30),
-                  _buildRecentActivitiesSection(), // Este método usará _recentActivities
+                  _buildRecentActivitiesSection(),
                   const SizedBox(height: 30),
                   _buildActionButtons(),
                   const SizedBox(height: 100),
                 ],
               ),
             ),
+            // Condicional para _buildAiCardSection (verifique se a lógica de visibilidade está correta)
             if (_isCardVisible && _firestoreTasksService != null)
-              _buildAiCardSection(
-                  context), // Mostra se visível e serviço pronto
+              _buildAiCardSection(context),
             if (_isCardVisible) _buildDimOverlay(),
-            if (_isCardVisible) _buildSlidingMenu(), // O seu já tem Positioned
+            if (_isCardVisible) _buildSlidingMenu(),
 
-            // O Positioned para o CloseableAiCard (chatbot) para estar sempre visível (se não condicionado por _isCardVisible)
-            // Se _buildAiCardSection já o posiciona e você quer que ele seja sempre visível (e não dependente de _isCardVisible),
-            // você chamaria _buildAiCardSection(context) aqui sem o if(_isCardVisible)
-            // Mas o seu código original da PerfilPage já o coloca dentro do Stack principal no final
-            // Vamos manter o seu original para o chatbot:
+            // Posição do CloseableAiCard (verifique se não está duplicado com _buildAiCardSection)
+            // Se _buildAiCardSection já renderiza o CloseableAiCard, esta Positioned pode ser removida.
+            // Para evitar duplicação, vou remover esta Positioned e confiar em _buildAiCardSection.
+            /*
             Positioned(
-              bottom: -26, // Conforme seu código da PerfilPage
+              bottom: -26,
               right: -60,
               child: CloseableAiCard(
                 geminiService: _geminiService,
-                firestoreService:
-                    _firestoreTasksService!, // Garanta que esta é a instância correta com UID
+                firestoreService: _firestoreTasksService!,
                 scaleFactor:
                     MediaQuery.of(context).size.width < 360 ? 0.35 : 0.4,
                 enableScroll: true,
               ),
             ),
+            */
           ],
         ),
       ),
     );
   }
 
-  // Cole todos os seus outros métodos _build... (_buildHeader, _buildProfileSection, etc.)
-  // _animatedCircle, _buildHeader, _buildProfileSection, _buildStatsSection, _buildRecentActivitiesSection,
-  // _buildActivityItem, _buildActionButtons, _showEditProfileDialog, _showEditAvatarOptions, _showOptionsMenu,
-  // _buildFloatingActionButton, _buildDimOverlay, _buildSlidingMenu, _menuItem
-  // Estes métodos devem permanecer como você os definiu no código que me enviou, pois eles
-  // lidam com a parte visual e agora devem receber dados reais através das variáveis de estado.
-  // ...
+
   Widget _animatedCircle(
       double top, double right, double speed, List<Color> colors, int index) {
-    /* ... seu código ... */ return AnimatedBuilder(
+    return AnimatedBuilder(
       animation: _circleController,
       builder: (context, child) => Positioned(
         top: top + sin(_circleController.value * 2 * pi + index * pi / 3) * 10,
@@ -497,9 +654,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                  colors: colors,
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight),
+                  colors: colors, begin: Alignment.topLeft, end: Alignment.bottomRight),
               boxShadow: [
                 BoxShadow(
                   color: colors[0].withOpacity(0.4),
@@ -515,7 +670,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildHeader() {
-    /* ... seu código ... */ return Stack(
+    return Stack(
       alignment: Alignment.center,
       children: [
         Align(
@@ -540,7 +695,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           child: IconButton(
             icon: const Icon(Icons.more_vert, color: kDarkTextPrimary),
             onPressed: () {
-              _showOptionsMenu();
+              _showOptionsMenu(); // Chamando o método para mostrar opções
             },
           ),
         ),
@@ -602,7 +757,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
         const SizedBox(height: 16),
         OutlinedButton(
           onPressed: () {
-            _showEditProfileDialog();
+            _showEditProfileDialog(); // Chamando o diálogo de edição
           },
           style: OutlinedButton.styleFrom(
             side: const BorderSide(color: kAccentPurple),
@@ -639,20 +794,21 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
       if (pickedBytes != null && _currentUserId != null) {
         setState(() => _profileImageBytes = pickedBytes);
 
-        // Converte para Base64 e salva no Firestore
+        // Converte a imagem para Base64
         final base64Image = base64Encode(pickedBytes);
 
-        // Salva no cache local
+        // Salva em SharedPreferences (cache local)
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('profileImage_$_currentUserId', base64Image);
 
+        // Atualiza no Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(_currentUserId)
             .update({
           'profileImage': base64Image,
           'lastUpdated':
-              FieldValue.serverTimestamp(), // Este campo é importante
+              FieldValue.serverTimestamp(), // Adiciona um timestamp de última atualização
         });
       }
     } catch (e) {
@@ -664,7 +820,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildStatsSection() {
-    /* ... seu código, usando _userStats ... */ return Container(
+    return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: kDarkElementBg,
@@ -696,7 +852,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildRecentActivitiesSection() {
-    /* ... seu código, usando _recentActivities ... */ return Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Row(
@@ -719,7 +875,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildActivityItem(Map<String, dynamic> activity) {
-    /* ... seu código ... */ IconData activityIcon;
+    IconData activityIcon;
     switch (activity["type"]) {
       case "project":
         activityIcon = Icons.folder;
@@ -796,7 +952,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildActionButtons() {
-    /* ... seu código ... */ return Column(
+    return Column(
       children: [
         _buildActionButton(
           icon: Icons.folder,
@@ -841,7 +997,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     required String label,
     required VoidCallback onTap,
   }) {
-    /* ... seu código ... */ return InkWell(
+    return InkWell(
       onTap: onTap,
       child: Container(
         width: double.infinity,
@@ -874,13 +1030,9 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
     );
   }
 
-  void _showEditProfileDialog() {/* ... seu código ... */}
-  void _showEditAvatarOptions() {/* ... seu código ... */}
-  void _showOptionsMenu() {/* ... seu código ... */}
 
-  // Estes são da HabitsScreen, adapte ou use os da PerfilPage se forem diferentes
   Widget _buildFloatingActionButton() {
-    /* ... seu código da PerfilPage ... */ return Transform.translate(
+    return Transform.translate(
       offset: const Offset(0, 0),
       child: FloatingActionButton(
         backgroundColor: kAccentPurple,
@@ -902,7 +1054,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildDimOverlay() {
-    /* ... seu código da PerfilPage ... */ return Positioned.fill(
+    return Positioned.fill(
       child: GestureDetector(
         onTap: () {
           setState(() {
@@ -916,7 +1068,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _buildSlidingMenu() {
-    /* ... seu código da PerfilPage ... */ return Positioned(
+    return Positioned(
       bottom: 8,
       left: 30,
       right: 30,
@@ -1001,7 +1153,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   }
 
   Widget _menuItem(IconData icon, String label) {
-    /* ... seu código da PerfilPage ... */ return Container(
+    return Container(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       decoration: BoxDecoration(
         border: Border.all(color: kDarkBorder.withOpacity(0.5)),
@@ -1025,9 +1177,6 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
   void dispose() {
     _circleController.dispose();
     _slideController.dispose();
-    // Remova as linhas abaixo se as classes não possuem dispose()
-    // _geminiService.dispose();
-    // _firestoreTasksService?.dispose();
     super.dispose();
   }
 }
