@@ -4,6 +4,8 @@ import 'criarevento.dart';
 import 'iconedaia.dart';
 import 'package:planify/services/gemini_service.dart';
 import 'package:planify/services/firestore_tasks_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 const Color kDarkPrimaryBg = Color(0xFF1A1A2E);
 const Color kDarkSurface = Color(0xFF16213E);
@@ -59,7 +61,6 @@ class Event {
 class Detalhesdoevento extends StatefulWidget {
   final GeminiService geminiService;
   const Detalhesdoevento({super.key, required this.geminiService});
-  
 
   @override
   State<Detalhesdoevento> createState() => _DetalhesdoeventoState();
@@ -76,8 +77,7 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
   void initState() {
     _firestoreService = FirestoreTasksService(userId: 'userId');
     super.initState();
-    _loadSampleEvents();
-    _filterEvents();
+    _loadEventsFromFirestore();
   }
 
   void _loadSampleEvents() {
@@ -162,34 +162,30 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
   }
 
   void _filterEvents() {
-    List<Event> eventsForSelectedDate =
-        _allEvents.where((event) {
-          return event.startDate.year == _selectedDate.year &&
-              event.startDate.month == _selectedDate.month &&
-              event.startDate.day == _selectedDate.day;
-        }).toList();
+    List<Event> eventsForSelectedDate = _allEvents.where((event) {
+      return event.startDate.year == _selectedDate.year &&
+          event.startDate.month == _selectedDate.month &&
+          event.startDate.day == _selectedDate.day;
+    }).toList();
 
     switch (_currentFilter) {
       case EventFilter.all:
         _filteredEvents = eventsForSelectedDate;
         break;
       case EventFilter.completed:
-        _filteredEvents =
-            eventsForSelectedDate
-                .where((event) => event.status == EventStatus.completed)
-                .toList();
+        _filteredEvents = eventsForSelectedDate
+            .where((event) => event.status == EventStatus.completed)
+            .toList();
         break;
       case EventFilter.inProgress:
-        _filteredEvents =
-            eventsForSelectedDate
-                .where((event) => event.status == EventStatus.inProgress)
-                .toList();
+        _filteredEvents = eventsForSelectedDate
+            .where((event) => event.status == EventStatus.inProgress)
+            .toList();
         break;
       case EventFilter.upcoming:
-        _filteredEvents =
-            eventsForSelectedDate
-                .where((event) => event.status == EventStatus.upcoming)
-                .toList();
+        _filteredEvents = eventsForSelectedDate
+            .where((event) => event.status == EventStatus.upcoming)
+            .toList();
         break;
     }
     // Sort events by start time
@@ -452,6 +448,60 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
     });
   }
 
+  Future<void> _loadEventsFromFirestore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final snapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('userId', isEqualTo: user.uid)
+        .get();
+
+    _allEvents = snapshot.docs.map((doc) {
+      final data = doc.data();
+      return Event(
+        id: doc.id,
+        name: data['title'] ?? '',
+        description: data['description'],
+        startDate: (data['startTime'] as Timestamp).toDate(),
+        startTime:
+            TimeOfDay.fromDateTime((data['startTime'] as Timestamp).toDate()),
+        endDate: data['endTime'] != null
+            ? (data['endTime'] as Timestamp).toDate()
+            : null,
+        endTime: data['endTime'] != null
+            ? TimeOfDay.fromDateTime((data['endTime'] as Timestamp).toDate())
+            : null,
+        location: data['location'],
+        eventColor: kAccentPurple, // Se quiser salvar a cor, adapte aqui
+        participants: (data['participants'] as List?)
+            ?.map((p) => Map<String, String>.from(p))
+            .toList(),
+        attachments:
+            (data['attachments'] as List?)?.map((a) => a.toString()).toList(),
+        notes: data['notes'],
+        status: _parseEventStatus(data['status']),
+      );
+    }).toList();
+
+    setState(() {
+      _filterEvents();
+    });
+  }
+
+  EventStatus _parseEventStatus(String? status) {
+    switch (status) {
+      case 'EventStatus.inProgress':
+        return EventStatus.inProgress;
+      case 'EventStatus.completed':
+        return EventStatus.completed;
+      case 'EventStatus.cancelled':
+        return EventStatus.cancelled;
+      default:
+        return EventStatus.upcoming;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -480,37 +530,37 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
                 _filterEvents();
               });
             },
-            itemBuilder:
-                (BuildContext context) => <PopupMenuEntry<EventFilter>>[
-                  const PopupMenuItem<EventFilter>(
-                    value: EventFilter.all,
-                    child: Text(
-                      'Todos Eventos do Dia',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                  ),
-                  const PopupMenuItem<EventFilter>(
-                    value: EventFilter.upcoming,
-                    child: Text(
-                      'Próximos no Dia',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                  ),
-                  const PopupMenuItem<EventFilter>(
-                    value: EventFilter.inProgress,
-                    child: Text(
-                      'Em Andamento no Dia',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                  ),
-                  const PopupMenuItem<EventFilter>(
-                    value: EventFilter.completed,
-                    child: Text(
-                      'Concluídos no Dia',
-                      style: TextStyle(color: kDarkTextPrimary),
-                    ),
-                  ),
-                ],
+            itemBuilder: (BuildContext context) =>
+                <PopupMenuEntry<EventFilter>>[
+              const PopupMenuItem<EventFilter>(
+                value: EventFilter.all,
+                child: Text(
+                  'Todos Eventos do Dia',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+              ),
+              const PopupMenuItem<EventFilter>(
+                value: EventFilter.upcoming,
+                child: Text(
+                  'Próximos no Dia',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+              ),
+              const PopupMenuItem<EventFilter>(
+                value: EventFilter.inProgress,
+                child: Text(
+                  'Em Andamento no Dia',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+              ),
+              const PopupMenuItem<EventFilter>(
+                value: EventFilter.completed,
+                child: Text(
+                  'Concluídos no Dia',
+                  style: TextStyle(color: kDarkTextPrimary),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -520,31 +570,30 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
             children: [
               _buildDateSelector(),
               Expanded(
-                child:
-                    _filteredEvents.isEmpty
-                        ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(20.0),
-                            child: Text(
-                              _currentFilter == EventFilter.all
-                                  ? 'Nenhum evento para ${DateFormat('dd/MM/yyyy').format(_selectedDate)}.'
-                                  : 'Nenhum evento ${_getFilterTextForEmptyState()} para ${DateFormat('dd/MM/yyyy').format(_selectedDate)}.',
-                              style: const TextStyle(
-                                color: kDarkTextSecondary,
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
+                child: _filteredEvents.isEmpty
+                    ? Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Text(
+                            _currentFilter == EventFilter.all
+                                ? 'Nenhum evento para ${DateFormat('dd/MM/yyyy').format(_selectedDate)}.'
+                                : 'Nenhum evento ${_getFilterTextForEmptyState()} para ${DateFormat('dd/MM/yyyy').format(_selectedDate)}.',
+                            style: const TextStyle(
+                              color: kDarkTextSecondary,
+                              fontSize: 16,
                             ),
+                            textAlign: TextAlign.center,
                           ),
-                        )
-                        : ListView.builder(
-                          padding: const EdgeInsets.all(16.0),
-                          itemCount: _filteredEvents.length,
-                          itemBuilder: (context, index) {
-                            final event = _filteredEvents[index];
-                            return _buildEventCard(event);
-                          },
                         ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16.0),
+                        itemCount: _filteredEvents.length,
+                        itemBuilder: (context, index) {
+                          final event = _filteredEvents[index];
+                          return _buildEventCard(event);
+                        },
+                      ),
               ),
             ],
           ),
@@ -569,8 +618,7 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
               MaterialPageRoute(builder: (context) => const CreateEventPage()),
             ).then((newEventAdded) {
               if (newEventAdded != null) {
-                _loadSampleEvents();
-                _filterEvents();
+                _loadEventsFromFirestore();
               }
             });
           },
@@ -624,7 +672,9 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
                         onPrimary: kDarkTextPrimary,
                         surface: kDarkSurface,
                         onSurface: kDarkTextPrimary,
-                      ), dialogTheme: const DialogThemeData(backgroundColor: kDarkElementBg),
+                      ),
+                      dialogTheme: const DialogThemeData(
+                          backgroundColor: kDarkElementBg),
                     ),
                     child: child!,
                   );
@@ -765,43 +815,42 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
                     _editEvent(event);
                   }
                 },
-                itemBuilder:
-                    (BuildContext context) => <PopupMenuEntry<String>>[
-                      const PopupMenuItem<String>(
-                        value: 'view',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.visibility_outlined,
-                              color: kDarkTextSecondary,
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Visualizar',
-                              style: TextStyle(color: kDarkTextPrimary),
-                            ),
-                          ],
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  const PopupMenuItem<String>(
+                    value: 'view',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.visibility_outlined,
+                          color: kDarkTextSecondary,
+                          size: 20,
                         ),
-                      ),
-                      const PopupMenuItem<String>(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.edit_outlined,
-                              color: kDarkTextSecondary,
-                              size: 20,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Editar',
-                              style: TextStyle(color: kDarkTextPrimary),
-                            ),
-                          ],
+                        SizedBox(width: 8),
+                        Text(
+                          'Visualizar',
+                          style: TextStyle(color: kDarkTextPrimary),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.edit_outlined,
+                          color: kDarkTextSecondary,
+                          size: 20,
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Editar',
+                          style: TextStyle(color: kDarkTextPrimary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -810,3 +859,4 @@ class _DetalhesdoeventoState extends State<Detalhesdoevento> {
     );
   }
 }
+
