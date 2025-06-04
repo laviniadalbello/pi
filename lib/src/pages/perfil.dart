@@ -214,7 +214,7 @@ class _PerfilPageState extends State<PerfilPage> with TickerProviderStateMixin {
           _userStats = [
             {"label": "Projetos", "value": projectCount},
             {"label": "Tarefas", "value": taskCount},
-            {"label": "Equipes", "value": teamCount},
+            {"label": "Equipes", "value": projectCount},
           ];
         });
       }

@@ -109,15 +109,14 @@ class GeminiService {
     ];
 
     _model = GenerativeModel(
-      model:
-          'gemini-2.0-flash', 
-      apiKey: _apiKey, 
+      model: 'gemini-2.0-flash',
+      apiKey: _apiKey,
       tools: tools,
     );
 
     _chat = _model.startChat(history: [
       Content.text(
-          'Você é um assistente de IA focado em ajudar o usuário a gerenciar suas tarefas e projetos. Use as ferramentas disponíveis para criar, listar, atualizar e deletar tarefas.'),
+          'Você é um assistente de IA focado em ajudar o usuário a gerenciar suas tarefas e projetos. Use as ferramentas disponíveis para criar, listar, atualizar e deletar tarefas. Além de apresentar recomendações personalizadas para organização de tarefas e projetos com base no que o usuário questionar, dando sugestões para melhorar a eficiência e o gerenciamento do tempo. Você pode ajudar o usuário a organizar a sua rotina de trabalho quando ele falar sobre, retornando sobre a organização que pode conter relação com outros usuários no trabalho. Você deve citar apenas a plataforma Planify, não mencione outras plataformas de organização.'),
     ]);
   }
 
